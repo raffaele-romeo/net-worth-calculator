@@ -7,14 +7,14 @@ resolvers += Resolver.sonatypeRepo("snapshots")
 
 lazy val root = (project in file("."))
   .settings(
-    name := "net-wroth-calculator"
+    name := "net-worth-calculator"
   )
   .aggregate(core, tests)
 
 lazy val tests = (project in file("modules/tests"))
   .configs(IntegrationTest)
   .settings(
-    name := "net-wroth-calculator-test-suite",
+    name := "net-worth-calculator-test-suite",
     scalacOptions += "-Ymacro-annotations",
     scalafmtOnCompile := true,
     Defaults.itSettings,
@@ -30,8 +30,8 @@ lazy val core = (project in file("modules/core"))
   .enablePlugins(DockerPlugin)
   .enablePlugins(AshScriptPlugin)
   .settings(
-    name := "net-wroth-calculator-core",
-    packageName in Docker := "et-wroth-calculator",
+    name := "net-worth-calculator-core",
+    packageName in Docker := "net-worth-calculator",
     scalacOptions += "-Ymacro-annotations",
     scalafmtOnCompile := true,
     resolvers += Resolver.sonatypeRepo("snapshots"),
@@ -57,5 +57,9 @@ lazy val core = (project in file("modules/core"))
       Libraries.http4sServer,
       Libraries.http4sClient,
       Libraries.http4sCirce,
+      Libraries.newtype,
+      Libraries.refinedCore,
+      Libraries.refinedCats,
+      Libraries.squants
     )
   )
