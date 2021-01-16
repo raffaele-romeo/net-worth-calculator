@@ -57,5 +57,9 @@ lazy val core = (project in file("modules/core"))
       Libraries.http4sServer,
       Libraries.http4sClient,
       Libraries.http4sCirce,
+      Libraries.newtype,
+      Libraries.refinedCore,
+      Libraries.refinedCats,
+      Libraries.squants
     )
   )
