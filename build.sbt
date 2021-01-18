@@ -41,6 +41,8 @@ lazy val core = (project in file("modules/core"))
     makeBatScripts := Seq(),
     dockerUpdateLatest := true,
     libraryDependencies ++= Seq(
+      compilerPlugin(Libraries.kindProjector cross CrossVersion.full),
+      compilerPlugin(Libraries.betterMonadicFor),
       Libraries.cats,
       Libraries.catsEffect,
       Libraries.catsRetry,

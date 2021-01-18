@@ -15,6 +15,9 @@ object Dependencies {
     val refined       = "0.9.20"
     val squants       = "1.7.0"
 
+    val betterMonadicFor = "0.3.1"
+    val kindProjector    = "0.11.3"
+
     val scalaCheck    = "1.15.2"
     val scalaTest     = "3.2.2"
     val scalaTestPlus = "3.2.2.0"
@@ -50,6 +53,10 @@ object Dependencies {
     val refinedCore   = "eu.timepit"        %% "refined"      % Versions.refined
     val refinedCats   = "eu.timepit"        %% "refined-cats" % Versions.refined
     val squants       = "org.typelevel"     %% "squants"      % Versions.squants
+
+    // Compiler plugins
+    val betterMonadicFor = "com.olegpy"    %% "better-monadic-for" % Versions.betterMonadicFor
+    val kindProjector    = "org.typelevel" % "kind-projector"      % Versions.kindProjector
 
     // Test
     val scalaCheck    = "org.scalacheck"    %% "scalacheck"      % Versions.scalaCheck
