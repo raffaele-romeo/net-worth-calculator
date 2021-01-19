@@ -2,10 +2,12 @@ package networthcalculator.http
 
 import cats.Applicative
 import io.circe.generic.semiauto._
-import io.circe.{ Encoder, _ }
+import io.circe.{Encoder, _}
 import io.estatico.newtype.Coercible
 import io.estatico.newtype.ops._
-import networthcalculator.domain.auth.{ CreateUser, User }
+import networthcalculator.domain.asset.{Asset, CreateAsset, UpdateAsset}
+import networthcalculator.domain.auth.{CreateUser, User}
+import networthcalculator.domain.healthcheck.AppStatus
 import org.http4s.EntityEncoder
 import org.http4s.circe.jsonEncoderOf
 
@@ -31,6 +33,13 @@ private[http] trait JsonCodecs {
   implicit val userDecoder: Decoder[User] = deriveDecoder[User]
   implicit val userEncoder: Encoder[User] = deriveEncoder[User]
 
-  implicit val createUserDecoder: Decoder[CreateUser] = deriveDecoder[CreateUser]
+  implicit val assetDecoder: Decoder[Asset] = deriveDecoder[Asset]
+  implicit val assetEncoder: Encoder[Asset] = deriveEncoder[Asset]
+
+  implicit val appStatusEncoder: Encoder[AppStatus] = deriveEncoder[AppStatus]
+
+  implicit val createUserDecoder: Decoder[CreateUser]   = deriveDecoder[CreateUser]
+  implicit val createAssetDecoder: Decoder[CreateAsset] = deriveDecoder[CreateAsset]
+  implicit val updateAssetDecoder: Decoder[UpdateAsset] = deriveDecoder[UpdateAsset]
 
 }
