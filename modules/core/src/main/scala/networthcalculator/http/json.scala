@@ -3,7 +3,6 @@ package networthcalculator.http
 import cats.Applicative
 import io.circe.generic.semiauto._
 import io.circe.{ Encoder, _ }
-import io.circe.refined._
 import io.estatico.newtype.Coercible
 import io.estatico.newtype.ops._
 import networthcalculator.domain.auth.{ CreateUser, User }

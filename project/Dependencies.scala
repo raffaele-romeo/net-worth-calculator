@@ -11,7 +11,7 @@ object Dependencies {
     val doobie        = "0.10.0"
     val elasticsearch = "7.10.2"
     val http4s        = "0.21.15"
-    val newtype       = "0.4.4"
+    val newtype       = "0.4.3"
     val refined       = "0.9.20"
     val squants       = "1.7.0"
 
