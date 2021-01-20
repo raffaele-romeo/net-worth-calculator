@@ -2,7 +2,7 @@ package networthcalculator.http
 
 import cats.syntax.all._
 import eu.timepit.refined._
-import eu.timepit.refined.api.{Refined, Validate}
+import eu.timepit.refined.api.{ Refined, Validate }
 import io.estatico.newtype.Coercible
 import io.estatico.newtype.ops._
 import org.http4s._

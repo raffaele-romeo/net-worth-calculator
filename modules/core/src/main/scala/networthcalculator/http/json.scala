@@ -1,12 +1,13 @@
 package networthcalculator.http
 
 import cats.Applicative
+import io.circe._
 import io.circe.generic.semiauto._
-import io.circe.{Encoder, _}
+import io.circe.refined._
 import io.estatico.newtype.Coercible
 import io.estatico.newtype.ops._
-import networthcalculator.domain.asset.{Asset, CreateAsset, UpdateAsset}
-import networthcalculator.domain.auth.{CreateUser, User}
+import networthcalculator.domain.asset._
+import networthcalculator.domain.auth._
 import networthcalculator.domain.healthcheck.AppStatus
 import org.http4s.EntityEncoder
 import org.http4s.circe.jsonEncoderOf
@@ -16,6 +17,16 @@ object json extends JsonCodecs {
 }
 
 private[http] trait JsonCodecs {
+
+  // ----- Overriding some Coercible codecs ----
+  implicit val usernameParamDecoder: Decoder[UserNameParam] =
+    Decoder.forProduct1("name")(UserNameParam.apply)
+
+  implicit val assetTypeParamDecoder: Decoder[AssetTypeParam] =
+    Decoder.forProduct1("name")(AssetTypeParam.apply)
+
+  implicit val assetIdParamDecoder: Decoder[AssetIdParam] =
+    Decoder.forProduct1("name")(AssetIdParam.apply)
 
   // ----- Coercible codecs -----
   implicit def coercibleDecoder[A: Coercible[B, *], B: Decoder]: Decoder[A] =

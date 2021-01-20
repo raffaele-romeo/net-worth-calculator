@@ -3,8 +3,8 @@ package networthcalculator.domain
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.numeric.Interval.Closed
 import io.estatico.newtype.macros.newtype
-import networthcalculator.domain.asset.{Asset, AssetId, AssetType}
-import squants.market.{Currency, Money}
+import networthcalculator.domain.asset.{ Asset, AssetId, AssetType }
+import squants.market.{ Currency, Money }
 
 object transaction {
 
@@ -19,24 +19,24 @@ object transaction {
   @newtype case class AccountName(name: String)
 
   case class Transaction(
-                          transactionId: TransactionId,
-                          bankName: BankName,
-                          accountName: Option[AccountName],
-                          asset: Asset,
-                          amount: Money,
-                          currency: Currency,
-                          month: Month,
-                          year: Year
+      transactionId: TransactionId,
+      bankName: BankName,
+      accountName: Option[AccountName],
+      asset: Asset,
+      amount: Money,
+      currency: Currency,
+      month: Month,
+      year: Year
   )
 
   case class CreateTransaction(
-                                bankName: BankName,
-                                accountName: Option[AccountName],
-                                assetId: AssetId,
-                                amount: Money,
-                                currency: Currency,
-                                month: Month,
-                                year: Year
+      bankName: BankName,
+      accountName: Option[AccountName],
+      assetId: AssetId,
+      amount: Money,
+      currency: Currency,
+      month: Month,
+      year: Year
   )
 
   case class UpdateTransaction(
@@ -55,14 +55,14 @@ object transaction {
   )
 
   case class FindTrendNetWorth(
-                                monthFrom: Month,
-                                yearFrom: Year,
-                                monthTo: Month,
-                                yearTo: Year,
-                                statisticsCurrencyType: Currency,
-                                currency: Option[Currency],
-                                assetType: Option[AssetType],
-                                assetTypesToExclude: List[AssetType]
+      monthFrom: Month,
+      yearFrom: Year,
+      monthTo: Month,
+      yearTo: Year,
+      statisticsCurrencyType: Currency,
+      currency: Option[Currency],
+      assetType: Option[AssetType],
+      assetTypesToExclude: List[AssetType]
   )
 
   case class Statistics(
