@@ -3,7 +3,7 @@ package networthcalculator.domain
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.numeric.Interval.Closed
 import io.estatico.newtype.macros.newtype
-import networthcalculator.domain.account.{ Account, AccountId, AccountType }
+import networthcalculator.domain.asset.{ Asset, AssetId, AssetType }
 import squants.market.{ Currency, Money }
 
 object transaction {
@@ -22,7 +22,7 @@ object transaction {
       transactionId: TransactionId,
       bankName: BankName,
       accountName: Option[AccountName],
-      account: Account,
+      asset: Asset,
       amount: Money,
       currency: Currency,
       month: Month,
@@ -32,7 +32,7 @@ object transaction {
   case class CreateTransaction(
       bankName: BankName,
       accountName: Option[AccountName],
-      accountId: AccountId,
+      assetId: AssetId,
       amount: Money,
       currency: Currency,
       month: Month,
@@ -50,8 +50,8 @@ object transaction {
       year: Year,
       statisticsCurrencyType: Currency,
       currency: Option[Currency],
-      accountType: Option[AccountId],
-      accountTypeToExclude: List[AccountId]
+      accountType: Option[AssetId],
+      accountTypeToExclude: List[AssetId]
   )
 
   case class FindTrendNetWorth(
@@ -61,12 +61,12 @@ object transaction {
       yearTo: Year,
       statisticsCurrencyType: Currency,
       currency: Option[Currency],
-      accountType: Option[AccountId],
-      accountTypesToExclude: List[AccountId]
+      assetType: Option[AssetType],
+      assetTypesToExclude: List[AssetType]
   )
 
   case class Statistics(
-      accountType: Option[AccountType],
+      assetType: Option[AssetType],
       currency: Currency,
       amount: Money
   )

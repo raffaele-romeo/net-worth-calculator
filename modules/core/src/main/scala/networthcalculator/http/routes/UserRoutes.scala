@@ -4,6 +4,7 @@ import cats._
 import cats.syntax.all._
 import networthcalculator.algebras.Users
 import networthcalculator.domain.auth._
+import networthcalculator.effects.MonadThrow
 import networthcalculator.http.decoder._
 import networthcalculator.http.json._
 import org.http4s._
