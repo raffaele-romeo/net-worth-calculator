@@ -3,8 +3,8 @@ package networthcalculator.domain
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.numeric.Interval.Closed
 import io.estatico.newtype.macros.newtype
-import networthcalculator.domain.asset.{ Asset, AssetId, AssetType }
-import squants.market.{ Currency, Money }
+import networthcalculator.domain.asset.{Asset, AssetId, AssetType}
+import squants.market.{Currency, Money}
 
 object transaction {
 

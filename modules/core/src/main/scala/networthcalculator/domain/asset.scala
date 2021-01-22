@@ -19,6 +19,7 @@ object asset {
   }
 
   case class CreateAsset(assetType: AssetTypeParam)
+
   case class UpdateAsset(assetId: AssetIdParam, assetType: AssetTypeParam) {
     def toDomain: Asset = Asset(AssetId(assetId.value.value), AssetType(assetType.value.value.toLowerCase()))
   }

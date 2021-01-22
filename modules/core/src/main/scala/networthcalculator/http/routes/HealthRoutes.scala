@@ -1,6 +1,6 @@
 package networthcalculator.http.routes
 
-import cats.{ Defer, Monad }
+import cats.{Defer, Monad}
 import networthcalculator.algebras.HealthCheck
 import networthcalculator.http.json._
 import org.http4s.HttpRoutes

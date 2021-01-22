@@ -49,7 +49,7 @@ private[http] trait JsonCodecs {
 
   implicit val appStatusEncoder: Encoder[AppStatus] = deriveEncoder[AppStatus]
 
-  implicit val createUserDecoder: Decoder[CreateUser]   = deriveDecoder[CreateUser]
+  implicit val createUserDecoder: Decoder[CreateUser] = deriveDecoder[CreateUser]
   implicit val createAssetDecoder: Decoder[CreateAsset] = deriveDecoder[CreateAsset]
   implicit val updateAssetDecoder: Decoder[UpdateAsset] = deriveDecoder[UpdateAsset]
 
