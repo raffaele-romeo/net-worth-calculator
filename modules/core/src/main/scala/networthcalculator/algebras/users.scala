@@ -1,7 +1,8 @@
 package networthcalculator.algebras
 
-import networthcalculator.domain.auth.{UserId, UserName}
+import networthcalculator.domain.auth._
 
 trait Users[F[_]] {
-  def newUser(username: UserName): F[UserId]
+  def find(username: UserName, password: Password): F[Option[User]]
+  def create(username: UserName, password: Password): F[UserId]
 }
