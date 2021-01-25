@@ -5,15 +5,12 @@ import eu.timepit.refined.numeric.Interval.Closed
 import io.estatico.newtype.macros.newtype
 import networthcalculator.domain.asset.{Asset, AssetId, AssetType}
 import squants.market.{Currency, Money}
+import java.time.Year
+import java.time.Month
 
 object transaction {
 
-  type MonthValue = Int Refined Closed[1, 12]
-
   @newtype case class TransactionId(value: Long)
-
-  @newtype case class Month(value: Option[Int])
-  @newtype case class Year(value: Int)
 
   @newtype case class BankName(name: String)
   @newtype case class AccountName(name: String)
@@ -25,7 +22,7 @@ object transaction {
       asset: Asset,
       amount: Money,
       currency: Currency,
-      month: Month,
+      month: Option[Month],
       year: Year
   )
 
@@ -35,7 +32,7 @@ object transaction {
       assetId: AssetId,
       amount: Money,
       currency: Currency,
-      month: Month,
+      month: Option[Month],
       year: Year
   )
 
@@ -46,23 +43,23 @@ object transaction {
   )
 
   case class FindTotalNetWorth(
-      month: Month,
+      month: Option[Month],
       year: Year,
-      statisticsCurrencyType: Currency,
-      currency: Option[Currency],
-      accountType: Option[AssetId],
-      accountTypeToExclude: List[AssetId]
+      statisticsCurrencyType: Currency, //Output currency
+      currency: Option[Currency], //If specified, get statistics by currency
+      accountType: Option[AssetId], //If specified, get statistics by accountType
+      accountTypeToExclude: List[AssetId] //Account to exclude from statistics
   )
 
   case class FindTrendNetWorth(
-      monthFrom: Month,
+      monthFrom: Option[Month],
       yearFrom: Year,
-      monthTo: Month,
+      monthTo: Option[Month],
       yearTo: Year,
       statisticsCurrencyType: Currency,
       currency: Option[Currency],
       assetType: Option[AssetType],
-      assetTypesToExclude: List[AssetType]
+      assetTypesToExclude: List[AssetType] //Query parameter of string with comma separator. Needs to be splitted
   )
 
   case class Statistics(

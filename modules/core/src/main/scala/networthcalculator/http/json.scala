@@ -9,6 +9,7 @@ import io.estatico.newtype.ops._
 import networthcalculator.domain.asset._
 import networthcalculator.domain.auth._
 import networthcalculator.domain.healthcheck.AppStatus
+import networthcalculator.domain.transaction.Transaction
 import org.http4s.EntityEncoder
 import org.http4s.circe.jsonEncoderOf
 
@@ -53,4 +54,6 @@ private[http] trait JsonCodecs {
   implicit val createAssetDecoder: Decoder[CreateAsset] = deriveDecoder[CreateAsset]
   implicit val updateAssetDecoder: Decoder[UpdateAsset] = deriveDecoder[UpdateAsset]
 
+  implicit val transactionDecoder: Decoder[Transaction] = deriveDecoder[Transaction]
+  implicit val transactionEncoder: Encoder[Transaction] = deriveEncoder[Transaction]
 }
