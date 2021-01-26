@@ -1,5 +1,6 @@
 package networthcalculator.http.routes
 
+/*
 import cats.{Defer, Monad}
 import networthcalculator.algebras.Transactions
 import networthcalculator.domain.auth.UserId
@@ -22,7 +23,7 @@ final class TransactionRoutes[F[_]: Defer: JsonDecoder: Monad](
 
     case POST -> Root / LongVar(id) =>
   }
-  /*
+
   def insert(userId: UserId, transaction: CreateTransaction): F[TransactionId]
   def bulkInsert(userId: UserId, transactions: List[CreateTransaction]): F[Unit]
   def update(userId: UserId, updateTransaction: UpdateTransaction): F[TransactionId]
@@ -30,5 +31,5 @@ final class TransactionRoutes[F[_]: Defer: JsonDecoder: Monad](
   def findAll(userId: UserId): F[List[Transaction]] // When implementing, understand how to manage huge number. It can be a long list after a while
   def getTotalNetWorth(userId: UserId, totalNetWorth: FindTotalNetWorth): F[List[Statistics]]
   def getTrendNetWorth(userId: UserId, trendNetWorth: FindTrendNetWorth): F[List[Statistics]]
- */
 }
+ */
