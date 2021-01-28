@@ -3,7 +3,7 @@ package networthcalculator.http.routes
 import cats._
 import cats.syntax.all._
 import networthcalculator.algebras.Assets
-import networthcalculator.domain.asset.{AssetId, CreateAsset, UpdateAsset}
+import networthcalculator.domain.asset._
 import networthcalculator.http.json._
 import org.http4s.HttpRoutes
 import org.http4s.circe.{JsonDecoder, _}

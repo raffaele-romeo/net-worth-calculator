@@ -32,6 +32,7 @@ object Dependencies {
     def http4s(artifact: String): ModuleID = "org.http4s" %% artifact % Versions.http4s
     def ciris(artifact: String): ModuleID = "is.cir" %% artifact % Versions.ciris
     def circe(artifact: String): ModuleID = "io.circe" %% artifact % Versions.circe
+    def doobie(artifact: String): ModuleID = "org.tpolecat" %% artifact % Versions.doobie
 
     val cats = "org.typelevel" %% "cats-core" % Versions.cats
     val catsEffect = "org.typelevel" %% "cats-effect" % Versions.catsEffect
@@ -48,7 +49,9 @@ object Dependencies {
 
     val commonsCodec = "commons-codec" % "commons-codec" % Versions.commonsCodec
 
-    val doobieCore = "org.tpolecat" %% "doobie-core" % Versions.doobie
+    val doobieCore = doobie("doobie-core")
+    val doobieHikari = doobie("doobie-hikari")
+    val doobiePostgres = doobie("doobie-postgres")
 
     val log4cats = "io.chrisdavenport" %% "log4cats-slf4j" % Versions.log4cats
 

@@ -1,10 +1,10 @@
 package networthcalculator.domain
 
 import io.estatico.newtype.macros.newtype
-import networthcalculator.domain.asset.{Asset, AssetId, AssetType}
+import networthcalculator.domain.asset._
 import squants.market.{Currency, Money}
-import java.time.Year
-import java.time.Month
+
+import java.time.{Month, Year}
 
 object transaction {
 
@@ -57,7 +57,7 @@ object transaction {
       statisticsCurrencyType: Currency,
       currency: Option[Currency],
       assetType: Option[AssetType],
-      assetTypesToExclude: List[AssetType] //Query parameter of string with comma separator. Needs to be splitted
+      assetTypesToExclude: List[AssetType] //Query parameter of string with comma separator. Needs to be split
   )
 
   case class Statistics(
