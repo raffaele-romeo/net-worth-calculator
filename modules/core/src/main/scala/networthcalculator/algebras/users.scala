@@ -62,6 +62,8 @@ final class LiveUsers[F[_]: BracketThrow: Sync] private (
 
 private object UserQueries {
 
+  import networthcalculator.ext.doobienewtype._
+
   def insert(user: User): ConnectionIO[User] = {
     sql"""
          |INSERT INTO users (
