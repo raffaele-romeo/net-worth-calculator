@@ -13,19 +13,28 @@ import scala.util.control.NoStackTrace
 
 object auth {
 
+  def AdminRequired[F[_]: MonadThrow]: BasicRBAC[F, Role, User, AugmentedJWT[HMACSHA256, Int]] =
+    BasicRBAC[F, Role, User, AugmentedJWT[HMACSHA256, Int]](Administrator)
+
+  def CustomerRequired[F[_]: MonadThrow]: BasicRBAC[F, Role, User, AugmentedJWT[HMACSHA256, Int]] =
+    BasicRBAC[F, Role, User, AugmentedJWT[HMACSHA256, Int]](Customer)
+
+  // Role definition
+  sealed case class Role(roleRepr: String)
+
   @newtype case class UserId(value: Long)
 
   @newtype case class UserName(value: String)
 
   @newtype case class Password(value: String)
 
+  // --------- user registration -----------
+
   @newtype case class Salt(value: String)
 
   @newtype case class EncryptedPassword(value: String)
 
   case class User(id: UserId, name: UserName, password: Password, salt: Salt, role: Role = Role.Customer)
-
-  // --------- user registration -----------
 
   @newtype case class UserNameParam(value: NonEmptyString) {
     def toDomain: UserName = UserName(value.value.toLowerCase())
@@ -39,26 +48,16 @@ object auth {
 
   case class UserNameInUse(username: UserName) extends NoStackTrace
 
-  // Role definition
-  sealed case class Role(roleRepr: String)
-
   object Role extends SimpleAuthEnum[Role, String] {
 
     val Administrator: Role = Role("Administrator")
     val Customer: Role = Role("User")
 
     implicit val E: Eq[Role] = Eq.fromUniversalEquals[Role]
+    protected val values: AuthGroup[Role] = AuthGroup(Administrator, Customer)
 
     def getRepr(t: Role): String = t.roleRepr
-
-    protected val values: AuthGroup[Role] = AuthGroup(Administrator, Customer)
   }
-
-  def AdminRequired[F[_]: MonadThrow]: BasicRBAC[F, Role, User, AugmentedJWT[HMACSHA256, Int]] =
-    BasicRBAC[F, Role, User, AugmentedJWT[HMACSHA256, Int]](Administrator)
-
-  def CustomerRequired[F[_]: MonadThrow]: BasicRBAC[F, Role, User, AugmentedJWT[HMACSHA256, Int]] =
-    BasicRBAC[F, Role, User, AugmentedJWT[HMACSHA256, Int]](Customer)
 
   object User {
 

@@ -55,6 +55,8 @@ lazy val core = (project in file("modules/core"))
       Libraries.cirisRefined,
       Libraries.commonsCodec,
       Libraries.doobieCore,
+      Libraries.doobieHikari,
+      Libraries.doobiePostgres,
       Libraries.elasticsearch,
       Libraries.logback,
       Libraries.log4cats,
