@@ -6,7 +6,7 @@ import cats.syntax.all._
 import doobie._
 import doobie.hikari._
 import doobie.implicits._
-import networthcalculator.domain.auth._
+import networthcalculator.domain.users._
 import networthcalculator.effects.BracketThrow
 import tsec.authentication.BackingStore
 
@@ -22,13 +22,17 @@ object LiveUsers {
 
 final class LiveUsers[F[_]: BracketThrow: Sync] private (
     transactor: Resource[F, HikariTransactor[F]]
-) extends BackingStore[F, UserId, User] {
+) extends BackingStore[F, UserName, User] {
 
   override def put(user: User): F[User] = {
     transactor
       .use(
         UserQueries
           .insert(user)
+          .handleErrorWith {
+            case ex: java.sql.SQLException if ex.getErrorCode == 23505 =>
+              UserNameInUse(user.name).raiseError[ConnectionIO, User]
+          }
           .transact[F]
       )
   }
@@ -41,19 +45,19 @@ final class LiveUsers[F[_]: BracketThrow: Sync] private (
     )
   }
 
-  override def delete(userId: UserId): F[Unit] = {
+  override def delete(userName: UserName): F[Unit] = {
     transactor.use(
       UserQueries
-        .delete(userId)
+        .delete(userName)
         .transact[F]
     ) *> Sync[F].unit
   }
 
-  override def get(userId: UserId): OptionT[F, User] = {
+  override def get(userName: UserName): OptionT[F, User] = {
     OptionT(
       transactor.use(
         UserQueries
-          .select(userId)
+          .select(userName)
           .transact[F]
       )
     )
@@ -62,7 +66,7 @@ final class LiveUsers[F[_]: BracketThrow: Sync] private (
 
 private object UserQueries {
 
-  import networthcalculator.ext.doobienewtype._
+  import networthcalculator.ext.CoercibleDoobieCodec._
 
   def insert(user: User): ConnectionIO[User] = {
     sql"""
@@ -80,10 +84,6 @@ private object UserQueries {
          |)
         """.stripMargin.update
       .withUniqueGeneratedKeys[User]("id", "name", "password", "salt", "role")
-      .handleErrorWith {
-        case ex: java.sql.SQLException if ex.getErrorCode == 23505 =>
-          UserNameInUse(user.name).raiseError[ConnectionIO, User]
-      }
   }
 
   def update(user: User): ConnectionIO[User] = {
@@ -97,18 +97,18 @@ private object UserQueries {
       .withUniqueGeneratedKeys[User]("id", "name", "password", "password", "role")
   }
 
-  def select(userId: UserId): ConnectionIO[Option[User]] = {
+  def select(userName: UserName): ConnectionIO[Option[User]] = {
     sql"""
          | SELECT id, name, password, salt, role 
          | FROM users 
-         | WHERE id = ${userId.value}
+         | WHERE name = ${userName.value}
     """.stripMargin.query[User].option
   }
 
-  def delete(userId: UserId): ConnectionIO[Int] = {
+  def delete(userName: UserName): ConnectionIO[Int] = {
     sql"""
          | DELETE FROM users 
-         | WHERE id=${userId.value}
+         | WHERE name=${userName.value}
     """.stripMargin.update.run
   }
 

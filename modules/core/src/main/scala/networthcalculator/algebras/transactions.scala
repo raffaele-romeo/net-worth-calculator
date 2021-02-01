@@ -1,6 +1,6 @@
 package networthcalculator.algebras
 
-import networthcalculator.domain.auth.UserId
+import networthcalculator.domain.users.UserId
 import networthcalculator.domain.transaction._
 
 trait Transactions[F[_]] {

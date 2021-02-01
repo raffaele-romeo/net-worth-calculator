@@ -1,7 +1,7 @@
 package networthcalculator.algebras
 
 import cats.effect.Sync
-import networthcalculator.domain.auth._
+import networthcalculator.domain.users._
 import org.apache.commons.codec.binary.Hex
 
 import java.security.SecureRandom
@@ -12,7 +12,7 @@ import javax.crypto.spec.PBEKeySpec
 trait Crypto {
   def encrypt(password: Password, salt: Salt): EncryptedPassword
   def generateRandomSalt(saltSize: Int): Salt
-  def passwordVerification(encryptedPassword: EncryptedPassword, password: Password, salt: Salt): Boolean
+  def checkPassword(encryptedPassword: EncryptedPassword, password: Password, salt: Salt): Boolean
 }
 
 object LiveCrypto {
@@ -39,7 +39,7 @@ final class LiveCrypto private (cryptContext: CryptContext) extends Crypto with 
     EncryptedPassword(new String(Hex.encodeHex(securePassword)))
   }
 
-  override def passwordVerification(encryptedPassword: EncryptedPassword, password: Password, salt: Salt): Boolean = {
+  override def checkPassword(encryptedPassword: EncryptedPassword, password: Password, salt: Salt): Boolean = {
     val tmpEncrypted = this.encrypt(password, salt)
 
     tmpEncrypted.value == encryptedPassword.value

@@ -1,6 +1,7 @@
+/*
 package networthcalculator.http.routes
 
-/*
+
 import cats.{Defer, Monad}
 import networthcalculator.algebras.Transactions
 import networthcalculator.domain.auth.UserId
