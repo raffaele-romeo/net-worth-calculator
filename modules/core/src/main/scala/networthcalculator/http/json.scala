@@ -7,9 +7,8 @@ import io.circe.refined._
 import io.estatico.newtype.Coercible
 import io.estatico.newtype.ops._
 import networthcalculator.domain.asset._
-import networthcalculator.domain.auth._
 import networthcalculator.domain.healthcheck.AppStatus
-//import networthcalculator.domain.transaction.Transaction
+import networthcalculator.domain.users.{CreateUser, LoginUser, User, UserNameParam}
 import org.http4s.EntityEncoder
 import org.http4s.circe.jsonEncoderOf
 
@@ -51,6 +50,7 @@ private[http] trait JsonCodecs {
   implicit val appStatusEncoder: Encoder[AppStatus] = deriveEncoder[AppStatus]
 
   implicit val createUserDecoder: Decoder[CreateUser] = deriveDecoder[CreateUser]
+  implicit val loginUserDecoder: Decoder[LoginUser] = deriveDecoder[LoginUser]
   implicit val createAssetDecoder: Decoder[CreateAsset] = deriveDecoder[CreateAsset]
   implicit val updateAssetDecoder: Decoder[UpdateAsset] = deriveDecoder[UpdateAsset]
 
