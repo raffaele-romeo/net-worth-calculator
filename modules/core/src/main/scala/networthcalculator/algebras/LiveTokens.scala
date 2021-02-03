@@ -10,21 +10,21 @@ import tsec.authentication.{AugmentedJWT, BackingStore}
 import tsec.common.SecureRandomId
 import tsec.mac.jca.HMACSHA256
 
-object LiveTokensStore {
+object LiveTokens {
 
   def make[F[_]: Sync](
       getId: AugmentedJWT[HMACSHA256, UserName] => SecureRandomId,
       tokenExpiration: TokenExpiration,
       redis: RedisCommands[F, SecureRandomId, AugmentedJWT[HMACSHA256, UserName]]
-  ): F[LiveTokensStore[F]] = {
+  ): F[LiveTokens[F]] = {
     Sync[F]
       .delay {
-        new LiveTokensStore[F](getId, tokenExpiration, redis)
+        new LiveTokens[F](getId, tokenExpiration, redis)
       }
   }
 }
 
-final class LiveTokensStore[F[_]: Sync] private (
+final class LiveTokens[F[_]: Sync] private (
     getId: AugmentedJWT[HMACSHA256, UserName] => SecureRandomId,
     tokenExpiration: TokenExpiration,
     redis: RedisCommands[F, SecureRandomId, AugmentedJWT[HMACSHA256, UserName]]

@@ -42,7 +42,7 @@ final class AssetRoutes[F[_]: Defer: JsonDecoder: MonadThrow](
     }
 
   def routes(
-      secureRequestHandler: SecuredRequestHandler[F, Long, User, AugmentedJWT[HMACSHA256, UserName]]
+      secureRequestHandler: SecuredRequestHandler[F, UserName, User, AugmentedJWT[HMACSHA256, UserName]]
   ): HttpRoutes[F] =
     Router(
       prefixPath -> secureRequestHandler.liftService(httpRoutes)
