@@ -17,7 +17,7 @@ final class LogoutRoutes[F[_]: MonadThrow](
   private[routes] val prefixPath = "/auth"
 
   private val httpRoutes: TSecAuthService[User, AugmentedJWT[HMACSHA256, UserName], F] =
-    TSecAuthService.withAuthorization(CustomerRequired) {
+    TSecAuthService.withAuthorization(CustomerOrAdminRequired) {
       case request @ POST -> Root / "logout" asAuthed _ =>
         auth.discard(request.authenticator) *> NoContent()
     }

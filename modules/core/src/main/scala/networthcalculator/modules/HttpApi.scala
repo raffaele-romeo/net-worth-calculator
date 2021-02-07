@@ -5,6 +5,7 @@ import cats.effect._
 import cats.syntax.all._
 import networthcalculator.config.data.AppConfig
 import networthcalculator.domain.users._
+import networthcalculator.http.routes.admin.AssetRoutes
 import networthcalculator.http.routes.auth._
 import networthcalculator.http.routes.{HealthRoutes, version}
 import org.http4s._
@@ -39,26 +40,26 @@ final class HttpApi[F[_]: Concurrent: Timer] private (
       signingKey = signingKey
     )
 
-  private val Auth: SecuredRequestHandler[F, UserName, User, AugmentedJWT[HMACSHA256, UserName]] =
+  private val auth: SecuredRequestHandler[F, UserName, User, AugmentedJWT[HMACSHA256, UserName]] =
     SecuredRequestHandler(jwtStatefulAuth)
 
   //Auth Routes
   private val loginRoutes = new LoginRoutes[F](algebras.users, algebras.crypto, jwtStatefulAuth).routes
-  private val logoutRoutes = new LogoutRoutes[F](jwtStatefulAuth).routes(Auth)
+  private val logoutRoutes = new LogoutRoutes[F](jwtStatefulAuth).routes(auth)
   private val userRoutes = new UserRoutes[F](algebras.users, algebras.crypto, jwtStatefulAuth).routes
 
   // Open routes
   private val healthRoutes = new HealthRoutes[F](algebras.healthCheck).routes
 
   //Admin routes
-  //private val adminRoutes = new AssetRoutes[F]()
+  private val adminRoutes = new AssetRoutes[F](algebras.assets).routes(auth)
 
   private val nonAdminRoutes: HttpRoutes[F] =
     healthRoutes <+> userRoutes <+> loginRoutes <+> logoutRoutes
 
   private val routes: HttpRoutes[F] = Router(
-    version.v1 -> nonAdminRoutes
-    //version.v1 + "/admin" -> adminRoutes
+    version.v1 -> nonAdminRoutes,
+    version.v1 + "/admin" -> adminRoutes
   )
 
   private val middleware: HttpRoutes[F] => HttpRoutes[F] = {

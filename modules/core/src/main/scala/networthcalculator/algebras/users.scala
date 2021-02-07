@@ -20,40 +20,38 @@ object LiveUsers {
   }
 }
 
-final class LiveUsers[F[_]: BracketThrow: Sync] private (
+final class LiveUsers[F[_]: BracketThrow] private (
     transactor: Resource[F, HikariTransactor[F]]
 ) extends BackingStore[F, UserName, User] {
 
-  override def put(user: User): F[User] = {
-    transactor
-      .use(
-        UserQueries
-          .insert(user)
-          .handleErrorWith {
-            case ex: java.sql.SQLException if ex.getErrorCode == 23505 =>
-              UserNameInUse(user.name).raiseError[ConnectionIO, User]
-          }
-          .transact[F]
-      )
-  }
+  override def put(user: User): F[User] =
+    transactor.use(
+      UserQueries
+        .insert(user)
+        .handleErrorWith {
+          case ex: java.sql.SQLException if ex.getErrorCode == 23505 =>
+            UserNameInUse(user.name).raiseError[ConnectionIO, User]
+        }
+        .transact[F]
+    )
 
-  override def update(user: User): F[User] = {
+  override def update(user: User): F[User] =
     transactor.use(
       UserQueries
         .update(user)
         .transact[F]
     )
-  }
 
-  override def delete(userName: UserName): F[Unit] = {
-    transactor.use(
-      UserQueries
-        .delete(userName)
-        .transact[F]
-    ) *> Sync[F].unit
-  }
+  override def delete(userName: UserName): F[Unit] =
+    transactor
+      .use(
+        UserQueries
+          .delete(userName)
+          .transact[F]
+      )
+      .void
 
-  override def get(userName: UserName): OptionT[F, User] = {
+  override def get(userName: UserName): OptionT[F, User] =
     OptionT(
       transactor.use(
         UserQueries
@@ -61,14 +59,13 @@ final class LiveUsers[F[_]: BracketThrow: Sync] private (
           .transact[F]
       )
     )
-  }
 }
 
 private object UserQueries {
 
   import networthcalculator.ext.CoercibleDoobieCodec._
 
-  def insert(user: User): ConnectionIO[User] = {
+  def insert(user: User): ConnectionIO[User] =
     sql"""
          |INSERT INTO users (
          |  name,
@@ -84,9 +81,8 @@ private object UserQueries {
          |)
         """.stripMargin.update
       .withUniqueGeneratedKeys[User]("id", "name", "password", "salt", "role")
-  }
 
-  def update(user: User): ConnectionIO[User] = {
+  def update(user: User): ConnectionIO[User] =
     sql"""
          |UPDATE users SET
          | name = ${user.name.value},
@@ -95,21 +91,18 @@ private object UserQueries {
          | where id = ${user.id.value}
     """.stripMargin.update
       .withUniqueGeneratedKeys[User]("id", "name", "password", "password", "role")
-  }
 
-  def select(userName: UserName): ConnectionIO[Option[User]] = {
+  def select(userName: UserName): ConnectionIO[Option[User]] =
     sql"""
          | SELECT id, name, password, salt, role 
          | FROM users 
          | WHERE name = ${userName.value}
     """.stripMargin.query[User].option
-  }
 
-  def delete(userName: UserName): ConnectionIO[Int] = {
+  def delete(userName: UserName): ConnectionIO[Int] =
     sql"""
          | DELETE FROM users 
-         | WHERE name=${userName.value}
+         | WHERE name = ${userName.value}
     """.stripMargin.update.run
-  }
 
 }

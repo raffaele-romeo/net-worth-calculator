@@ -5,15 +5,11 @@ import cats.effect.{Concurrent, Resource, Sync, Timer}
 import dev.profunktor.redis4cats.RedisCommands
 import doobie.hikari.HikariTransactor
 import networthcalculator.domain.healthcheck.AppStatus
-import tsec.authentication.AugmentedJWT
-import tsec.common.SecureRandomId
-import tsec.mac.jca.HMACSHA256
 import networthcalculator.domain.healthcheck._
 import cats.effect.implicits._
 import cats.syntax.all._
 import doobie.ConnectionIO
 import doobie.implicits._
-import networthcalculator.domain.users.UserName
 
 import scala.concurrent.duration._
 
@@ -25,7 +21,7 @@ object LiveHealthCheck {
 
   def make[F[_]: Concurrent: Parallel: Timer](
       transactor: Resource[F, HikariTransactor[F]],
-      redis: RedisCommands[F, SecureRandomId, AugmentedJWT[HMACSHA256, UserName]]
+      redis: RedisCommands[F, String, String]
   ): F[HealthCheck[F]] =
     Sync[F].delay(
       new LiveHealthCheck[F](transactor, redis)
@@ -34,7 +30,7 @@ object LiveHealthCheck {
 
 final class LiveHealthCheck[F[_]: Concurrent: Parallel: Timer] private (
     transactor: Resource[F, HikariTransactor[F]],
-    redis: RedisCommands[F, SecureRandomId, AugmentedJWT[HMACSHA256, UserName]]
+    redis: RedisCommands[F, String, String]
 ) extends HealthCheck[F] {
 
   val q: ConnectionIO[Option[Int]] =
