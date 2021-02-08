@@ -7,7 +7,7 @@ import dev.profunktor.redis4cats.RedisCommands
 import doobie.hikari.HikariTransactor
 import networthcalculator.algebras._
 import networthcalculator.domain.users.{User, UserName}
-import tsec.authentication.{AugmentedJWT, BackingStore}
+import tsec.authentication.{AugmentedJWT, BackingStore, IdentityStore}
 import tsec.common.SecureRandomId
 import tsec.mac.jca.HMACSHA256
 
@@ -28,7 +28,7 @@ object Algebras {
 }
 
 final case class Algebras[F[_]] private (
-    users: BackingStore[F, UserName, User],
+    users: IdentityStore[F, UserName, User] with Users[F],
     tokens: BackingStore[F, SecureRandomId, AugmentedJWT[HMACSHA256, UserName]],
     crypto: Crypto,
     assets: Assets[F],

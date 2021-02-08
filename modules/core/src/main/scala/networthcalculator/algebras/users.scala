@@ -8,7 +8,11 @@ import doobie.hikari._
 import doobie.implicits._
 import networthcalculator.domain.users._
 import networthcalculator.effects.BracketThrow
-import tsec.authentication.BackingStore
+import tsec.authentication.IdentityStore
+
+trait Users[F[_]] {
+  def create(createUser: CreateUserForInsert): F[User]
+}
 
 object LiveUsers {
 
@@ -22,9 +26,10 @@ object LiveUsers {
 
 final class LiveUsers[F[_]: BracketThrow] private (
     transactor: Resource[F, HikariTransactor[F]]
-) extends BackingStore[F, UserName, User] {
+) extends IdentityStore[F, UserName, User]
+    with Users[F] {
 
-  override def put(user: User): F[User] =
+  override def create(user: CreateUserForInsert): F[User] =
     transactor.use(
       UserQueries
         .insert(user)
@@ -34,22 +39,6 @@ final class LiveUsers[F[_]: BracketThrow] private (
         }
         .transact[F]
     )
-
-  override def update(user: User): F[User] =
-    transactor.use(
-      UserQueries
-        .update(user)
-        .transact[F]
-    )
-
-  override def delete(userName: UserName): F[Unit] =
-    transactor
-      .use(
-        UserQueries
-          .delete(userName)
-          .transact[F]
-      )
-      .void
 
   override def get(userName: UserName): OptionT[F, User] =
     OptionT(
@@ -65,7 +54,7 @@ private object UserQueries {
 
   import networthcalculator.ext.CoercibleDoobieCodec._
 
-  def insert(user: User): ConnectionIO[User] =
+  def insert(user: CreateUserForInsert): ConnectionIO[User] =
     sql"""
          |INSERT INTO users (
          |  name,

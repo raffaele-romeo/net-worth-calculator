@@ -2,7 +2,7 @@ package networthcalculator.http.routes.auth
 
 import cats.effect.Sync
 import cats.implicits._
-import networthcalculator.algebras.Crypto
+import networthcalculator.algebras.{Crypto, Users}
 import networthcalculator.domain.users._
 import networthcalculator.http.decoder._
 import networthcalculator.http.json._
@@ -10,11 +10,11 @@ import org.http4s._
 import org.http4s.circe.JsonDecoder
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.Router
-import tsec.authentication.{BackingStore, JWTAuthenticator}
+import tsec.authentication.{IdentityStore, JWTAuthenticator}
 import tsec.mac.jca.HMACSHA256
 
 final class LoginRoutes[F[_]: JsonDecoder: Sync](
-    users: BackingStore[F, UserName, User],
+    users: IdentityStore[F, UserName, User] with Users[F],
     crypto: Crypto,
     auth: JWTAuthenticator[F, UserName, User, HMACSHA256]
 ) extends Http4sDsl[F] {

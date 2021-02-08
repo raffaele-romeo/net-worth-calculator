@@ -37,6 +37,8 @@ object users {
       password: PasswordParam
   )
 
+  case class CreateUserForInsert(name: UserName, password: EncryptedPassword, salt: Salt, role: Role = Role.Customer)
+
   case class User(id: UserId, name: UserName, password: EncryptedPassword, salt: Salt, role: Role = Role.Customer)
 
   object User {

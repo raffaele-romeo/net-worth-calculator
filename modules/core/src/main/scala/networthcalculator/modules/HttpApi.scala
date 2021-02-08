@@ -3,7 +3,7 @@ package networthcalculator.modules
 import cats.Id
 import cats.effect._
 import cats.syntax.all._
-import networthcalculator.config.data.AppConfig
+import networthcalculator.config.data.TokenExpiration
 import networthcalculator.domain.users._
 import networthcalculator.http.routes.admin.AssetRoutes
 import networthcalculator.http.routes.auth._
@@ -19,21 +19,21 @@ import scala.concurrent.duration._
 
 object HttpApi {
 
-  def make[F[_]: Concurrent: Timer](algebras: Algebras[F], cfg: AppConfig): F[HttpApi[F]] = {
-    Sync[F].delay(new HttpApi[F](algebras, cfg))
+  def make[F[_]: Concurrent: Timer](algebras: Algebras[F], tokenExpiration: TokenExpiration): F[HttpApi[F]] = {
+    Sync[F].delay(new HttpApi[F](algebras, tokenExpiration))
   }
 }
 
 final class HttpApi[F[_]: Concurrent: Timer] private (
     algebras: Algebras[F],
-    cfg: AppConfig
+    tokenExpiration: TokenExpiration
 ) {
 
   private val signingKey: MacSigningKey[HMACSHA256] = HMACSHA256.generateKey[Id]
 
   private val jwtStatefulAuth: JWTAuthenticator[F, UserName, User, HMACSHA256] =
     JWTAuthenticator.backed.inBearerToken(
-      expiryDuration = cfg.tokenExpiration.value,
+      expiryDuration = tokenExpiration.value,
       maxIdle = None,
       tokenStore = algebras.tokens,
       identityStore = algebras.users,
