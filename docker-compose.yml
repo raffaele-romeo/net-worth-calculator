@@ -5,13 +5,13 @@ PostgreSQL:
     - "5432:5432"
   environment:
     - DEBUG=false
-    - POSTGRES_DB=store
+    - POSTGRES_DB=networth
   volumes:
     - ./modules/core/src/main/resources/tables.sql:/docker-entrypoint-initdb.d/init.sql
 
 Redis:
   restart: always
-  image: redis:5.0.0
+  image: redis:latest
   ports:
     - "6379:6379"
   environment:
