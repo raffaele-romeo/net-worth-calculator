@@ -12,7 +12,7 @@ import scala.concurrent.duration._
 object Loader {
 
   def apply[F[_]: Async: ContextShift]: F[AppConfig] =
-    env("SC_APP_ENV")
+    env("NWC_APP_ENV")
       .as[AppEnvironment]
       .map {
         case Test =>

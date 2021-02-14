@@ -1,4 +1,5 @@
 import Dependencies._
+import sbtassembly.MergeStrategy
 
 ThisBuild / scalaVersion := "2.13.4"
 ThisBuild / version := "0.1.0-SNAPSHOT"
@@ -40,6 +41,8 @@ lazy val core = (project in file("modules/core"))
     dockerExposedPorts ++= Seq(8080),
     makeBatScripts := Seq(),
     dockerUpdateLatest := true,
+    mainClass in assembly := Some("networthcalculator.Main"),
+    assemblyMergeStrategy in assembly := customMergeStrategy,
     libraryDependencies ++= Seq(
       compilerPlugin(Libraries.kindProjector cross CrossVersion.full),
       compilerPlugin(Libraries.betterMonadicFor),
@@ -73,3 +76,9 @@ lazy val core = (project in file("modules/core"))
       Libraries.squants
     )
   )
+
+def customMergeStrategy: String => MergeStrategy = {
+  case PathList("reference.conf") => MergeStrategy.concat
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case _ => MergeStrategy.first
+}

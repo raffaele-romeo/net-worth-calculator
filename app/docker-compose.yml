@@ -5,6 +5,7 @@ services:
     image: net-worth-calculator:latest
     container_name: net-worth-calculator
     build: .
+    network_mode: host
     ports:
       - 8080:8080
     depends_on:
@@ -12,9 +13,7 @@ services:
       - redis
     environment:
       - DEBUG=true
-      - SC_APP_ENV=test
-    networks:
-      - mynetwork
+      - NWC_APP_ENV=test
 
   postgres:
     image: postgres:12.0-alpine
@@ -28,8 +27,6 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
       - ./modules/core/src/main/resources/tables.sql:/docker-entrypoint-initdb.d/init.sql
-    networks:
-      - mynetwork
 
   redis:
     image: redis:latest
@@ -38,13 +35,8 @@ services:
       - 6379:6379
     environment:
       - DEBUG=false
-    networks:
-      - mynetwork
 
 volumes:
   db-data:
     driver: local
 
-networks:
-  mynetwork:
-    driver: "bridge"
