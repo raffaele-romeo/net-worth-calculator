@@ -34,7 +34,7 @@ final class LiveHealthCheck[F[_]: Concurrent: Parallel: Timer] private (
 ) extends HealthCheck[F] {
 
   val q: ConnectionIO[Option[Int]] =
-    sql"SELECT pid FROM pg_stat_activity".query[Int].option
+    sql"SELECT pid FROM pg_stat_activity LIMIT 1".query[Int].option
 
   val redisHealth: F[RedisStatus] =
     redis.ping

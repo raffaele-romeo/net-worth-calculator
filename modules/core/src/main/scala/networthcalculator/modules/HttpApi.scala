@@ -3,6 +3,7 @@ package networthcalculator.modules
 import cats.Id
 import cats.effect._
 import cats.syntax.all._
+import io.chrisdavenport.log4cats.SelfAwareStructuredLogger
 import networthcalculator.config.data.TokenExpiration
 import networthcalculator.domain.users._
 import networthcalculator.http.routes.admin.AssetRoutes
@@ -19,12 +20,15 @@ import scala.concurrent.duration._
 
 object HttpApi {
 
-  def make[F[_]: Concurrent: Timer](algebras: Algebras[F], tokenExpiration: TokenExpiration): F[HttpApi[F]] = {
+  def make[F[_]: Concurrent: Timer: SelfAwareStructuredLogger](
+      algebras: Algebras[F],
+      tokenExpiration: TokenExpiration
+  ): F[HttpApi[F]] = {
     Sync[F].delay(new HttpApi[F](algebras, tokenExpiration))
   }
 }
 
-final class HttpApi[F[_]: Concurrent: Timer] private (
+final class HttpApi[F[_]: Concurrent: Timer: SelfAwareStructuredLogger] private (
     algebras: Algebras[F],
     tokenExpiration: TokenExpiration
 ) {

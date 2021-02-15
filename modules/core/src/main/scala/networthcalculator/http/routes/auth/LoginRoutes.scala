@@ -2,6 +2,7 @@ package networthcalculator.http.routes.auth
 
 import cats.effect.Sync
 import cats.implicits._
+import io.chrisdavenport.log4cats.SelfAwareStructuredLogger
 import networthcalculator.algebras.{Crypto, Users}
 import networthcalculator.domain.users._
 import networthcalculator.http.decoder._
@@ -13,7 +14,7 @@ import org.http4s.server.Router
 import tsec.authentication.{IdentityStore, JWTAuthenticator}
 import tsec.mac.jca.HMACSHA256
 
-final class LoginRoutes[F[_]: JsonDecoder: Sync](
+final class LoginRoutes[F[_]: JsonDecoder: Sync: SelfAwareStructuredLogger](
     users: IdentityStore[F, UserName, User] with Users[F],
     crypto: Crypto,
     auth: JWTAuthenticator[F, UserName, User, HMACSHA256]

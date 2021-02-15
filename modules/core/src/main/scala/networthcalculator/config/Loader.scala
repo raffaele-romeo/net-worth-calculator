@@ -17,7 +17,7 @@ object Loader {
       .map {
         case Test =>
           default(
-            redisUri = RedisURI("redis://localhost")
+            redisUri = RedisURI("redis://redis")
           )
         case Prod =>
           default(
@@ -30,7 +30,7 @@ object Loader {
     AppConfig(
       TokenExpiration(30.minutes),
       PostgreSQLConfig(
-        host = "localhost",
+        host = "postgres",
         port = 5432,
         user = "postgres",
         database = "networth",

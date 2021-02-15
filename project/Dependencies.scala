@@ -13,7 +13,8 @@ object Dependencies {
     val elasticsearch = "7.10.2"
     val http4s = "0.21.15"
     val http4sTsec = "0.2.1"
-    val log4cats = "1.1.1"
+    val log4catsChrisdavenport = "1.1.1"
+    val log4cats = "2.0.0-M1"
     val logback = "1.2.3"
     val newtype = "0.4.3"
     val refined = "0.9.20"
@@ -33,6 +34,7 @@ object Dependencies {
     def ciris(artifact: String): ModuleID = "is.cir" %% artifact % Versions.ciris
     def circe(artifact: String): ModuleID = "io.circe" %% artifact % Versions.circe
     def doobie(artifact: String): ModuleID = "org.tpolecat" %% artifact % Versions.doobie
+    def log4Cats(artifact: String): ModuleID = "org.typelevel" %% artifact % Versions.log4cats
 
     val cats = "org.typelevel" %% "cats-core" % Versions.cats
     val catsEffect = "org.typelevel" %% "cats-effect" % Versions.catsEffect
@@ -53,7 +55,7 @@ object Dependencies {
     val doobieHikari = doobie("doobie-hikari")
     val doobiePostgres = doobie("doobie-postgres")
 
-    val log4cats = "io.chrisdavenport" %% "log4cats-slf4j" % Versions.log4cats
+    val log4catsChrisdavenport = "io.chrisdavenport" %% "log4cats-slf4j" % Versions.log4catsChrisdavenport
 
     val redis4catsEffects = "dev.profunktor" %% "redis4cats-effects" % Versions.redis4cats
     val redis4catsLog4cats = "dev.profunktor" %% "redis4cats-log4cats" % Versions.redis4cats

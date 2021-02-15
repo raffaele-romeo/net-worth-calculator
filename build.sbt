@@ -62,7 +62,7 @@ lazy val core = (project in file("modules/core"))
       Libraries.doobiePostgres,
       Libraries.elasticsearch,
       Libraries.logback,
-      Libraries.log4cats,
+      Libraries.log4catsChrisdavenport,
       Libraries.http4sDsl,
       Libraries.http4sServer,
       Libraries.http4sClient,

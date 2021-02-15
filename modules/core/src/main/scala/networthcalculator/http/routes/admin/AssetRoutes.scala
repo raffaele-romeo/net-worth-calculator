@@ -2,6 +2,7 @@ package networthcalculator.http.routes.admin
 
 import cats._
 import cats.syntax.all._
+import io.chrisdavenport.log4cats.SelfAwareStructuredLogger
 import networthcalculator.algebras.Assets
 import networthcalculator.domain.asset._
 import networthcalculator.domain.auth._
@@ -16,7 +17,7 @@ import org.http4s.server.Router
 import tsec.authentication.{AugmentedJWT, SecuredRequestHandler, TSecAuthService, asAuthed}
 import tsec.mac.jca.HMACSHA256
 
-final class AssetRoutes[F[_]: Defer: JsonDecoder: MonadThrow](
+final class AssetRoutes[F[_]: Defer: JsonDecoder: MonadThrow: SelfAwareStructuredLogger](
     assets: Assets[F]
 ) extends Http4sDsl[F] {
 
