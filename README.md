@@ -21,7 +21,7 @@ docker-compose down
 sbt docker:publishLocal
 ```
 
-Our image should now be built. We can check it by running the following command:
+To check the built image:
 
 ```
 > docker images | grep net-worth-calculator
@@ -29,7 +29,7 @@ REPOSITORY                           TAG                 IMAGE ID            CRE
 net-worth-calculator                 latest              646501a87362        2 seconds ago       138MB
 ```
 
-To run our application using our Docker image, run the following command:
+To run the application using docker compose:
 
 ```
 cd /app
