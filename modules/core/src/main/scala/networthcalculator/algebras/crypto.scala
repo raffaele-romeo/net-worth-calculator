@@ -5,7 +5,6 @@ import networthcalculator.domain.users._
 import org.apache.commons.codec.binary.Hex
 
 import java.security.SecureRandom
-import java.util
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 
@@ -20,21 +19,28 @@ object LiveCrypto {
   def make[F[_]: Sync]: F[Crypto] = {
     Sync[F]
       .delay {
-        new LiveCrypto(CryptContext())
+        new LiveCrypto()
       }
   }
 }
 
-final class LiveCrypto private (cryptContext: CryptContext) extends Crypto with ManagedRandom {
+final class LiveCrypto() extends Crypto {
+
+  private val random = new SecureRandom()
+  private val Iteration: Int = 65536
+  private val KeyLength: Int = 128
+  private val SaltSize: Int = 64
+  private val HashAlgorithmName: String = "PBKDF2WithHmacSHA1"
 
   override def encrypt(password: Password, salt: Salt): EncryptedPassword = {
 
-    val charsPassword = password.value.toCharArray
-    val keySpec = new PBEKeySpec(charsPassword, salt.value.getBytes(), cryptContext.iteration, cryptContext.keyLength)
+    val keySpec =
+      new PBEKeySpec(password.value.toCharArray, salt.value.getBytes(), Iteration, KeyLength)
 
-    val keyFactory = SecretKeyFactory.getInstance(cryptContext.hashAlgorithmName)
+    val keyFactory = SecretKeyFactory.getInstance(HashAlgorithmName)
     val securePassword = keyFactory.generateSecret(keySpec).getEncoded
-    clearPassword(charsPassword, keySpec)
+
+    keySpec.clearPassword()
 
     EncryptedPassword(new String(Hex.encodeHex(securePassword)))
   }
@@ -45,38 +51,12 @@ final class LiveCrypto private (cryptContext: CryptContext) extends Crypto with 
     tmpEncrypted.value == encryptedPassword.value
   }
 
-  override def generateRandomSalt(saltSize: Int = cryptContext.saltSize): Salt = {
-    val salt = new Array[Byte](saltSize)
-    nextBytes(salt)
+  override def generateRandomSalt(): Salt = {
+
+    val salt = new Array[Byte](SaltSize)
+
+    random.nextBytes(salt)
 
     Salt(new String(Hex.encodeHex(salt)))
   }
-
-  private def clearPassword(passwords: Array[Char], keySpec: PBEKeySpec): Unit = {
-    util.Arrays.fill(passwords, Character.MIN_VALUE)
-    keySpec.clearPassword()
-  }
-}
-
-final case class CryptContext(
-    iteration: Int = 999999,
-    keyLength: Int = 512,
-    saltSize: Int = 512,
-    hashAlgorithmName: String = "PBKDF2WithHmacSHA3"
-)
-
-trait ManagedRandom {
-
-  private val cachedRand: SecureRandom = {
-    val r = SecureRandom.getInstance(ManagedRandom.UnixURandom)
-    r.nextBytes(new Array[Byte](20)) //Force reseed
-    r
-  }
-
-  def nextBytes(bytes: Array[Byte]): Unit =
-    cachedRand.nextBytes(bytes)
-}
-
-object ManagedRandom {
-  private val UnixURandom = "NativePRNGNonBlocking"
 }

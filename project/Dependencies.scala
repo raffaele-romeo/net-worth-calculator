@@ -10,9 +10,7 @@ object Dependencies {
     val ciris = "1.2.1"
     val commonsCodec = "1.15"
     val doobie = "0.10.0"
-    val elasticsearch = "7.10.2"
     val http4s = "0.21.15"
-    val http4sTsec = "0.2.1"
     val log4catsChrisdavenport = "1.1.1"
     val log4cats = "2.0.0-M1"
     val logback = "1.2.3"
@@ -65,10 +63,7 @@ object Dependencies {
     val http4sClient = http4s("http4s-blaze-client")
     val http4sCirce = http4s("http4s-circe")
 
-    val http4sTsec = "io.github.jmcardon" %% "tsec-http4s" % Versions.http4sTsec
-
     val newtype = "io.estatico" %% "newtype" % Versions.newtype
-    val elasticsearch = "org.elasticsearch" % "elasticsearch" % Versions.elasticsearch
     val refinedCore = "eu.timepit" %% "refined" % Versions.refined
     val refinedCats = "eu.timepit" %% "refined-cats" % Versions.refined
     val squants = "org.typelevel" %% "squants" % Versions.squants
