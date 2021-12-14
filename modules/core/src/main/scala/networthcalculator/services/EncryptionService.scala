@@ -1,30 +1,14 @@
-package networthcalculator.algebras
+package networthcalculator.services
 
-import cats.effect.Sync
-import networthcalculator.domain.users._
+import networthcalculator.algebras.Encryption
+import networthcalculator.domain.users.{EncryptedPassword, Password, Salt}
 import org.apache.commons.codec.binary.Hex
 
 import java.security.SecureRandom
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 
-trait Encrypter {
-  def encrypt(password: Password, salt: Salt): EncryptedPassword
-  def generateRandomSalt(): Salt
-  def checkPassword(encryptedPassword: EncryptedPassword, password: Password, salt: Salt): Boolean
-}
-
-object LiveEncrypter {
-
-  def make[F[_]: Sync]: F[Encrypter] = {
-    Sync[F]
-      .delay {
-        new LiveEncrypter()
-      }
-  }
-}
-
-final class LiveEncrypter() extends Encrypter {
+final class EncryptionService extends Encryption {
 
   private val random = new SecureRandom()
   private val Iteration: Int = 65536
@@ -60,3 +44,4 @@ final class LiveEncrypter() extends Encrypter {
     Salt(new String(Hex.encodeHex(salt)))
   }
 }
+

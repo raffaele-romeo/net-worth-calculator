@@ -3,10 +3,10 @@ package networthcalculator.middleware
 import cats.data.{Kleisli, OptionT}
 import cats.effect.Sync
 import networthcalculator.domain.tokens.{InvalidJWTToken, JwtToken}
-import networthcalculator.domain.users.{User, UserName}
+import networthcalculator.domain.users.UserName
 import networthcalculator.effects.MonadThrow
 import org.http4s.dsl.Http4sDsl
-import org.http4s.{AuthedRoutes, HttpRoutes, Request}
+import org.http4s.{AuthedRoutes, Request}
 import org.http4s.server.AuthMiddleware
 import org.http4s._
 import org.http4s.Credentials.Token
@@ -32,7 +32,7 @@ object JWTAuthMiddleware {
             case _: ParseException => ME.raiseError(InvalidJWTToken)
           }
           .flatMap(_ => authenticate(token))
-          .map(_.fold("not found".asLeft[String])(_.asRight[UserName]))
+          .map(_.fold("not found".asLeft[UserName])(_.asRight[String]))
       }
     )
 

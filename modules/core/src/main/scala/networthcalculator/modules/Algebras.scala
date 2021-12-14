@@ -28,9 +28,9 @@ object Algebras {
 }
 
 final case class Algebras[F[_]] private (
-    users: IdentityStore[F, UserName, User] with Users[F],
-    tokens: BackingStore[F, SecureRandomId, AugmentedJWT[HMACSHA256, UserName]],
-    crypto: Encrypter,
-    assets: Assets[F],
-    healthCheck: HealthCheck[F]
+                                          users: IdentityStore[F, UserName, User] with Users[F],
+                                          tokens: BackingStore[F, SecureRandomId, AugmentedJWT[HMACSHA256, UserName]],
+                                          crypto: Encryption,
+                                          assets: Assets[F],
+                                          healthCheck: HealthCheck[F]
 )

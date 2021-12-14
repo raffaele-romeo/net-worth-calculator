@@ -1,31 +1,15 @@
-package networthcalculator.algebras
+package networthcalculator.services
 
-import cats.effect._
-import doobie._
+import cats.effect.{Resource, Sync}
+import doobie.ConnectionIO
 import doobie.hikari.HikariTransactor
-import doobie.implicits._
-import networthcalculator.domain.asset._
+import networthcalculator.algebras.Assets
+import networthcalculator.domain.asset.{Asset, AssetId, AssetType}
 import networthcalculator.effects.BracketThrow
+import doobie.implicits._
 import cats.implicits._
 
-trait Assets[F[_]] {
-  def findAll: F[List[Asset]]
-  def create(assetType: AssetType): F[Unit]
-  def update(asset: Asset): F[Unit]
-  def delete(assetId: AssetId): F[Unit]
-}
-
-object LiveAssets {
-
-  def make[F[_]: Sync](transactor: Resource[F, HikariTransactor[F]]): F[LiveAssets[F]] = {
-    Sync[F]
-      .delay {
-        new LiveAssets[F](transactor)
-      }
-  }
-}
-
-final class LiveAssets[F[_]: BracketThrow: Sync] private (
+final class AssetsService[F[_]: BracketThrow: Sync] (
     transactor: Resource[F, HikariTransactor[F]]
 ) extends Assets[F] {
 

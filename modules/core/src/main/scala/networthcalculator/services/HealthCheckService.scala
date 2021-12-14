@@ -1,34 +1,18 @@
-package networthcalculator.algebras
+package networthcalculator.services
 
 import cats.Parallel
-import cats.effect.{Concurrent, Resource, Sync, Timer}
+import cats.effect.{Concurrent, Resource, Timer}
 import dev.profunktor.redis4cats.RedisCommands
 import doobie.hikari.HikariTransactor
-import networthcalculator.domain.healthcheck.AppStatus
-import networthcalculator.domain.healthcheck._
+import networthcalculator.algebras.HealthCheck
+import networthcalculator.domain.healthcheck.{AppStatus, PostgresStatus, RedisStatus}
 import cats.effect.implicits._
 import cats.syntax.all._
 import doobie.ConnectionIO
 import doobie.implicits._
-
 import scala.concurrent.duration._
 
-trait HealthCheck[F[_]] {
-  def status: F[AppStatus]
-}
-
-object LiveHealthCheck {
-
-  def make[F[_]: Concurrent: Parallel: Timer](
-      transactor: Resource[F, HikariTransactor[F]],
-      redis: RedisCommands[F, String, String]
-  ): F[HealthCheck[F]] =
-    Sync[F].delay(
-      new LiveHealthCheck[F](transactor, redis)
-    )
-}
-
-final class LiveHealthCheck[F[_]: Concurrent: Parallel: Timer] private (
+final class HealthCheckService[F[_]: Concurrent: Parallel: Timer] (
     transactor: Resource[F, HikariTransactor[F]],
     redis: RedisCommands[F, String, String]
 ) extends HealthCheck[F] {

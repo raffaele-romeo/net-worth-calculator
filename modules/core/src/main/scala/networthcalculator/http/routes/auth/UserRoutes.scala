@@ -3,7 +3,7 @@ package networthcalculator.http.routes.auth
 import cats.Defer
 import cats.syntax.all._
 import io.chrisdavenport.log4cats.SelfAwareStructuredLogger
-import networthcalculator.algebras.{Encrypter, Users}
+import networthcalculator.algebras.{Encryption, Users}
 import networthcalculator.domain.users._
 import networthcalculator.effects.MonadThrow
 import networthcalculator.http.decoder._
@@ -16,9 +16,9 @@ import tsec.authentication.{IdentityStore, JWTAuthenticator}
 import tsec.mac.jca.HMACSHA256
 
 final class UserRoutes[F[_]: Defer: JsonDecoder: MonadThrow: SelfAwareStructuredLogger](
-    users: IdentityStore[F, UserName, User] with Users[F],
-    crypto: Encrypter,
-    auth: JWTAuthenticator[F, UserName, User, HMACSHA256]
+                                                                                         users: IdentityStore[F, UserName, User] with Users[F],
+                                                                                         crypto: Encryption,
+                                                                                         auth: JWTAuthenticator[F, UserName, User, HMACSHA256]
 ) extends Http4sDsl[F] {
 
   private[routes] val prefixPath = "/auth"

@@ -1,30 +1,16 @@
-package networthcalculator.algebras
+package networthcalculator.services
 
 import cats.data.OptionT
-import cats.effect._
-import cats.syntax.all._
-import doobie._
-import doobie.hikari._
-import doobie.implicits._
-import networthcalculator.domain.users._
+import cats.effect.Resource
+import doobie.ConnectionIO
+import doobie.hikari.HikariTransactor
+import networthcalculator.algebras.Users
+import networthcalculator.domain.users.{CreateUserForInsert, User, UserName, UserNameInUse}
 import networthcalculator.effects.BracketThrow
+import cats.syntax.all._
+import doobie.implicits._
 
-trait Users[F[_]] {
-  def create(createUser: CreateUserForInsert): F[User]
-  def get(userName: UserName): OptionT[F, User]
-}
-
-object LiveUsers {
-
-  def make[F[_]: Sync](transactor: Resource[F, HikariTransactor[F]]): F[LiveUsers[F]] = {
-    Sync[F]
-      .delay {
-        new LiveUsers[F](transactor)
-      }
-  }
-}
-
-final class LiveUsers[F[_]: BracketThrow] private (
+final class UsersService[F[_]: BracketThrow](
     transactor: Resource[F, HikariTransactor[F]]
 ) extends Users[F] {
 

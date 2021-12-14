@@ -1,46 +1,21 @@
-package networthcalculator.algebras
+package networthcalculator.services
 
 import cats.effect.{Clock, Sync}
-import cats.implicits._
+import com.nimbusds.jose.{JWSAlgorithm, JWSHeader}
+import com.nimbusds.jose.crypto.MACSigner
+import com.nimbusds.jwt.{JWTClaimsSet, SignedJWT}
 import dev.profunktor.redis4cats.RedisCommands
+import networthcalculator.algebras.Tokens
+import networthcalculator.domain.tokens.JwtToken
 import networthcalculator.domain.users.UserName
-import networthcalculator.effects.MonadThrow
 
 import java.security.SecureRandom
 import java.util.Date
-import com.nimbusds.jose._
-import com.nimbusds.jose.crypto._
-import com.nimbusds.jwt._
-import networthcalculator.domain.tokens.JwtToken
-
 import scala.concurrent.duration.{Duration, MILLISECONDS}
 
-trait Tokens[F[_]] {
+import cats.implicits._
 
-  def generateToken(
-      userName: UserName,
-      expirationTime: Long,
-      jwsAlgorithm: JWSAlgorithm
-  ): F[JwtToken]
-  def getUserName(token: JwtToken): F[Option[UserName]]
-  def getToken(userName: UserName): F[Option[JwtToken]]
-  def storeToken(userName: UserName, token: JwtToken, expiresAt: Long): F[Unit]
-  def deleteToken(userName: UserName, token: JwtToken): F[Unit]
-}
-
-object LiveTokens {
-
-  def make[F[_]: Sync: Clock](
-      redis: RedisCommands[F, String, String]
-  ): F[LiveTokens[F]] = {
-    Sync[F]
-      .delay {
-        new LiveTokens[F](redis)
-      }
-  }
-}
-
-final class LiveTokens[F[_]] private (
+final class TokensService[F[_]] (
     redis: RedisCommands[F, String, String]
 )(implicit S: Sync[F], C: Clock[F])
     extends Tokens[F] {
@@ -68,13 +43,13 @@ final class LiveTokens[F[_]] private (
     } yield JwtToken(token)
   }
 
-  override def getUserName(token: JwtToken): F[Option[UserName]] = {
+  override def getUserNameBy(token: JwtToken): F[Option[UserName]] = {
     for {
       maybeUser <- redis.get(token.value)
     } yield maybeUser.map(UserName)
   }
 
-  override def getToken(userName: UserName): F[Option[JwtToken]] = {
+  override def getTokenBy(userName: UserName): F[Option[JwtToken]] = {
     for {
       maybeToken <- redis.get(userName.value)
     } yield maybeToken.map(JwtToken)
