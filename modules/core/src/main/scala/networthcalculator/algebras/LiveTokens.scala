@@ -1,79 +1,91 @@
 package networthcalculator.algebras
 
-import cats.data.OptionT
-import cats.effect.Sync
+import cats.effect.{Clock, Sync}
 import cats.implicits._
 import dev.profunktor.redis4cats.RedisCommands
 import networthcalculator.domain.users.UserName
 import networthcalculator.effects.MonadThrow
-import tsec.authentication.{AugmentedJWT, BackingStore}
-import tsec.common.SecureRandomId
-import tsec.jws.mac.JWTMac
-import tsec.mac.jca.HMACSHA256
 
-import java.time.Instant
+import java.security.SecureRandom
+import java.util.Date
+import com.nimbusds.jose._
+import com.nimbusds.jose.crypto._
+import com.nimbusds.jwt._
+import networthcalculator.domain.tokens.JwtToken
+
+import scala.concurrent.duration.{Duration, MILLISECONDS}
+
+trait Tokens[F[_]] {
+
+  def generateToken(
+      userName: UserName,
+      expirationTime: Long,
+      jwsAlgorithm: JWSAlgorithm
+  ): F[JwtToken]
+  def getUserName(token: JwtToken): F[Option[UserName]]
+  def getToken(userName: UserName): F[Option[JwtToken]]
+  def storeToken(userName: UserName, token: JwtToken, expiresAt: Long): F[Unit]
+  def deleteToken(userName: UserName, token: JwtToken): F[Unit]
+}
 
 object LiveTokens {
 
-  def make[F[_]: Sync](
-      getId: AugmentedJWT[HMACSHA256, UserName] => SecureRandomId,
+  def make[F[_]: Sync: Clock](
       redis: RedisCommands[F, String, String]
   ): F[LiveTokens[F]] = {
     Sync[F]
       .delay {
-        new LiveTokens[F](getId, redis)
+        new LiveTokens[F](redis)
       }
   }
 }
 
-final class LiveTokens[F[_]: Sync: MonadThrow] private (
-    getId: AugmentedJWT[HMACSHA256, UserName] => SecureRandomId,
+final class LiveTokens[F[_]] private (
     redis: RedisCommands[F, String, String]
-) extends BackingStore[F, SecureRandomId, AugmentedJWT[HMACSHA256, UserName]] {
+)(implicit S: Sync[F], C: Clock[F])
+    extends Tokens[F] {
 
-  override def put(elem: AugmentedJWT[HMACSHA256, UserName]): F[AugmentedJWT[HMACSHA256, UserName]] = {
-    redis.hmSet(getId(elem), jwtToMap(elem))
-    Sync[F].pure(elem)
+  override def generateToken(
+      userName: UserName,
+      expirationTime: Long,
+      jwsAlgorithm: JWSAlgorithm = JWSAlgorithm.HS256
+  ): F[JwtToken] = {
+    for {
+      random <- S.delay(new SecureRandom())
+      sharedSecret = new Array[Byte](32)
+      _ <- S.delay(random.nextBytes(sharedSecret))
+      now <- Clock[F].realTime(MILLISECONDS)
+      signer = new MACSigner(sharedSecret)
+      claimsSet = new JWTClaimsSet.Builder()
+        .subject(userName.value)
+        .issuer("net-worth-calculator")
+        .expirationTime(new Date(expirationTime))
+        .notBeforeTime(new Date(now))
+        .build()
+      signedJWT = new SignedJWT(new JWSHeader(jwsAlgorithm), claimsSet)
+      _ <- S.delay(signedJWT.sign(signer))
+      token <- S.delay(signedJWT.serialize())
+    } yield JwtToken(token)
   }
 
-  override def update(v: AugmentedJWT[HMACSHA256, UserName]): F[AugmentedJWT[HMACSHA256, UserName]] = {
-    redis.hmSet(getId(v), jwtToMap(v))
-    Sync[F].pure(v)
+  override def getUserName(token: JwtToken): F[Option[UserName]] = {
+    for {
+      maybeUser <- redis.get(token.value)
+    } yield maybeUser.map(UserName)
   }
 
-  override def delete(id: SecureRandomId): F[Unit] =
-    redis.del(id) *> Sync[F].unit
-
-  override def get(id: SecureRandomId): OptionT[F, AugmentedJWT[HMACSHA256, UserName]] = {
-    OptionT(redis.hGetAll(id).flatMap(mapToJWT))
+  override def getToken(userName: UserName): F[Option[JwtToken]] = {
+    for {
+      maybeToken <- redis.get(userName.value)
+    } yield maybeToken.map(JwtToken)
   }
 
-  private def jwtToMap(jwt: AugmentedJWT[HMACSHA256, UserName]): Map[String, String] = {
-    val informationToStore = Map(
-      "expiry" -> jwt.expiry.toEpochMilli.toString,
-      "id" -> jwt.id,
-      "jwt" -> JWTMac.toEncodedString[F, HMACSHA256](jwt.jwt),
-      "identity" -> jwt.identity.value
-    )
-
-    jwt.lastTouched match {
-      case Some(value) => informationToStore.+(("lastTouched", value.toEpochMilli.toString))
-      case None => informationToStore
-    }
+  override def storeToken(userName: UserName, token: JwtToken, expiresAt: Long): F[Unit] = {
+    redis.setEx(userName.value, token.value, Duration(expiresAt, MILLISECONDS)) *>
+      redis.setEx(token.value, userName.value, Duration(expiresAt, MILLISECONDS))
   }
 
-  private def mapToJWT(storedInfo: Map[String, String]): F[Option[AugmentedJWT[HMACSHA256, UserName]]] = {
-    if (storedInfo.isEmpty)
-      Sync[F].pure(None)
-    else
-      JWTMac.parseUnverified[F, HMACSHA256](storedInfo("jwt")).map { mac =>
-        AugmentedJWT[HMACSHA256, UserName](
-          id = SecureRandomId.coerce(storedInfo("id")),
-          identity = UserName(storedInfo("identity")),
-          expiry = Instant.ofEpochMilli(storedInfo("expiry").toLong),
-          jwt = mac,
-          lastTouched = storedInfo.get("lastTouched").map(_.toLong).map(Instant.ofEpochMilli)
-        ).some
-      }
+  override def deleteToken(userName: UserName, token: JwtToken): F[Unit] = {
+    redis.del(userName.value) *> redis.del(token.value).void
   }
 }

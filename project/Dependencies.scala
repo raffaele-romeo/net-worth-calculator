@@ -15,6 +15,7 @@ object Dependencies {
     val log4cats = "2.0.0-M1"
     val logback = "1.2.3"
     val newtype = "0.4.3"
+    val nimbus = "9.15.2"
     val refined = "0.9.20"
     val redis4cats = "0.11.1"
     val squants = "1.7.0"
@@ -54,6 +55,8 @@ object Dependencies {
     val doobiePostgres = doobie("doobie-postgres")
 
     val log4catsChrisdavenport = "io.chrisdavenport" %% "log4cats-slf4j" % Versions.log4catsChrisdavenport
+
+    val nimbus = "com.nimbusds" % "nimbus-jose-jwt" % Versions.nimbus
 
     val redis4catsEffects = "dev.profunktor" %% "redis4cats-effects" % Versions.redis4cats
     val redis4catsLog4cats = "dev.profunktor" %% "redis4cats-log4cats" % Versions.redis4cats

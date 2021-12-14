@@ -60,14 +60,13 @@ lazy val core = (project in file("modules/core"))
       Libraries.doobieCore,
       Libraries.doobieHikari,
       Libraries.doobiePostgres,
-      Libraries.elasticsearch,
       Libraries.logback,
       Libraries.log4catsChrisdavenport,
+      Libraries.nimbus,
       Libraries.http4sDsl,
       Libraries.http4sServer,
       Libraries.http4sClient,
       Libraries.http4sCirce,
-      Libraries.http4sTsec,
       Libraries.newtype,
       Libraries.redis4catsEffects,
       Libraries.redis4catsLog4cats,
@@ -79,6 +78,6 @@ lazy val core = (project in file("modules/core"))
 
 def customMergeStrategy: String => MergeStrategy = {
   case PathList("reference.conf") => MergeStrategy.concat
-  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case PathList("META-INF", _ @ _*) => MergeStrategy.discard
   case _ => MergeStrategy.first
 }

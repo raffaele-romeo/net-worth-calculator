@@ -8,23 +8,23 @@ import java.security.SecureRandom
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 
-trait Crypto {
+trait Encrypter {
   def encrypt(password: Password, salt: Salt): EncryptedPassword
-  def generateRandomSalt(saltSize: Int): Salt
+  def generateRandomSalt(): Salt
   def checkPassword(encryptedPassword: EncryptedPassword, password: Password, salt: Salt): Boolean
 }
 
-object LiveCrypto {
+object LiveEncrypter {
 
-  def make[F[_]: Sync]: F[Crypto] = {
+  def make[F[_]: Sync]: F[Encrypter] = {
     Sync[F]
       .delay {
-        new LiveCrypto()
+        new LiveEncrypter()
       }
   }
 }
 
-final class LiveCrypto() extends Crypto {
+final class LiveEncrypter() extends Encrypter {
 
   private val random = new SecureRandom()
   private val Iteration: Int = 65536

@@ -21,7 +21,7 @@ object Algebras {
     for {
       users <- LiveUsers.make(transactor)
       tokens <- LiveTokens.make(getId, redis)
-      crypto <- LiveCrypto.make[F]
+      crypto <- LiveEncrypter.make[F]
       assets <- LiveAssets.make[F](transactor)
       healthcheck <- LiveHealthCheck.make[F](transactor, redis)
     } yield Algebras[F](users, tokens, crypto, assets, healthcheck)
@@ -30,7 +30,7 @@ object Algebras {
 final case class Algebras[F[_]] private (
     users: IdentityStore[F, UserName, User] with Users[F],
     tokens: BackingStore[F, SecureRandomId, AugmentedJWT[HMACSHA256, UserName]],
-    crypto: Crypto,
+    crypto: Encrypter,
     assets: Assets[F],
     healthCheck: HealthCheck[F]
 )

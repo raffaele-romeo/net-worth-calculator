@@ -4,7 +4,6 @@ import cats.MonadError
 import eu.timepit.refined.types.string.NonEmptyString
 import io.estatico.newtype.macros.newtype
 import networthcalculator.domain.auth.Role
-import tsec.authorization.AuthorizationInfo
 
 import scala.util.control.NoStackTrace
 
@@ -37,15 +36,9 @@ object users {
       password: PasswordParam
   )
 
-  case class CreateUserForInsert(name: UserName, password: EncryptedPassword, salt: Salt, role: Role = Role.Customer)
+  case class CreateUserForInsert(name: UserName, password: EncryptedPassword, salt: Salt, role: Role = Role.User())
 
-  case class User(id: UserId, name: UserName, password: EncryptedPassword, salt: Salt, role: Role = Role.Customer)
-
-  object User {
-
-    implicit def authRole[F[_]](implicit F: MonadError[F, Throwable]): AuthorizationInfo[F, Role, User] =
-      (u: User) => F.pure(u.role)
-  }
+  case class User(id: UserId, name: UserName, password: EncryptedPassword, salt: Salt, role: Role = Role.User())
 
   case class UserNameInUse(username: UserName) extends NoStackTrace
   case class InvalidUserOrPassword(username: UserName) extends NoStackTrace

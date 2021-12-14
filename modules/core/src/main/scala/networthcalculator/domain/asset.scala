@@ -5,8 +5,8 @@ import eu.timepit.refined.types.string.NonEmptyString
 import io.estatico.newtype.macros.newtype
 
 object asset {
-  @newtype case class AssetId(value: Long)
-  @newtype case class AssetType(name: String)
+  @newtype final case class AssetId(value: Long)
+  @newtype final case class AssetType(name: String)
 
   case class Asset(assetId: AssetId, assetType: AssetType)
 

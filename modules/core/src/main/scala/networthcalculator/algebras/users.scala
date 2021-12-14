@@ -8,10 +8,10 @@ import doobie.hikari._
 import doobie.implicits._
 import networthcalculator.domain.users._
 import networthcalculator.effects.BracketThrow
-import tsec.authentication.IdentityStore
 
 trait Users[F[_]] {
   def create(createUser: CreateUserForInsert): F[User]
+  def get(userName: UserName): OptionT[F, User]
 }
 
 object LiveUsers {
@@ -26,8 +26,7 @@ object LiveUsers {
 
 final class LiveUsers[F[_]: BracketThrow] private (
     transactor: Resource[F, HikariTransactor[F]]
-) extends IdentityStore[F, UserName, User]
-    with Users[F] {
+) extends Users[F] {
 
   override def create(user: CreateUserForInsert): F[User] =
     transactor.use(
