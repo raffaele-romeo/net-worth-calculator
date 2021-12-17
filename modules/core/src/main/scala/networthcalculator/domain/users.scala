@@ -35,9 +35,17 @@ object users {
 
   final case class CreateUserForInsert(name: UserName, password: EncryptedPassword, salt: Salt, role: Role = Role.User)
 
-  final case class UserWithPassword(id: UserId, name: UserName, password: EncryptedPassword, salt: Salt, role: Role = Role.User)
+  final case class UserWithPassword(
+      id: UserId,
+      name: UserName,
+      password: EncryptedPassword,
+      salt: Salt,
+      role: Role = Role.User
+  )
+
+  final case class AdminUser(userName: UserName)
+  final case class CommonUser(userName: UserName)
 
   final case class UserNameInUse(username: UserName) extends NoStackTrace
-  final case class InvalidUserOrPassword(username: UserName) extends NoStackTrace
-
+  final case class InvalidPassword(username: UserName) extends NoStackTrace
 }

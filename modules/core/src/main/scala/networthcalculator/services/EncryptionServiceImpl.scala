@@ -44,4 +44,3 @@ final class EncryptionServiceImpl extends EncryptionService {
     Salt(new String(Hex.encodeHex(salt)))
   }
 }
-

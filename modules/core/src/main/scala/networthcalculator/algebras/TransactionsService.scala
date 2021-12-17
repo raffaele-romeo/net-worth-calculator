@@ -1,7 +1,7 @@
 package networthcalculator.algebras
 
-import networthcalculator.domain.users.UserId
 import networthcalculator.domain.transaction._
+import networthcalculator.domain.users.UserId
 
 trait TransactionsService[F[_]] {
   def insert(userId: UserId, transaction: CreateTransaction): F[TransactionId]

@@ -26,7 +26,6 @@ private[http] trait JsonCodecs {
   implicit val assetIdParamDecoder: Decoder[AssetIdParam] =
     Decoder.forProduct1("name")(AssetIdParam.apply)
 
-
   implicit val userDecoder: Decoder[UserWithPassword] = deriveDecoder[UserWithPassword]
   implicit val userEncoder: Encoder[UserWithPassword] = deriveEncoder[UserWithPassword]
 

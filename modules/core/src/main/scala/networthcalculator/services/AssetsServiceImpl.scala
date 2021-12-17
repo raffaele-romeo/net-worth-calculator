@@ -1,13 +1,13 @@
 package networthcalculator.services
 
 import cats.effect.{Resource, Sync}
+import cats.implicits._
 import doobie.ConnectionIO
 import doobie.hikari.HikariTransactor
+import doobie.implicits._
 import networthcalculator.algebras.AssetsService
 import networthcalculator.domain.asset.{Asset, AssetId, AssetType}
 import networthcalculator.effects.BracketThrow
-import doobie.implicits._
-import cats.implicits._
 
 final class AssetsServiceImpl[F[_]: BracketThrow: Sync](
     transactor: Resource[F, HikariTransactor[F]]

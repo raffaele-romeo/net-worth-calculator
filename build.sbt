@@ -32,7 +32,7 @@ lazy val core = (project in file("modules/core"))
   .enablePlugins(AshScriptPlugin)
   .settings(
     name := "net-worth-calculator-core",
-    packageName in Docker := "net-worth-calculator",
+    Docker / packageName := "net-worth-calculator",
     scalacOptions += "-Ymacro-annotations",
     scalafmtOnCompile := true,
     resolvers += Resolver.sonatypeRepo("snapshots"),
@@ -41,8 +41,8 @@ lazy val core = (project in file("modules/core"))
     dockerExposedPorts ++= Seq(8080),
     makeBatScripts := Seq(),
     dockerUpdateLatest := true,
-    mainClass in assembly := Some("networthcalculator.Main"),
-    assemblyMergeStrategy in assembly := customMergeStrategy,
+    assembly / mainClass := Some("networthcalculator.Main"),
+    assembly / assemblyMergeStrategy := customMergeStrategy,
     libraryDependencies ++= Seq(
       compilerPlugin(Libraries.kindProjector cross CrossVersion.full),
       compilerPlugin(Libraries.betterMonadicFor),
@@ -67,17 +67,14 @@ lazy val core = (project in file("modules/core"))
       Libraries.http4sServer,
       Libraries.http4sClient,
       Libraries.http4sCirce,
-      Libraries.newtype,
       Libraries.redis4catsEffects,
       Libraries.redis4catsLog4cats,
-      Libraries.refinedCore,
-      Libraries.refinedCats,
       Libraries.squants
     )
   )
 
 def customMergeStrategy: String => MergeStrategy = {
   case PathList("reference.conf") => MergeStrategy.concat
-  case PathList("META-INF", _ @ _*) => MergeStrategy.discard
+  case PathList("META-INF", _ @_*) => MergeStrategy.discard
   case _ => MergeStrategy.first
 }

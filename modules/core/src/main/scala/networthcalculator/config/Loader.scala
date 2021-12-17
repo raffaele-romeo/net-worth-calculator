@@ -5,6 +5,8 @@ import ciris._
 import networthcalculator.config.data._
 import networthcalculator.config.environments.AppEnvironment._
 import networthcalculator.config.environments._
+import networthcalculator.domain.tokens.JwtToken
+import networthcalculator.domain.users.{AdminUser, UserName}
 
 import scala.concurrent.duration._
 
@@ -28,6 +30,10 @@ object Loader {
   private def default(redisUri: RedisURI): AppConfig =
     AppConfig(
       TokenExpiration(30.minutes),
+      JWTAdmin(
+        JwtToken("TO-BE-GENERATED"),
+        AdminUser(UserName("admin"))
+      ),
       PostgreSQLConfig(
         host = "postgres",
         port = 5432,

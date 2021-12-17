@@ -14,10 +14,10 @@ object decoder {
       extends Http4sDsl[F] {
 
     def decodeR[A: Decoder](f: A => F[Response[F]]): F[Response[F]] = {
-      Logger[F].info(s"Logging decoder request $req") *>
+      Logger[F].info(s"Incoming request: $req") *>
         req.asJsonDecode[A].attempt.flatMap {
           case Left(e) =>
-            Logger[F].info(s"Decoder request error $e") >> {
+            Logger[F].error(s"Failed to decoder request: $e") >> {
               Option(e.getCause) match {
                 case Some(c) if c.getMessage.startsWith("Predicate") => BadRequest(c.getMessage)
                 case _ => UnprocessableEntity()

@@ -1,15 +1,16 @@
 package networthcalculator.services
 
 import cats.Parallel
+import cats.effect.implicits._
 import cats.effect.{Concurrent, Resource, Timer}
+import cats.syntax.all._
 import dev.profunktor.redis4cats.RedisCommands
+import doobie.ConnectionIO
 import doobie.hikari.HikariTransactor
+import doobie.implicits._
 import networthcalculator.algebras.HealthCheckService
 import networthcalculator.domain.healthcheck.{AppStatus, PostgresStatus, RedisStatus}
-import cats.effect.implicits._
-import cats.syntax.all._
-import doobie.ConnectionIO
-import doobie.implicits._
+
 import scala.concurrent.duration._
 
 final class HealthCheckServiceImpl[F[_]: Concurrent: Parallel: Timer](

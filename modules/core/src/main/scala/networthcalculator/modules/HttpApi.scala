@@ -1,37 +1,44 @@
 package networthcalculator.modules
 
-import cats.Id
 import cats.effect._
 import cats.syntax.all._
 import io.chrisdavenport.log4cats.SelfAwareStructuredLogger
-import networthcalculator.config.data.TokenExpiration
-import networthcalculator.domain.users._
+import networthcalculator.domain.users.{AdminUser, CommonUser}
 import networthcalculator.http.routes.admin.AssetRoutes
 import networthcalculator.http.routes.auth._
 import networthcalculator.http.routes.{HealthRoutes, version}
+import networthcalculator.middleware.JWTAuthMiddleware
+import networthcalculator.modules.Services.Services
 import org.http4s._
 import org.http4s.implicits._
 import org.http4s.server.Router
 import org.http4s.server.middleware._
-import Services.Services
+
 import scala.concurrent.duration._
 
-final class HttpApi[F[_]: Concurrent: Timer: SelfAwareStructuredLogger] (
+final class HttpApi[F[_]: Concurrent: Timer: SelfAwareStructuredLogger](
     services: Services[F],
-    tokenExpiration: TokenExpiration
+    security: Security[F]
 ) {
+
+  private val adminMiddleware =
+    JWTAuthMiddleware[F, AdminUser](security.adminUsersAuthService.findUser)
+
+  private val usersMiddleware =
+    JWTAuthMiddleware[F, CommonUser](security.commonUsersAuthService.findUser)
 
   //Auth Routes
   private val loginRoutes =
-    new LoginRoutes[F](services.users, services.encryption, services.tokens, tokenExpiration.value).routes
-  private val logoutRoutes = new LogoutRoutes[F](jwtStatefulAuth).routes(auth)
-  private val userRoutes = new UserRoutes[F](services.users, services.crypto, jwtStatefulAuth).routes
+    new LoginRoutes[F](security.authService).routes
+
+  private val logoutRoutes = new LogoutRoutes[F](security.tokensService).routes(usersMiddleware)
+  private val userRoutes = new UserRoutes[F](security.authService).routes
 
   // Open routes
-  private val healthRoutes = new HealthRoutes[F](services.healthCheck).routes
+  private val healthRoutes = new HealthRoutes[F](services.healthCheckService).routes
 
   //Admin routes
-  private val adminRoutes = new AssetRoutes[F](services.assets).routes(auth)
+  private val adminRoutes = new AssetRoutes[F](services.assetsService).routes(adminMiddleware)
 
   private val nonAdminRoutes: HttpRoutes[F] =
     healthRoutes <+> userRoutes <+> loginRoutes <+> logoutRoutes
@@ -53,9 +60,9 @@ final class HttpApi[F[_]: Concurrent: Timer: SelfAwareStructuredLogger] (
 
   private val loggers: HttpApp[F] => HttpApp[F] = {
     { http: HttpApp[F] =>
-      RequestLogger.httpApp(true, true)(http)
+      RequestLogger.httpApp(logHeaders = true, logBody = true)(http)
     } andThen { http: HttpApp[F] =>
-      ResponseLogger.httpApp(true, true)(http)
+      ResponseLogger.httpApp(logHeaders = true, logBody = true)(http)
     }
   }
 

@@ -1,5 +1,8 @@
 package networthcalculator.config
 
+import networthcalculator.domain.tokens.JwtToken
+import networthcalculator.domain.users.AdminUser
+
 import scala.concurrent.duration._
 
 object data {
@@ -7,6 +10,7 @@ object data {
 
   final case class AppConfig(
       tokenExpiration: TokenExpiration,
+      jwtAdmin: JWTAdmin,
       postgreSQL: PostgreSQLConfig,
       redis: RedisConfig,
       httpServerConfig: HttpServerConfig
@@ -26,5 +30,10 @@ object data {
   final case class HttpServerConfig(
       host: String,
       port: Int
+  )
+
+  final case class JWTAdmin(
+      adminToken: JwtToken,
+      adminUser: AdminUser
   )
 }

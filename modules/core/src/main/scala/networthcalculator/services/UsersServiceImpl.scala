@@ -1,14 +1,13 @@
 package networthcalculator.services
 
-import cats.data.OptionT
 import cats.effect.Resource
+import cats.syntax.all._
 import doobie.ConnectionIO
 import doobie.hikari.HikariTransactor
-import networthcalculator.algebras.UsersService
-import networthcalculator.domain.users.{CreateUserForInsert, UserWithPassword, UserName, UserNameInUse}
-import networthcalculator.effects.BracketThrow
-import cats.syntax.all._
 import doobie.implicits._
+import networthcalculator.algebras.UsersService
+import networthcalculator.domain.users.{CreateUserForInsert, UserName, UserNameInUse, UserWithPassword}
+import networthcalculator.effects.BracketThrow
 
 final class UsersServiceImpl[F[_]: BracketThrow](
     transactor: Resource[F, HikariTransactor[F]]
@@ -25,13 +24,11 @@ final class UsersServiceImpl[F[_]: BracketThrow](
         .transact[F]
     )
 
-  override def find(userName: UserName): OptionT[F, UserWithPassword] =
-    OptionT(
-      transactor.use(
-        UserQueries
-          .select(userName)
-          .transact[F]
-      )
+  override def find(userName: UserName): F[Option[UserWithPassword]] =
+    transactor.use(
+      UserQueries
+        .select(userName)
+        .transact[F]
     )
 }
 

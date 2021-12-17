@@ -1,7 +1,7 @@
 package networthcalculator.config
 
-import enumeratum.{CirisEnum, Enum, EnumEntry}
 import enumeratum.EnumEntry.Lowercase
+import enumeratum.{CirisEnum, Enum, EnumEntry}
 
 object environments {
 
@@ -11,6 +11,6 @@ object environments {
     case object Test extends AppEnvironment
     case object Prod extends AppEnvironment
 
-    val values = findValues
+    val values: IndexedSeq[AppEnvironment] = findValues
   }
 }

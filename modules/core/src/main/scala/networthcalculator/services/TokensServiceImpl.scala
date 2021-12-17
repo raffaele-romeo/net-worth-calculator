@@ -1,18 +1,18 @@
 package networthcalculator.services
 
 import cats.effect.{Clock, Sync}
-import com.nimbusds.jose.{JWSAlgorithm, JWSHeader}
+import cats.implicits._
 import com.nimbusds.jose.crypto.MACSigner
+import com.nimbusds.jose.{JWSAlgorithm, JWSHeader}
 import com.nimbusds.jwt.{JWTClaimsSet, SignedJWT}
 import dev.profunktor.redis4cats.RedisCommands
 import networthcalculator.algebras.TokensService
+import networthcalculator.config.data.TokenExpiration
 import networthcalculator.domain.tokens.JwtToken
-import networthcalculator.domain.users.UserName
+import networthcalculator.domain.users.{CommonUser, UserName}
 
 import java.security.SecureRandom
 import java.util.{Date, UUID}
-import cats.implicits._
-import networthcalculator.config.data.TokenExpiration
 
 final class TokensServiceImpl[F[_]](
     redis: RedisCommands[F, String, String]
@@ -32,7 +32,7 @@ final class TokensServiceImpl[F[_]](
     val claimsSet = new JWTClaimsSet.Builder()
       .subject(userName.value)
       .issuer("net-worth-calculator")
-      .expirationTime(new Date(now.toInstant.toEpochMilli + expiresIn.value._1))
+      .expirationTime(new Date(now.toInstant.toEpochMilli + expiresIn.value.toMillis))
       .notBeforeTime(now)
       .issueTime(now)
       .jwtID(UUID.randomUUID().toString)
@@ -43,10 +43,10 @@ final class TokensServiceImpl[F[_]](
     JwtToken(signedJWT.serialize())
   }
 
-  override def findUserNameBy(token: JwtToken): F[Option[UserName]] = {
+  override def findUserNameBy(token: JwtToken): F[Option[CommonUser]] = {
     for {
       maybeUser <- redis.get(token.value)
-    } yield maybeUser.map(UserName)
+    } yield maybeUser.map(user => CommonUser(UserName(user)))
   }
 
   override def findTokenBy(userName: UserName): F[Option[JwtToken]] = {

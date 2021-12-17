@@ -3,12 +3,12 @@ package networthcalculator.http.routes.auth
 import cats.Defer
 import cats.syntax.all._
 import networthcalculator.algebras.TokensService
-import networthcalculator.effects.MonadThrow
-import org.http4s.{AuthedRoutes, HttpRoutes}
 import networthcalculator.domain.users._
+import networthcalculator.effects.MonadThrow
 import networthcalculator.middleware.AuthHeaders
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.{AuthMiddleware, Router}
+import org.http4s.{AuthedRoutes, HttpRoutes}
 
 final class LogoutRoutes[F[_]: MonadThrow: Defer](
     tokens: TokensService[F]
@@ -16,15 +16,15 @@ final class LogoutRoutes[F[_]: MonadThrow: Defer](
 
   private[routes] val prefixPath = "/auth"
 
-  private val httpRoutes: AuthedRoutes[UserName, F] = AuthedRoutes.of {
+  private val httpRoutes: AuthedRoutes[CommonUser, F] = AuthedRoutes.of {
 
     case ar @ POST -> Root / "logout" as user =>
       AuthHeaders
         .getBearerToken(ar.req)
-        .traverse_(tokens.deleteToken(user, _)) *> NoContent()
+        .traverse_(tokens.deleteToken(user.userName, _)) *> NoContent()
   }
 
-  def routes(authMiddleware: AuthMiddleware[F, UserName]): HttpRoutes[F] = Router(
+  def routes(authMiddleware: AuthMiddleware[F, CommonUser]): HttpRoutes[F] = Router(
     prefixPath -> authMiddleware(httpRoutes)
   )
 }
