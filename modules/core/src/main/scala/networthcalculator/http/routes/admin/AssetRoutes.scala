@@ -3,49 +3,42 @@ package networthcalculator.http.routes.admin
 import cats._
 import cats.syntax.all._
 import io.chrisdavenport.log4cats.SelfAwareStructuredLogger
-import networthcalculator.algebras.Assets
+import networthcalculator.algebras.AssetsService
 import networthcalculator.domain.asset._
-import networthcalculator.domain.auth._
-import networthcalculator.domain.users.{User, UserName}
+import networthcalculator.domain.users.UserName
 import networthcalculator.effects.MonadThrow
 import networthcalculator.http.decoder._
 import networthcalculator.http.json._
-import org.http4s.HttpRoutes
+import org.http4s.{AuthedRoutes, HttpRoutes}
 import org.http4s.circe.JsonDecoder
 import org.http4s.dsl.Http4sDsl
-import org.http4s.server.Router
-import tsec.authentication.{AugmentedJWT, SecuredRequestHandler, TSecAuthService, asAuthed}
-import tsec.mac.jca.HMACSHA256
+import org.http4s.server.{AuthMiddleware, Router}
 
 final class AssetRoutes[F[_]: Defer: JsonDecoder: MonadThrow: SelfAwareStructuredLogger](
-    assets: Assets[F]
+    assets: AssetsService[F]
 ) extends Http4sDsl[F] {
 
   private[routes] val prefixPath = "/assets"
 
-  private val httpRoutes: TSecAuthService[User, AugmentedJWT[HMACSHA256, UserName], F] =
-    TSecAuthService.withAuthorization(AdminRequired) {
+  private val httpRoutes: AuthedRoutes[UserName, F] = AuthedRoutes.of  {
       case _ @GET -> Root asAuthed _ =>
         Ok(assets.findAll)
 
-      case req @ POST -> Root asAuthed _ =>
-        req.request.decodeR[CreateAsset] { asset =>
+      case req @ POST -> Root as _ =>
+        req.req.decodeR[CreateAsset] { asset =>
           assets.create(asset.assetType.toDomain) *> Created()
         }
 
-      case req @ PUT -> Root asAuthed _ =>
-        req.request.decodeR[UpdateAsset] { asset =>
+      case req @ PUT -> Root as _ =>
+        req.req.decodeR[UpdateAsset] { asset =>
           assets.update(asset.toDomain) *> Ok()
         }
 
-      case DELETE -> Root / LongVar(id) asAuthed _ =>
+      case DELETE -> Root / LongVar(id) as _ =>
         assets.delete(AssetId(id)) *> NoContent()
     }
 
-  def routes(
-      secureRequestHandler: SecuredRequestHandler[F, UserName, User, AugmentedJWT[HMACSHA256, UserName]]
-  ): HttpRoutes[F] =
-    Router(
-      prefixPath -> secureRequestHandler.liftService(httpRoutes)
-    )
+  def routes(authMiddleware: AuthMiddleware[F, UserName]): HttpRoutes[F] = Router(
+    prefixPath -> authMiddleware(httpRoutes)
+  )
 }

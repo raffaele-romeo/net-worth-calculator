@@ -16,12 +16,12 @@ object AppResources {
 
     def mkPostgreSqlResource(c: PostgreSQLConfig): Resource[F, HikariTransactor[F]] = {
       for {
-        ce <- ExecutionContexts.fixedThreadPool[F](c.max.value)
+        ce <- ExecutionContexts.fixedThreadPool[F](c.max)
         be <- Blocker[F]
         xa <- HikariTransactor.newHikariTransactor[F](
           "org.postgresql.Driver",
-          s"jdbc:postgresql://${c.host.value}:${c.port.value}/${c.database.value}",
-          c.user.value,
+          s"jdbc:postgresql://${c.host}:${c.port}/${c.database}",
+          c.user,
           "",
           ce,
           be
@@ -30,7 +30,7 @@ object AppResources {
     }
 
     def mkRedisResource(c: RedisConfig): Resource[F, RedisCommands[F, String, String]] =
-      Redis[F].utf8(c.uri.value.value)
+      Redis[F].utf8(c.uri.value)
 
     for {
       redis <- mkRedisResource(cfg.redis)

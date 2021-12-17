@@ -1,35 +1,30 @@
 package networthcalculator.config
 
-import eu.timepit.refined.types.net.UserPortNumber
-import eu.timepit.refined.types.numeric.PosInt
-import eu.timepit.refined.types.string.NonEmptyString
-import io.estatico.newtype.macros.newtype
-
 import scala.concurrent.duration._
 
 object data {
-  @newtype case class TokenExpiration(value: FiniteDuration)
+  final case class TokenExpiration(value: FiniteDuration)
 
-  case class AppConfig(
+  final case class AppConfig(
       tokenExpiration: TokenExpiration,
       postgreSQL: PostgreSQLConfig,
       redis: RedisConfig,
       httpServerConfig: HttpServerConfig
   )
 
-  case class PostgreSQLConfig(
-      host: NonEmptyString,
-      port: UserPortNumber,
-      user: NonEmptyString,
-      database: NonEmptyString,
-      max: PosInt
+  final case class PostgreSQLConfig(
+      host: String,
+      port: Int,
+      user: String,
+      database: String,
+      max: Int
   )
 
-  @newtype case class RedisURI(value: NonEmptyString)
-  @newtype case class RedisConfig(uri: RedisURI)
+  final case class RedisURI(value: String)
+  final case class RedisConfig(uri: RedisURI)
 
-  case class HttpServerConfig(
-      host: NonEmptyString,
-      port: UserPortNumber
+  final case class HttpServerConfig(
+      host: String,
+      port: Int
   )
 }

@@ -1,6 +1,6 @@
 package networthcalculator.services
 
-import networthcalculator.algebras.Encryption
+import networthcalculator.algebras.EncryptionService
 import networthcalculator.domain.users.{EncryptedPassword, Password, Salt}
 import org.apache.commons.codec.binary.Hex
 
@@ -8,7 +8,7 @@ import java.security.SecureRandom
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 
-final class EncryptionService extends Encryption {
+final class EncryptionServiceImpl extends EncryptionService {
 
   private val random = new SecureRandom()
   private val Iteration: Int = 65536

@@ -1,31 +1,30 @@
 package networthcalculator.http.routes.auth
 
+import cats.Defer
 import cats.syntax.all._
-import networthcalculator.domain.auth._
+import networthcalculator.algebras.TokensService
 import networthcalculator.effects.MonadThrow
-import org.http4s.HttpRoutes
+import org.http4s.{AuthedRoutes, HttpRoutes}
 import networthcalculator.domain.users._
+import networthcalculator.middleware.AuthHeaders
 import org.http4s.dsl.Http4sDsl
-import org.http4s.server.Router
-import tsec.authentication._
-import tsec.mac.jca.HMACSHA256
+import org.http4s.server.{AuthMiddleware, Router}
 
-final class LogoutRoutes[F[_]: MonadThrow](
-    auth: JWTAuthenticator[F, UserName, User, HMACSHA256]
+final class LogoutRoutes[F[_]: MonadThrow: Defer](
+    tokens: TokensService[F]
 ) extends Http4sDsl[F] {
 
   private[routes] val prefixPath = "/auth"
 
-  private val httpRoutes: TSecAuthService[User, AugmentedJWT[HMACSHA256, UserName], F] =
-    TSecAuthService.withAuthorization(CustomerOrAdminRequired) {
-      case request @ POST -> Root / "logout" asAuthed _ =>
-        auth.discard(request.authenticator) *> NoContent()
-    }
+  private val httpRoutes: AuthedRoutes[UserName, F] = AuthedRoutes.of {
 
-  def routes(
-      secureRequestHandler: SecuredRequestHandler[F, UserName, User, AugmentedJWT[HMACSHA256, UserName]]
-  ): HttpRoutes[F] =
-    Router(
-      prefixPath -> secureRequestHandler.liftService(httpRoutes)
-    )
+    case ar @ POST -> Root / "logout" as user =>
+      AuthHeaders
+        .getBearerToken(ar.req)
+        .traverse_(tokens.deleteToken(user, _)) *> NoContent()
+  }
+
+  def routes(authMiddleware: AuthMiddleware[F, UserName]): HttpRoutes[F] = Router(
+    prefixPath -> authMiddleware(httpRoutes)
+  )
 }

@@ -1,26 +1,22 @@
 package networthcalculator.domain
 
-import eu.timepit.refined.types.numeric.NonNegLong
-import eu.timepit.refined.types.string.NonEmptyString
-import io.estatico.newtype.macros.newtype
-
 object asset {
-  @newtype final case class AssetId(value: Long)
-  @newtype final case class AssetType(name: String)
+  final case class AssetId(value: Long)
+  final case class AssetType(name: String)
 
-  case class Asset(assetId: AssetId, assetType: AssetType)
+  final case class Asset(assetId: AssetId, assetType: AssetType)
 
-  @newtype case class AssetTypeParam(value: NonEmptyString) {
-    def toDomain: AssetType = AssetType(value.value.toLowerCase())
+  final case class AssetTypeParam(value: String) {
+    def toDomain: AssetType = AssetType(value.toLowerCase())
   }
 
-  @newtype case class AssetIdParam(value: NonNegLong) {
-    def toDomain: AssetId = AssetId(value.value)
+  final case class AssetIdParam(value: Long) {
+    def toDomain: AssetId = AssetId(value)
   }
 
-  case class CreateAsset(assetType: AssetTypeParam)
+  final case class CreateAsset(assetType: AssetTypeParam)
 
-  case class UpdateAsset(assetId: AssetIdParam, assetType: AssetTypeParam) {
-    def toDomain: Asset = Asset(AssetId(assetId.value.value), AssetType(assetType.value.value.toLowerCase()))
+  final case class UpdateAsset(assetId: AssetIdParam, assetType: AssetTypeParam) {
+    def toDomain: Asset = Asset(AssetId(assetId.value), AssetType(assetType.value.toLowerCase()))
   }
 }

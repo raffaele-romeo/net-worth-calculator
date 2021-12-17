@@ -2,8 +2,10 @@ package networthcalculator.http.routes.auth
 
 import cats.effect.Sync
 import cats.implicits._
+import com.nimbusds.jose.JWSAlgorithm
 import io.chrisdavenport.log4cats.SelfAwareStructuredLogger
-import networthcalculator.algebras.{Encryption, Users}
+import networthcalculator.algebras.{EncryptionService, TokensService, UsersService}
+import networthcalculator.config.data.TokenExpiration
 import networthcalculator.domain.users._
 import networthcalculator.http.decoder._
 import networthcalculator.http.json._
@@ -11,14 +13,14 @@ import org.http4s._
 import org.http4s.circe.JsonDecoder
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.Router
-import tsec.authentication.{IdentityStore, JWTAuthenticator}
-import tsec.mac.jca.HMACSHA256
 
-final class LoginRoutes[F[_]: JsonDecoder: Sync: SelfAwareStructuredLogger](
-                                                                             users: IdentityStore[F, UserName, User] with Users[F],
-                                                                             crypto: Encryption,
-                                                                             auth: JWTAuthenticator[F, UserName, User, HMACSHA256]
-) extends Http4sDsl[F] {
+final class LoginRoutes[F[_]: JsonDecoder: SelfAwareStructuredLogger](
+    users: UsersService[F],
+    encryption: EncryptionService,
+    tokens: TokensService[F],
+    expiresIn: TokenExpiration
+)(implicit S: Sync[F])
+    extends Http4sDsl[F] {
 
   private[routes] val prefixPath = "/auth"
 
@@ -27,12 +29,19 @@ final class LoginRoutes[F[_]: JsonDecoder: Sync: SelfAwareStructuredLogger](
       req
         .decodeR[LoginUser] { user =>
           users
-            .get(user.username.toDomain)
+            .find(user.username.toDomain)
             .value
             .flatMap {
               case Some(userFound)
-                  if crypto.checkPassword(userFound.password, user.password.toDomain, userFound.salt) =>
-                auth.create(userFound.name).map(auth.embed(Response(Status.Ok), _))
+                  if encryption.checkPassword(userFound.password, user.password.toDomain, userFound.salt) =>
+                tokens.findTokenBy(user.username.toDomain).flatMap {
+                  case Some(token) => Ok(token.pure[F])
+                  case None =>
+                    for {
+                      token <- tokens.generateToken(userFound.name, expiresIn, JWSAlgorithm.HS512)
+                      _ <- tokens.storeToken(userFound.name, token, expiresIn)
+                    } yield Ok(token)
+                }
               case _ => Sync[F].pure(Response(Status.Forbidden))
             }
         }

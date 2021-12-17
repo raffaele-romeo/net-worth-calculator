@@ -3,15 +3,15 @@ package networthcalculator.services
 import cats.effect.{Resource, Sync}
 import doobie.ConnectionIO
 import doobie.hikari.HikariTransactor
-import networthcalculator.algebras.Assets
+import networthcalculator.algebras.AssetsService
 import networthcalculator.domain.asset.{Asset, AssetId, AssetType}
 import networthcalculator.effects.BracketThrow
 import doobie.implicits._
 import cats.implicits._
 
-final class AssetsService[F[_]: BracketThrow: Sync] (
+final class AssetsServiceImpl[F[_]: BracketThrow: Sync](
     transactor: Resource[F, HikariTransactor[F]]
-) extends Assets[F] {
+) extends AssetsService[F] {
 
   override def findAll: F[List[Asset]] =
     transactor
@@ -49,8 +49,6 @@ final class AssetsService[F[_]: BracketThrow: Sync] (
 }
 
 private object AssetsQueries {
-
-  import networthcalculator.ext.CoercibleDoobieCodec._
 
   def insert(assetType: AssetType): ConnectionIO[Int] =
     sql"""

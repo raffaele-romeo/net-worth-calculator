@@ -4,28 +4,28 @@ import cats.data.OptionT
 import cats.effect.Resource
 import doobie.ConnectionIO
 import doobie.hikari.HikariTransactor
-import networthcalculator.algebras.Users
-import networthcalculator.domain.users.{CreateUserForInsert, User, UserName, UserNameInUse}
+import networthcalculator.algebras.UsersService
+import networthcalculator.domain.users.{CreateUserForInsert, UserWithPassword, UserName, UserNameInUse}
 import networthcalculator.effects.BracketThrow
 import cats.syntax.all._
 import doobie.implicits._
 
-final class UsersService[F[_]: BracketThrow](
+final class UsersServiceImpl[F[_]: BracketThrow](
     transactor: Resource[F, HikariTransactor[F]]
-) extends Users[F] {
+) extends UsersService[F] {
 
-  override def create(user: CreateUserForInsert): F[User] =
+  override def create(user: CreateUserForInsert): F[UserWithPassword] =
     transactor.use(
       UserQueries
         .insert(user)
         .handleErrorWith {
           case ex: java.sql.SQLException if ex.getErrorCode == 23505 =>
-            UserNameInUse(user.name).raiseError[ConnectionIO, User]
+            UserNameInUse(user.name).raiseError[ConnectionIO, UserWithPassword]
         }
         .transact[F]
     )
 
-  override def get(userName: UserName): OptionT[F, User] =
+  override def find(userName: UserName): OptionT[F, UserWithPassword] =
     OptionT(
       transactor.use(
         UserQueries
@@ -37,9 +37,7 @@ final class UsersService[F[_]: BracketThrow](
 
 private object UserQueries {
 
-  import networthcalculator.ext.CoercibleDoobieCodec._
-
-  def insert(user: CreateUserForInsert): ConnectionIO[User] =
+  def insert(user: CreateUserForInsert): ConnectionIO[UserWithPassword] =
     sql"""
          |INSERT INTO users (
          |  name,
@@ -51,12 +49,12 @@ private object UserQueries {
          |  ${user.name.value}
          |  ${user.password.value}
          |  ${user.salt.value}
-         |  ${user.role.roleRepr}
+         |  ${user.role.toString}
          |)
         """.stripMargin.update
-      .withUniqueGeneratedKeys[User]("id", "name", "password", "salt", "role")
+      .withUniqueGeneratedKeys[UserWithPassword]("id", "name", "password", "salt", "role")
 
-  def update(user: User): ConnectionIO[User] =
+  def update(user: UserWithPassword): ConnectionIO[UserWithPassword] =
     sql"""
          |UPDATE users SET
          | name = ${user.name.value},
@@ -64,14 +62,14 @@ private object UserQueries {
          | salt = ${user.salt.value}
          | where id = ${user.id.value}
     """.stripMargin.update
-      .withUniqueGeneratedKeys[User]("id", "name", "password", "password", "role")
+      .withUniqueGeneratedKeys[UserWithPassword]("id", "name", "password", "password", "role")
 
-  def select(userName: UserName): ConnectionIO[Option[User]] =
+  def select(userName: UserName): ConnectionIO[Option[UserWithPassword]] =
     sql"""
          | SELECT id, name, password, salt, role 
          | FROM users 
          | WHERE name = ${userName.value}
-    """.stripMargin.query[User].option
+    """.stripMargin.query[UserWithPassword].option
 
   def delete(userName: UserName): ConnectionIO[Int] =
     sql"""

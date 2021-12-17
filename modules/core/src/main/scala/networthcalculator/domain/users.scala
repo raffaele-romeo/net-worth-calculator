@@ -1,46 +1,43 @@
 package networthcalculator.domain
 
-import cats.MonadError
-import eu.timepit.refined.types.string.NonEmptyString
-import io.estatico.newtype.macros.newtype
 import networthcalculator.domain.auth.Role
 
 import scala.util.control.NoStackTrace
 
 object users {
 
-  @newtype case class UserId(value: Long)
+  final case class UserId(value: Long)
 
-  @newtype case class UserName(value: String)
+  final case class UserName(value: String)
 
-  @newtype case class Password(value: String)
+  final case class Password(value: String)
 
   // --------- user registration -----------
 
-  @newtype case class Salt(value: String)
+  final case class Salt(value: String)
 
-  @newtype case class EncryptedPassword(value: String)
+  final case class EncryptedPassword(value: String)
 
-  @newtype case class UserNameParam(value: NonEmptyString) {
-    def toDomain: UserName = UserName(value.value.toLowerCase())
+  final case class UserNameParam(value: String) {
+    def toDomain: UserName = UserName(value.toLowerCase())
   }
 
-  @newtype case class PasswordParam(value: NonEmptyString) {
-    def toDomain: Password = Password(value.value)
+  final case class PasswordParam(value: String) {
+    def toDomain: Password = Password(value)
   }
 
-  case class CreateUser(username: UserNameParam, password: PasswordParam)
+  final case class CreateUser(username: UserNameParam, password: PasswordParam)
 
-  case class LoginUser(
+  final case class LoginUser(
       username: UserNameParam,
       password: PasswordParam
   )
 
-  case class CreateUserForInsert(name: UserName, password: EncryptedPassword, salt: Salt, role: Role = Role.User())
+  final case class CreateUserForInsert(name: UserName, password: EncryptedPassword, salt: Salt, role: Role = Role.User)
 
-  case class User(id: UserId, name: UserName, password: EncryptedPassword, salt: Salt, role: Role = Role.User())
+  final case class UserWithPassword(id: UserId, name: UserName, password: EncryptedPassword, salt: Salt, role: Role = Role.User)
 
-  case class UserNameInUse(username: UserName) extends NoStackTrace
-  case class InvalidUserOrPassword(username: UserName) extends NoStackTrace
+  final case class UserNameInUse(username: UserName) extends NoStackTrace
+  final case class InvalidUserOrPassword(username: UserName) extends NoStackTrace
 
 }

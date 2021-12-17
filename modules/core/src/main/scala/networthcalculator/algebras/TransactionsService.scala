@@ -3,7 +3,7 @@ package networthcalculator.algebras
 import networthcalculator.domain.users.UserId
 import networthcalculator.domain.transaction._
 
-trait Transactions[F[_]] {
+trait TransactionsService[F[_]] {
   def insert(userId: UserId, transaction: CreateTransaction): F[TransactionId]
   def bulkInsert(userId: UserId, transactions: List[CreateTransaction]): F[Unit]
   def update(userId: UserId, updateTransaction: UpdateTransaction): F[TransactionId]

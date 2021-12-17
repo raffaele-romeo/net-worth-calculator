@@ -4,7 +4,7 @@ import cats.Parallel
 import cats.effect.{Concurrent, Resource, Timer}
 import dev.profunktor.redis4cats.RedisCommands
 import doobie.hikari.HikariTransactor
-import networthcalculator.algebras.HealthCheck
+import networthcalculator.algebras.HealthCheckService
 import networthcalculator.domain.healthcheck.{AppStatus, PostgresStatus, RedisStatus}
 import cats.effect.implicits._
 import cats.syntax.all._
@@ -12,10 +12,10 @@ import doobie.ConnectionIO
 import doobie.implicits._
 import scala.concurrent.duration._
 
-final class HealthCheckService[F[_]: Concurrent: Parallel: Timer] (
+final class HealthCheckServiceImpl[F[_]: Concurrent: Parallel: Timer](
     transactor: Resource[F, HikariTransactor[F]],
     redis: RedisCommands[F, String, String]
-) extends HealthCheck[F] {
+) extends HealthCheckService[F] {
 
   val q: ConnectionIO[Option[Int]] =
     sql"SELECT pid FROM pg_stat_activity LIMIT 1".query[Int].option

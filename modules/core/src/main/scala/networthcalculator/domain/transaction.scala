@@ -1,6 +1,5 @@
 package networthcalculator.domain
 
-import io.estatico.newtype.macros.newtype
 import networthcalculator.domain.asset._
 import squants.market.{Currency, Money}
 
@@ -8,12 +7,12 @@ import java.time.{Month, Year}
 
 object transaction {
 
-  @newtype case class TransactionId(value: Long)
+  final case class TransactionId(value: Long)
 
-  @newtype case class BankName(name: String)
-  @newtype case class AccountName(name: String)
+  final case class BankName(name: String)
+  final case class AccountName(name: String)
 
-  case class Transaction(
+  final case class Transaction(
       transactionId: TransactionId,
       bankName: BankName,
       accountName: Option[AccountName],
@@ -24,7 +23,7 @@ object transaction {
       year: Year
   )
 
-  case class CreateTransaction(
+  final case class CreateTransaction(
       bankName: BankName,
       accountName: Option[AccountName],
       assetId: AssetId,
@@ -34,13 +33,13 @@ object transaction {
       year: Year
   )
 
-  case class UpdateTransaction(
+  final case class UpdateTransaction(
       transactionId: TransactionId,
       amount: Money,
       currency: Currency
   )
 
-  case class FindTotalNetWorth(
+  final case class FindTotalNetWorth(
       month: Option[Month],
       year: Year,
       statisticsCurrencyType: Currency, //Output currency
@@ -49,7 +48,7 @@ object transaction {
       accountTypeToExclude: List[AssetId] //Account to exclude from statistics
   )
 
-  case class FindTrendNetWorth(
+  final case class FindTrendNetWorth(
       monthFrom: Option[Month],
       yearFrom: Year,
       monthTo: Option[Month],
@@ -60,7 +59,7 @@ object transaction {
       assetTypesToExclude: List[AssetType] //Query parameter of string with comma separator. Needs to be split
   )
 
-  case class Statistics(
+  final case class Statistics(
       assetType: Option[AssetType],
       currency: Currency,
       amount: Money

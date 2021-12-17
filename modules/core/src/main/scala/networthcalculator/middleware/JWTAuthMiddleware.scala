@@ -18,21 +18,21 @@ import java.text.ParseException
 
 object JWTAuthMiddleware {
 
-  def apply[F[_]](
-      authenticate: JwtToken => F[Option[UserName]]
+  def apply[F[_], A](
+      authenticate: JwtToken => F[Option[A]]
   )(implicit S: Sync[F], ME: MonadThrow[F]): AuthMiddleware[F, UserName] = {
 
     val dsl = new Http4sDsl[F] {}; import dsl._
 
-    val authUser: Kleisli[F, Request[F], Either[String, UserName]] = Kleisli(request =>
-      AuthHeaders.getBearerToken(request).fold("Bearer token not found".asLeft[UserName].pure[F]) { token =>
+    val authUser: Kleisli[F, Request[F], Either[String, A]] = Kleisli(request =>
+      AuthHeaders.getBearerToken(request).fold("Bearer token not found".asLeft[A].pure[F]) { token =>
         S.delay(SignedJWT.parse(token.value))
           .void
           .recoverWith {
             case _: ParseException => ME.raiseError(InvalidJWTToken)
           }
           .flatMap(_ => authenticate(token))
-          .map(_.fold("not found".asLeft[UserName])(_.asRight[String]))
+          .map(_.fold("not found".asLeft[A])(_.asRight[String]))
       }
     )
 
@@ -40,6 +40,7 @@ object JWTAuthMiddleware {
 
     AuthMiddleware(authUser, onFailure)
   }
+
 
 }
 

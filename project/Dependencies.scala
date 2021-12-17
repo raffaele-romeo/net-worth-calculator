@@ -14,9 +14,7 @@ object Dependencies {
     val log4catsChrisdavenport = "1.1.1"
     val log4cats = "2.0.0-M1"
     val logback = "1.2.3"
-    val newtype = "0.4.3"
     val nimbus = "9.15.2"
-    val refined = "0.9.20"
     val redis4cats = "0.11.1"
     val squants = "1.7.0"
 
@@ -66,9 +64,6 @@ object Dependencies {
     val http4sClient = http4s("http4s-blaze-client")
     val http4sCirce = http4s("http4s-circe")
 
-    val newtype = "io.estatico" %% "newtype" % Versions.newtype
-    val refinedCore = "eu.timepit" %% "refined" % Versions.refined
-    val refinedCats = "eu.timepit" %% "refined-cats" % Versions.refined
     val squants = "org.typelevel" %% "squants" % Versions.squants
 
     // Compiler plugins
