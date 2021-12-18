@@ -2,7 +2,7 @@ package networthcalculator.domain
 
 object auth {
 
-  sealed abstract class Role(roleRepr: String)
+  sealed abstract class Role(val roleRepr: String) extends Product with Serializable
 
   object Role {
 

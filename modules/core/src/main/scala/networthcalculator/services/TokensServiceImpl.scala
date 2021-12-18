@@ -1,6 +1,6 @@
 package networthcalculator.services
 
-import cats.effect.{Clock, Sync}
+import cats.effect.Sync
 import cats.implicits._
 import com.nimbusds.jose.crypto.MACSigner
 import com.nimbusds.jose.{JWSAlgorithm, JWSHeader}
@@ -16,7 +16,7 @@ import java.util.{Date, UUID}
 
 final class TokensServiceImpl[F[_]](
     redis: RedisCommands[F, String, String]
-)(implicit S: Sync[F], C: Clock[F])
+)(implicit S: Sync[F])
     extends TokensService[F] {
 
   override def generateToken(

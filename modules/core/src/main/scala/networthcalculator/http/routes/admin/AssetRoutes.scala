@@ -21,7 +21,7 @@ final class AssetRoutes[F[_]: Defer: JsonDecoder: MonadThrow: SelfAwareStructure
   private[routes] val prefixPath = "/assets"
 
   private val httpRoutes: AuthedRoutes[AdminUser, F] = AuthedRoutes.of {
-    case _ @GET -> Root asAuthed _ =>
+    case _ @GET -> Root as _ =>
       Ok(assets.findAll)
 
     case req @ POST -> Root as _ =>

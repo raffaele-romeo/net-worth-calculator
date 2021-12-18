@@ -18,6 +18,7 @@ lazy val tests = (project in file("modules/tests"))
     name := "net-worth-calculator-test-suite",
     scalacOptions += "-Ymacro-annotations",
     scalafmtOnCompile := true,
+    assembly / assemblyMergeStrategy := customMergeStrategy,
     Defaults.itSettings,
     libraryDependencies ++= Seq(
       Libraries.scalaCheck,
@@ -75,6 +76,6 @@ lazy val core = (project in file("modules/core"))
 
 def customMergeStrategy: String => MergeStrategy = {
   case PathList("reference.conf") => MergeStrategy.concat
-  case PathList("META-INF", _ @_*) => MergeStrategy.discard
+  case PathList("META-INF", _) => MergeStrategy.discard
   case _ => MergeStrategy.first
 }

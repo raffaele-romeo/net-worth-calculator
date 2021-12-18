@@ -1,5 +1,6 @@
 package networthcalculator.domain
 
+import doobie.util.{Get, Put, Read, Write}
 import networthcalculator.domain.auth.Role
 
 import scala.util.control.NoStackTrace
@@ -42,6 +43,22 @@ object users {
       salt: Salt,
       role: Role = Role.User
   )
+
+  object UserWithPassword {
+    implicit val roleGet: Get[Role] = Get[String].tmap(fromString)
+    implicit val rolePut: Put[Role] = Put[String].tcontramap(toString)
+    implicit val roleRead: Read[Role] = Read[String].map(fromString)
+    implicit val roleWrite: Write[Role] = Write[String].contramap(toString)
+
+    private def fromString(s: String): Role = {
+      if (s == Role.User.roleRepr) Role.User
+      else Role.Admin
+    }
+
+    private def toString(r: Role) = r match {
+      case role @ (Role.Admin | Role.User) => role.roleRepr
+    }
+  }
 
   final case class AdminUser(userName: UserName)
   final case class CommonUser(userName: UserName)

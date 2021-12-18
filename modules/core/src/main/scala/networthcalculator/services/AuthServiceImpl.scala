@@ -3,7 +3,6 @@ package networthcalculator.services
 import cats.{Applicative, Defer, Functor}
 import cats.syntax.all._
 import com.nimbusds.jose.JWSAlgorithm
-import dev.profunktor.redis4cats.RedisCommands
 import networthcalculator.algebras.{AuthService, EncryptionService, TokensService, UsersService, UsersAuthService}
 import networthcalculator.config.data.TokenExpiration
 import networthcalculator.domain.users.CreateUserForInsert

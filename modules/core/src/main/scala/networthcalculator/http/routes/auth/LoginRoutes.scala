@@ -26,7 +26,7 @@ final class LoginRoutes[F[_]: JsonDecoder: SelfAwareStructuredLogger](
         .decodeR[LoginUser] { user =>
           authService
             .login(user.username.toDomain, user.password.toDomain)
-            .map(Ok(_))
+            .flatMap(Ok(_))
         }
         .recoverWith {
           case UserNotFound(_) | InvalidPassword(_) => Forbidden()

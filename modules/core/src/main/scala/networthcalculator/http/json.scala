@@ -1,45 +1,70 @@
 package networthcalculator.http
 
 import cats.Applicative
+import cats.effect.Sync
 import io.circe._
 import io.circe.generic.semiauto._
 import networthcalculator.domain.asset._
-import networthcalculator.domain.healthcheck.AppStatus
+import networthcalculator.domain.auth.Role
+import networthcalculator.domain.healthcheck.{AppStatus, PostgresStatus, RedisStatus}
 import networthcalculator.domain.tokens.JwtToken
-import networthcalculator.domain.users.{CreateUser, LoginUser, UserNameParam, UserWithPassword}
-import org.http4s.EntityEncoder
-import org.http4s.circe.jsonEncoderOf
+import networthcalculator.domain.users.{
+  CreateUser,
+  EncryptedPassword,
+  LoginUser,
+  PasswordParam,
+  Salt,
+  UserId,
+  UserName,
+  UserNameParam,
+  UserWithPassword
+}
+import org.http4s.{EntityDecoder, EntityEncoder}
+import org.http4s.circe._
 
 object json extends JsonCodecs {
   implicit def deriveEntityEncoder[F[_]: Applicative, A: Encoder]: EntityEncoder[F, A] = jsonEncoderOf[F, A]
+  implicit def jsonDecoder[F[_]: Sync, A: Decoder]: EntityDecoder[F, A] = jsonOf[F, A]
 }
 
 private[http] trait JsonCodecs {
 
-  // ----- Overriding some Coercible codecs ----
-  implicit val usernameParamDecoder: Decoder[UserNameParam] =
-    Decoder.forProduct1("name")(UserNameParam.apply)
+  implicit val usernameParamDecoder: Decoder[UserNameParam] = deriveDecoder
+  implicit val passwordParamDecoder: Decoder[PasswordParam] = deriveDecoder
 
-  implicit val assetTypeParamDecoder: Decoder[AssetTypeParam] =
-    Decoder.forProduct1("name")(AssetTypeParam.apply)
+  implicit val assetTypeParamDecoder: Decoder[AssetTypeParam] = deriveDecoder
+  implicit val assetIdParamDecoder: Decoder[AssetIdParam] = deriveDecoder
 
-  implicit val assetIdParamDecoder: Decoder[AssetIdParam] =
-    Decoder.forProduct1("name")(AssetIdParam.apply)
+  implicit val userIdDecoder: Decoder[UserId] = deriveDecoder
+  implicit val userNameDecoder: Decoder[UserName] = deriveDecoder
+  implicit val passwordDecoder: Decoder[EncryptedPassword] = deriveDecoder
+  implicit val saltDecoder: Decoder[Salt] = deriveDecoder
+  implicit val roleDecoder: Decoder[Role] = deriveDecoder
+  implicit val userIdEncoder: Encoder[UserId] = deriveEncoder
+  implicit val userNameEncoder: Encoder[UserName] = deriveEncoder
+  implicit val passwordEncoder: Encoder[EncryptedPassword] = deriveEncoder
+  implicit val saltEncoder: Encoder[Salt] = deriveEncoder
+  implicit val roleEncoder: Encoder[Role] = deriveEncoder
+  implicit val userDecoder: Decoder[UserWithPassword] = deriveDecoder
+  implicit val userEncoder: Encoder[UserWithPassword] = deriveEncoder
 
-  implicit val userDecoder: Decoder[UserWithPassword] = deriveDecoder[UserWithPassword]
-  implicit val userEncoder: Encoder[UserWithPassword] = deriveEncoder[UserWithPassword]
+  implicit val assetIdDecoder: Decoder[AssetId] = deriveDecoder
+  implicit val assetTypeDecoder: Decoder[AssetType] = deriveDecoder
+  implicit val assetIdEncoder: Encoder[AssetId] = deriveEncoder
+  implicit val assetTypeEncoder: Encoder[AssetType] = deriveEncoder
+  implicit val assetDecoder: Decoder[Asset] = deriveDecoder
+  implicit val assetEncoder: Encoder[Asset] = deriveEncoder
 
-  implicit val assetDecoder: Decoder[Asset] = deriveDecoder[Asset]
-  implicit val assetEncoder: Encoder[Asset] = deriveEncoder[Asset]
+  implicit val redisStatus: Encoder[RedisStatus] = deriveEncoder
+  implicit val postgresStatusStatus: Encoder[PostgresStatus] = deriveEncoder
+  implicit val appStatusEncoder: Encoder[AppStatus] = deriveEncoder
 
-  implicit val appStatusEncoder: Encoder[AppStatus] = deriveEncoder[AppStatus]
+  implicit val createUserDecoder: Decoder[CreateUser] = deriveDecoder
+  implicit val loginUserDecoder: Decoder[LoginUser] = deriveDecoder
+  implicit val createAssetDecoder: Decoder[CreateAsset] = deriveDecoder
+  implicit val updateAssetDecoder: Decoder[UpdateAsset] = deriveDecoder
 
-  implicit val createUserDecoder: Decoder[CreateUser] = deriveDecoder[CreateUser]
-  implicit val loginUserDecoder: Decoder[LoginUser] = deriveDecoder[LoginUser]
-  implicit val createAssetDecoder: Decoder[CreateAsset] = deriveDecoder[CreateAsset]
-  implicit val updateAssetDecoder: Decoder[UpdateAsset] = deriveDecoder[UpdateAsset]
-
-  implicit val jwtTokenDecoder: Decoder[JwtToken] = deriveDecoder[JwtToken]
-  implicit val jwtTokenEncoder: Encoder[JwtToken] = deriveEncoder[JwtToken]
+  implicit val jwtTokenDecoder: Decoder[JwtToken] = deriveDecoder
+  implicit val jwtTokenEncoder: Encoder[JwtToken] = deriveEncoder
 
 }
