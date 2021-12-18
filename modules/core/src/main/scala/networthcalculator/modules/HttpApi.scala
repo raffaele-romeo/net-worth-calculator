@@ -2,7 +2,7 @@ package networthcalculator.modules
 
 import cats.effect._
 import cats.syntax.all._
-import io.chrisdavenport.log4cats.SelfAwareStructuredLogger
+import org.typelevel.log4cats.Logger
 import networthcalculator.domain.users.{AdminUser, CommonUser}
 import networthcalculator.http.routes.admin.AssetRoutes
 import networthcalculator.http.routes.auth._
@@ -16,7 +16,7 @@ import org.http4s.server.middleware._
 
 import scala.concurrent.duration._
 
-final class HttpApi[F[_]: Concurrent: Timer: SelfAwareStructuredLogger](
+final class HttpApi[F[_]: Concurrent: Timer: Logger](
     services: Services[F],
     security: Security[F]
 ) {

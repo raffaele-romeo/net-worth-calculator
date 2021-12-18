@@ -2,7 +2,6 @@ package networthcalculator.http.routes.auth
 
 import cats.Defer
 import cats.syntax.all._
-import io.chrisdavenport.log4cats.SelfAwareStructuredLogger
 import networthcalculator.algebras.AuthService
 import networthcalculator.domain.users._
 import networthcalculator.effects.MonadThrow
@@ -12,8 +11,9 @@ import org.http4s._
 import org.http4s.circe.JsonDecoder
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.Router
+import org.typelevel.log4cats.Logger
 
-final class UserRoutes[F[_]: Defer: JsonDecoder: MonadThrow: SelfAwareStructuredLogger](
+final class UserRoutes[F[_]: Defer: JsonDecoder: MonadThrow: Logger](
     authService: AuthService[F]
 ) extends Http4sDsl[F] {
 

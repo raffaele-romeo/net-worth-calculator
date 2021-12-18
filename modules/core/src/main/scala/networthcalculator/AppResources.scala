@@ -1,11 +1,11 @@
 package networthcalculator
 
 import cats.effect.{ConcurrentEffect, ContextShift, Resource, _}
-import dev.profunktor.redis4cats.log4cats._
+import dev.profunktor.redis4cats.effect.Log.Stdout._
 import dev.profunktor.redis4cats.{Redis, RedisCommands}
 import doobie._
 import doobie.hikari.HikariTransactor
-import io.chrisdavenport.log4cats.Logger
+import org.typelevel.log4cats.Logger
 import networthcalculator.config.data._
 
 object AppResources {

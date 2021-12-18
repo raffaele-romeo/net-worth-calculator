@@ -1,16 +1,23 @@
 package networthcalculator.config
 
-import enumeratum.EnumEntry.Lowercase
-import enumeratum.{CirisEnum, Enum, EnumEntry}
+import ciris.ConfigDecoder
 
 object environments {
 
-  sealed abstract class AppEnvironment extends EnumEntry with Lowercase
+  sealed abstract class AppEnvironment extends Product with Serializable
 
-  object AppEnvironment extends Enum[AppEnvironment] with CirisEnum[AppEnvironment] {
+  object AppEnvironment {
     case object Test extends AppEnvironment
     case object Prod extends AppEnvironment
 
-    val values: IndexedSeq[AppEnvironment] = findValues
+    implicit val posIntConfigDecoder: ConfigDecoder[String, AppEnvironment] =
+      ConfigDecoder[String, String].mapOption("PosInt")(apply)
+
+    private def apply(value: String): Option[AppEnvironment] =
+      value.toLowerCase match {
+        case "test" => Some(AppEnvironment.Test)
+        case "prod" => Some(AppEnvironment.Prod)
+        case _ => None
+      }
   }
 }

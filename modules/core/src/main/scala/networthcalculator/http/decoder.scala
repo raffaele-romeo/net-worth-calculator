@@ -1,17 +1,16 @@
 package networthcalculator.http
 
 import cats.syntax.all._
-import io.chrisdavenport.log4cats.{Logger, SelfAwareStructuredLogger}
 import io.circe.Decoder
 import networthcalculator.effects._
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
+import org.typelevel.log4cats.Logger
 
 object decoder {
 
-  implicit class RefinedRequestDecoder[F[_]: JsonDecoder: MonadThrow: SelfAwareStructuredLogger](req: Request[F])
-      extends Http4sDsl[F] {
+  implicit class RefinedRequestDecoder[F[_]: JsonDecoder: MonadThrow: Logger](req: Request[F]) extends Http4sDsl[F] {
 
     def decodeR[A: Decoder](f: A => F[Response[F]]): F[Response[F]] = {
       req.asJsonDecode[A].attempt.flatMap {

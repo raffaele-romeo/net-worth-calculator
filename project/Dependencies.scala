@@ -11,8 +11,7 @@ object Dependencies {
     val commonsCodec = "1.15"
     val doobie = "0.10.0"
     val http4s = "0.21.15"
-    val log4catsChrisdavenport = "1.1.1"
-    val log4cats = "2.0.0-M1"
+    val log4cats = "1.4.0"
     val logback = "1.2.3"
     val nimbus = "9.15.2"
     val redis4cats = "0.11.1"
@@ -40,11 +39,8 @@ object Dependencies {
     val circeCore = circe("circe-core")
     val circeGeneric = circe("circe-generic")
     val circeParser = circe("circe-parser")
-    val circeRefined = circe("circe-refined")
 
     val cirisCore = ciris("ciris")
-    val cirisEnum = ciris("ciris-enumeratum")
-    val cirisRefined = ciris("ciris-refined")
 
     val commonsCodec = "commons-codec" % "commons-codec" % Versions.commonsCodec
 
@@ -52,7 +48,8 @@ object Dependencies {
     val doobieHikari = doobie("doobie-hikari")
     val doobiePostgres = doobie("doobie-postgres")
 
-    val log4catsChrisdavenport = "io.chrisdavenport" %% "log4cats-slf4j" % Versions.log4catsChrisdavenport
+    val log4catsSlf4j = log4Cats("log4cats-slf4j")
+    val log4catsCore = log4Cats("log4cats-core")
 
     val nimbus = "com.nimbusds" % "nimbus-jose-jwt" % Versions.nimbus
 
