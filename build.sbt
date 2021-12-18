@@ -16,7 +16,6 @@ lazy val tests = (project in file("modules/tests"))
   .configs(IntegrationTest)
   .settings(
     name := "net-worth-calculator-test-suite",
-    scalacOptions += "-Ymacro-annotations",
     scalafmtOnCompile := true,
     assembly / assemblyMergeStrategy := customMergeStrategy,
     Defaults.itSettings,
