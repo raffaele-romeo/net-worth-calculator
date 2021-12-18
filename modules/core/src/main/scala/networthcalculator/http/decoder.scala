@@ -1,19 +1,17 @@
 package networthcalculator.http
 
 import cats.syntax.all._
-import io.circe.Decoder
 import networthcalculator.effects._
 import org.http4s._
-import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.typelevel.log4cats.Logger
 
 object decoder {
 
-  implicit class RefinedRequestDecoder[F[_]: JsonDecoder: MonadThrow: Logger](req: Request[F]) extends Http4sDsl[F] {
+  implicit class RefinedRequestDecoder[F[_]: MonadThrow: Logger](req: Request[F]) extends Http4sDsl[F] {
 
-    def decodeR[A: Decoder](f: A => F[Response[F]]): F[Response[F]] = {
-      req.asJsonDecode[A].attempt.flatMap {
+    def decodeR[A](f: A => F[Response[F]])(implicit entityDecoder: EntityDecoder[F, A]): F[Response[F]] = {
+      req.as[A].attempt.flatMap {
         case Left(e) =>
           Logger[F].error(s"Failed to decoder request: $e") >> {
             Option(e.getCause) match {

@@ -8,12 +8,11 @@ import networthcalculator.domain.users._
 import networthcalculator.http.decoder._
 import networthcalculator.http.json._
 import org.http4s._
-import org.http4s.circe.JsonDecoder
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.Router
 import org.typelevel.log4cats.Logger
 
-final class LoginRoutes[F[_]: JsonDecoder: Logger](
+final class LoginRoutes[F[_]: Logger](
     authService: AuthService[F]
 )(implicit S: Sync[F])
     extends Http4sDsl[F] {
