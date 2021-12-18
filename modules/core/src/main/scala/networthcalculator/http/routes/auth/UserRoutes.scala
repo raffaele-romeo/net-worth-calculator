@@ -4,7 +4,6 @@ import cats.effect.kernel.Concurrent
 import cats.syntax.all._
 import networthcalculator.algebras.AuthService
 import networthcalculator.domain.users._
-import networthcalculator.effects.MonadThrow
 import networthcalculator.http.decoder._
 import networthcalculator.http.json._
 import org.http4s._
@@ -12,7 +11,7 @@ import org.http4s.dsl.Http4sDsl
 import org.http4s.server.Router
 import org.typelevel.log4cats.Logger
 
-final class UserRoutes[F[_]: Concurrent: MonadThrow: Logger](
+final class UserRoutes[F[_]: Concurrent: Logger](
     authService: AuthService[F]
 ) extends Http4sDsl[F] {
 

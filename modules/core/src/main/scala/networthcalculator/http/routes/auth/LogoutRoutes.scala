@@ -1,6 +1,5 @@
 package networthcalculator.http.routes.auth
 
-import cats.Defer
 import cats.syntax.all._
 import networthcalculator.algebras.TokensService
 import networthcalculator.domain.users._
@@ -10,7 +9,7 @@ import org.http4s.dsl.Http4sDsl
 import org.http4s.server.{AuthMiddleware, Router}
 import org.http4s.{AuthedRoutes, HttpRoutes}
 
-final class LogoutRoutes[F[_]: MonadThrow: Defer](
+final class LogoutRoutes[F[_]: MonadThrow](
     tokens: TokensService[F]
 ) extends Http4sDsl[F] {
 

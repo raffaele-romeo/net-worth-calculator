@@ -1,13 +1,13 @@
 package networthcalculator.http.routes
 
-import cats.{Defer, Monad}
+import cats.Monad
 import networthcalculator.algebras.HealthCheckService
 import networthcalculator.http.json._
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.Router
 
-final class HealthRoutes[F[_]: Defer: Monad](
+final class HealthRoutes[F[_]: Monad](
     healthCheck: HealthCheckService[F]
 ) extends Http4sDsl[F] {
 

@@ -6,12 +6,11 @@ import dev.profunktor.redis4cats.effect.Log.Stdout._
 import dev.profunktor.redis4cats.{Redis, RedisCommands}
 import doobie._
 import doobie.hikari.HikariTransactor
-import org.typelevel.log4cats.Logger
 import networthcalculator.config.data._
 
 object AppResources {
 
-  def make[F[_]: Async: Logger](
+  def make[F[_]: Async](
       cfg: AppConfig
   ): Resource[F, AppResources[F]] = {
 

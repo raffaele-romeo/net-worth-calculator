@@ -5,7 +5,6 @@ import cats.syntax.all._
 import networthcalculator.algebras.AssetsService
 import networthcalculator.domain.asset._
 import networthcalculator.domain.users.AdminUser
-import networthcalculator.effects.MonadThrow
 import networthcalculator.http.decoder._
 import networthcalculator.http.json._
 import org.http4s.dsl.Http4sDsl
@@ -13,7 +12,7 @@ import org.http4s.server.{AuthMiddleware, Router}
 import org.http4s.{AuthedRoutes, HttpRoutes}
 import org.typelevel.log4cats.Logger
 
-final class AssetRoutes[F[_]: Concurrent: MonadThrow: Logger](
+final class AssetRoutes[F[_]: Concurrent: Logger](
     assets: AssetsService[F]
 ) extends Http4sDsl[F] {
 

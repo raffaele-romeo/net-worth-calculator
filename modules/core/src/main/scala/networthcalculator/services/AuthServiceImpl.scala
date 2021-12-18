@@ -1,6 +1,6 @@
 package networthcalculator.services
 
-import cats.{Applicative, Defer, Functor}
+import cats.Applicative
 import cats.syntax.all._
 import com.nimbusds.jose.JWSAlgorithm
 import networthcalculator.algebras.{AuthService, EncryptionService, TokensService, UsersService, UsersAuthService}
@@ -10,7 +10,7 @@ import networthcalculator.domain.tokens._
 import networthcalculator.domain.users._
 import networthcalculator.effects.MonadThrow
 
-final class AuthServiceImpl[F[_]: Defer: MonadThrow](
+final class AuthServiceImpl[F[_]: MonadThrow](
     usersService: UsersService[F],
     encryptionService: EncryptionService,
     tokensService: TokensService[F],
@@ -65,7 +65,7 @@ object UsersAuthServiceImpl {
         .as(adminUser)
         .pure[F]
 
-  def common[F[_]: Functor](
+  def common[F[_]](
       tokensService: TokensService[F]
   ): UsersAuthService[F, CommonUser] =
     (token: JwtToken) =>

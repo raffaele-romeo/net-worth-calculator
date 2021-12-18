@@ -2,7 +2,7 @@ package networthcalculator.services
 
 import cats.effect.implicits._
 import cats.effect.kernel.Temporal
-import cats.effect.{Concurrent, Resource}
+import cats.effect.Resource
 import cats.syntax.all._
 import dev.profunktor.redis4cats.RedisCommands
 import doobie.ConnectionIO
@@ -13,7 +13,7 @@ import networthcalculator.domain.healthcheck.{AppStatus, PostgresStatus, RedisSt
 
 import scala.concurrent.duration._
 
-final class HealthCheckServiceImpl[F[_]: Concurrent: Temporal](
+final class HealthCheckServiceImpl[F[_]: Temporal](
     transactor: Resource[F, HikariTransactor[F]],
     redis: RedisCommands[F, String, String]
 ) extends HealthCheckService[F] {

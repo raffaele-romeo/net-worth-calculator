@@ -1,6 +1,5 @@
 package networthcalculator.http
 
-import cats.Applicative
 import cats.effect.kernel.Concurrent
 import io.circe._
 import io.circe.generic.semiauto._
@@ -23,7 +22,7 @@ import org.http4s.{EntityDecoder, EntityEncoder}
 import org.http4s.circe._
 
 object json extends JsonCodecs {
-  implicit def deriveEntityEncoder[F[_]: Applicative, A: Encoder]: EntityEncoder[F, A] = jsonEncoderOf[F, A]
+  implicit def deriveEntityEncoder[F[_], A: Encoder]: EntityEncoder[F, A] = jsonEncoderOf[F, A]
   implicit def jsonDecoder[F[_]: Concurrent, A: Decoder]: EntityDecoder[F, A] = jsonOf[F, A]
 }
 
