@@ -7,9 +7,8 @@ import doobie.hikari.HikariTransactor
 import doobie.implicits._
 import networthcalculator.algebras.AssetsService
 import networthcalculator.domain.asset.{Asset, AssetId, AssetType}
-import networthcalculator.effects.BracketThrow
 
-final class AssetsServiceImpl[F[_]: BracketThrow: Sync](
+final class AssetsServiceImpl[F[_]: Sync](
     transactor: Resource[F, HikariTransactor[F]]
 ) extends AssetsService[F] {
 

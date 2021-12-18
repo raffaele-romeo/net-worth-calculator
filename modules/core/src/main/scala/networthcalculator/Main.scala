@@ -1,14 +1,11 @@
 package networthcalculator
 
 import cats.effect._
-import cats.syntax.all._
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import networthcalculator.modules.{HttpApi, Security, Services}
-import org.http4s.server.blaze.BlazeServerBuilder
+import org.http4s.blaze.server.BlazeServerBuilder
 import org.typelevel.log4cats
-
-import scala.concurrent.ExecutionContext
 
 object Main extends IOApp {
 
@@ -25,7 +22,7 @@ object Main extends IOApp {
                 .make[IO](res.psql, res.redis, cfg.tokenExpiration, cfg.jwtAdmin.adminToken, cfg.jwtAdmin.adminUser)
             )
             api <- IO.delay(new HttpApi[IO](services, security))
-            _ <- BlazeServerBuilder[IO](ExecutionContext.global)
+            _ <- BlazeServerBuilder[IO]
               .bindHttp(
                 cfg.httpServerConfig.port,
                 cfg.httpServerConfig.host

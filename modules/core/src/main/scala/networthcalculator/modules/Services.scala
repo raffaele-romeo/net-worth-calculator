@@ -1,14 +1,15 @@
 package networthcalculator.modules
 
 import cats.Parallel
-import cats.effect.{Concurrent, Resource, Timer}
+import cats.effect.kernel.{Sync, Temporal}
+import cats.effect.{Concurrent, Resource}
 import dev.profunktor.redis4cats.RedisCommands
 import doobie.hikari.HikariTransactor
 import networthcalculator.services.{AssetsServiceImpl, HealthCheckServiceImpl}
 
 object Services {
 
-  def make[F[_]: Concurrent: Parallel: Timer](
+  def make[F[_]: Sync: Concurrent: Parallel: Temporal](
       transactor: Resource[F, HikariTransactor[F]],
       redis: RedisCommands[F, String, String]
   ): Services[F] = {

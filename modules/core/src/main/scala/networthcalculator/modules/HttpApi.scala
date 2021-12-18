@@ -16,7 +16,7 @@ import org.http4s.server.middleware._
 
 import scala.concurrent.duration._
 
-final class HttpApi[F[_]: Concurrent: Timer: Logger](
+final class HttpApi[F[_]: Async: Logger](
     services: Services[F],
     security: Security[F]
 ) {
@@ -51,8 +51,6 @@ final class HttpApi[F[_]: Concurrent: Timer: Logger](
   private val middleware: HttpRoutes[F] => HttpRoutes[F] = {
     { http: HttpRoutes[F] =>
       AutoSlash(http)
-    } andThen { http: HttpRoutes[F] =>
-      CORS(http, CORS.DefaultCORSConfig)
     } andThen { http: HttpRoutes[F] =>
       Timeout(60.seconds)(http)
     }

@@ -1,16 +1,8 @@
 package networthcalculator
 
-import cats.effect.Bracket
 import cats.{ApplicativeError, MonadError}
 
 package object effects {
-
-  type BracketThrow[F[_]] = Bracket[F, Throwable]
-
-  object BracketThrow {
-    def apply[F[_]](implicit ev: Bracket[F, Throwable]): BracketThrow[F] = ev
-  }
-
   type ApThrow[F[_]] = ApplicativeError[F, Throwable]
 
   object ApThrow {

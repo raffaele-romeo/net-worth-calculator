@@ -1,6 +1,6 @@
 package networthcalculator.http.routes.admin
 
-import cats.effect.Sync
+import cats.effect.kernel.Concurrent
 import cats.syntax.all._
 import networthcalculator.algebras.AssetsService
 import networthcalculator.domain.asset._
@@ -13,7 +13,7 @@ import org.http4s.server.{AuthMiddleware, Router}
 import org.http4s.{AuthedRoutes, HttpRoutes}
 import org.typelevel.log4cats.Logger
 
-final class AssetRoutes[F[_]: Sync: MonadThrow: Logger](
+final class AssetRoutes[F[_]: Concurrent: MonadThrow: Logger](
     assets: AssetsService[F]
 ) extends Http4sDsl[F] {
 

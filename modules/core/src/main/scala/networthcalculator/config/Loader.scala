@@ -12,7 +12,7 @@ import scala.concurrent.duration._
 
 object Loader {
 
-  def apply[F[_]: Async: ContextShift]: F[AppConfig] =
+  def apply[F[_]: Async]: F[AppConfig] =
     env("NWC_APP_ENV")
       .as[AppEnvironment]
       .map {

@@ -1,15 +1,14 @@
 package networthcalculator.services
 
-import cats.effect.Resource
+import cats.effect.{MonadCancelThrow, Resource}
 import cats.syntax.all._
 import doobie.ConnectionIO
 import doobie.hikari.HikariTransactor
 import doobie.implicits._
 import networthcalculator.algebras.UsersService
 import networthcalculator.domain.users.{CreateUserForInsert, UserName, UserNameInUse, UserWithPassword}
-import networthcalculator.effects.BracketThrow
 
-final class UsersServiceImpl[F[_]: BracketThrow](
+final class UsersServiceImpl[F[_]: MonadCancelThrow](
     transactor: Resource[F, HikariTransactor[F]]
 ) extends UsersService[F] {
 

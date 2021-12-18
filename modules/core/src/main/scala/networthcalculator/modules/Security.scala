@@ -1,7 +1,6 @@
 package networthcalculator.modules
 
-import cats.Parallel
-import cats.effect.{Concurrent, Resource, Timer}
+import cats.effect.{MonadCancelThrow, Resource, Sync}
 import dev.profunktor.redis4cats.RedisCommands
 import doobie.hikari.HikariTransactor
 import networthcalculator.algebras.{AuthService, EncryptionService, TokensService, UsersAuthService, UsersService}
@@ -18,7 +17,7 @@ import networthcalculator.services.{
 
 object Security {
 
-  def make[F[_]: Concurrent: Parallel: Timer](
+  def make[F[_]: MonadCancelThrow: Sync](
       transactor: Resource[F, HikariTransactor[F]],
       redis: RedisCommands[F, String, String],
       tokenExpiration: TokenExpiration,
