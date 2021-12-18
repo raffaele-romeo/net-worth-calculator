@@ -52,7 +52,7 @@ final class TokensServiceImpl[F[_]](
   override def findTokenBy(userName: UserName): F[Option[JwtToken]] = {
     for {
       maybeToken <- redis.get(userName.value)
-    } yield maybeToken.map(JwtToken)
+    } yield maybeToken.map(JwtToken.apply)
   }
 
   override def storeToken(userName: UserName, token: JwtToken, expiresIn: TokenExpiration): F[Unit] = {

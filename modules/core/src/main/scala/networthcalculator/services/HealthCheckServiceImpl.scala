@@ -37,5 +37,5 @@ final class HealthCheckServiceImpl[F[_]: Temporal](
       .map(PostgresStatus.apply)
 
   val status: F[AppStatus] =
-    (redisHealth, postgresHealth).parMapN(AppStatus)
+    (redisHealth, postgresHealth).parMapN(AppStatus.apply)
 }

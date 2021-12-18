@@ -1,7 +1,7 @@
 import Dependencies._
 import sbtassembly.MergeStrategy
 
-ThisBuild / scalaVersion := "2.13.5"
+ThisBuild / scalaVersion := "3.1.0"
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
 resolvers += Resolver.sonatypeRepo("snapshots")
@@ -21,9 +21,7 @@ lazy val tests = (project in file("modules/tests"))
     assembly / assemblyMergeStrategy := customMergeStrategy,
     Defaults.itSettings,
     libraryDependencies ++= Seq(
-      Libraries.scalaCheck,
-      Libraries.scalaTest,
-      Libraries.scalaTestPlus
+      Libraries.scalaTest
     )
   )
   .dependsOn(core)
@@ -34,7 +32,6 @@ lazy val core = (project in file("modules/core"))
   .settings(
     name := "net-worth-calculator-core",
     Docker / packageName := "net-worth-calculator",
-    scalacOptions += "-Ymacro-annotations",
     scalafmtOnCompile := true,
     resolvers += Resolver.sonatypeRepo("snapshots"),
     Defaults.itSettings,
@@ -45,8 +42,6 @@ lazy val core = (project in file("modules/core"))
     assembly / mainClass := Some("networthcalculator.Main"),
     assembly / assemblyMergeStrategy := customMergeStrategy,
     libraryDependencies ++= Seq(
-      compilerPlugin(Libraries.kindProjector cross CrossVersion.full),
-      compilerPlugin(Libraries.betterMonadicFor),
       Libraries.cats,
       Libraries.catsEffect,
       Libraries.catsRetry,

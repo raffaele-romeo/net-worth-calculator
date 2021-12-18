@@ -17,12 +17,7 @@ object Dependencies {
     val redis4cats = "1.0.0"
     val squants = "1.8.3"
 
-    val betterMonadicFor = "0.3.1"
-    val kindProjector = "0.11.3"
-
-    val scalaCheck = "1.15.4"
     val scalaTest = "3.2.9"
-    val scalaTestPlus = "3.2.2.0"
   }
 
   object Libraries {
@@ -63,16 +58,10 @@ object Dependencies {
 
     val squants = "org.typelevel" %% "squants" % Versions.squants
 
-    // Compiler plugins
-    val betterMonadicFor = "com.olegpy" %% "better-monadic-for" % Versions.betterMonadicFor
-    val kindProjector = "org.typelevel" % "kind-projector" % Versions.kindProjector
-
     // Runtime
     val logback = "ch.qos.logback" % "logback-classic" % Versions.logback
 
     // Test
-    val scalaCheck = "org.scalacheck" %% "scalacheck" % Versions.scalaCheck
     val scalaTest = "org.scalatest" %% "scalatest" % Versions.scalaTest
-    val scalaTestPlus = "org.scalatestplus" %% "scalacheck-1-14" % Versions.scalaTestPlus
   }
 }
