@@ -3,25 +3,25 @@ import sbt._
 object Dependencies {
 
   object Versions {
-    val cats = "2.3.1"
-    val catsEffect = "2.3.1"
-    val catsRetry = "2.1.0"
+    val cats = "2.7.0"
+    val catsEffect = "3.3.0"
+    val catsRetry = "3.1.0"
     val circe = "0.13.0"
-    val ciris = "1.2.1"
+    val ciris = "2.3.1"
     val commonsCodec = "1.15"
-    val doobie = "0.10.0"
-    val http4s = "0.21.15"
-    val log4cats = "1.4.0"
-    val logback = "1.2.3"
+    val doobie = "1.0.0-RC1"
+    val http4s = "0.23.7"
+    val log4cats = "2.1.1"
+    val logback = "1.2.8"
     val nimbus = "9.15.2"
-    val redis4cats = "0.11.1"
-    val squants = "1.7.0"
+    val redis4cats = "1.0.0"
+    val squants = "1.8.3"
 
     val betterMonadicFor = "0.3.1"
     val kindProjector = "0.11.3"
 
-    val scalaCheck = "1.15.2"
-    val scalaTest = "3.2.2"
+    val scalaCheck = "1.15.4"
+    val scalaTest = "3.2.9"
     val scalaTestPlus = "3.2.2.0"
   }
 
