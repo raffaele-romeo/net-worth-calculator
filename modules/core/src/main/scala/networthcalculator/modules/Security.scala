@@ -16,7 +16,6 @@ import networthcalculator.services.{
 }
 
 object Security {
-
   def make[F[_]: Sync](
       transactor: Resource[F, HikariTransactor[F]],
       redis: RedisCommands[F, String, String],

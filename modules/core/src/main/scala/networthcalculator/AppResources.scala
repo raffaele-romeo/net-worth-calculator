@@ -9,7 +9,6 @@ import doobie.hikari.HikariTransactor
 import networthcalculator.config.data._
 
 object AppResources {
-
   def make[F[_]: Async](
       cfg: AppConfig
   ): Resource[F, AppResources[F]] = {
