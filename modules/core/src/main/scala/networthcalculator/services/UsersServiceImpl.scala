@@ -1,41 +1,37 @@
 package networthcalculator.services
 
 import cats.effect.{MonadCancelThrow, Resource}
-import cats.syntax.all._
+import cats.syntax.all.*
 import doobie.ConnectionIO
 import doobie.hikari.HikariTransactor
-import doobie.implicits._
+import doobie.implicits.*
 import networthcalculator.algebras.UsersService
-import networthcalculator.domain.users.{
-  CreateUserForInsert,
-  UserName,
-  UserNameInUse,
-  UserWithPassword
+import networthcalculator.domain.users.{CreateUserForInsert, UserName, UserNameInUse, UserWithPassword}
+
+object UsersServiceImpl {
+  def make[F[_]: MonadCancelThrow](
+      transactor: Resource[F, HikariTransactor[F]]
+  ): UsersService[F] = new UsersService[F] {
+
+    override def create(user: CreateUserForInsert): F[UserWithPassword] =
+      transactor.use(
+        UserQueries
+          .insert(user)
+          .handleErrorWith {
+            case ex: java.sql.SQLException if ex.getErrorCode == 23505 =>
+              UserNameInUse(user.name).raiseError[ConnectionIO, UserWithPassword]
+          }
+          .transact[F]
+      )
+
+    override def find(userName: UserName): F[Option[UserWithPassword]] =
+      transactor.use(
+        UserQueries
+          .select(userName)
+          .transact[F]
+      )
+  }
 }
-
-final class UsersServiceImpl[F[_]: MonadCancelThrow](
-    transactor: Resource[F, HikariTransactor[F]]
-) extends UsersService[F] {
-
-  override def create(user: CreateUserForInsert): F[UserWithPassword] =
-    transactor.use(
-      UserQueries
-        .insert(user)
-        .handleErrorWith {
-          case ex: java.sql.SQLException if ex.getErrorCode == 23505 =>
-            UserNameInUse(user.name).raiseError[ConnectionIO, UserWithPassword]
-        }
-        .transact[F]
-    )
-
-  override def find(userName: UserName): F[Option[UserWithPassword]] =
-    transactor.use(
-      UserQueries
-        .select(userName)
-        .transact[F]
-    )
-}
-
 private object UserQueries {
   import UserWithPassword._ // This is needed to avoid error "Cannot find or construct a Read instance for type: UserWithPassword"
 

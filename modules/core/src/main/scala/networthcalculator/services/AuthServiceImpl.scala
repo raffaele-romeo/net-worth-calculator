@@ -1,62 +1,64 @@
 package networthcalculator.services
 
 import cats.Applicative
-import cats.syntax.all._
+import cats.syntax.all.*
 import com.nimbusds.jose.JWSAlgorithm
-import networthcalculator.algebras.{
-  AuthService,
-  EncryptionService,
-  TokensService,
-  UsersService,
-  UsersAuthService
-}
+import networthcalculator.algebras.{AuthService, EncryptionService, TokensService, UsersAuthService, UsersService}
 import networthcalculator.config.data.TokenExpiration
 import networthcalculator.domain.users.CreateUserForInsert
-import networthcalculator.domain.tokens._
-import networthcalculator.domain.users._
+import networthcalculator.domain.tokens.*
+import networthcalculator.domain.users.*
 import networthcalculator.effects.MonadThrow
+import cats.implicits.*
+import cats.Monad
+import cats.effect.Sync
 
-final class AuthServiceImpl[F[_]: MonadThrow](
-    usersService: UsersService[F],
-    encryptionService: EncryptionService,
-    tokensService: TokensService[F],
-    expiresIn: TokenExpiration
-) extends AuthService[F] {
+object AuthServiceImpl {
+  def make[F[_]: MonadThrow](
+      usersService: UsersService[F],
+      encryptionService: EncryptionService[F],
+      tokensService: TokensService[F],
+      expiresIn: TokenExpiration
+  )(implicit S: Sync[F]): AuthService[F] =
+    new AuthService[F] {
 
-  override def newUser(username: UserName, password: Password): F[JwtToken] = {
-    val salt = encryptionService.generateRandomSalt()
-    for {
-      user <- usersService
-        .create(
-          CreateUserForInsert(
-            name = username,
-            password = encryptionService.encrypt(password, salt),
-            salt = salt
-          )
-        )
-      token <- tokensService.generateToken(user.name, expiresIn, JWSAlgorithm.HS512)
-      _ <- tokensService.storeToken(user.name, token, expiresIn)
-    } yield token
-  }
+      override def newUser(username: UserName, password: Password): F[JwtToken] = {
+        for {
+          salt <- encryptionService.generateRandomSalt()
+          encryptedPassword <- encryptionService.encrypt(password, salt)
+          user <- usersService
+            .create(
+              CreateUserForInsert(
+                name = username,
+                password = encryptedPassword,
+                salt = salt
+              )
+            )
+          token <- tokensService.generateToken(user.name, expiresIn, JWSAlgorithm.HS512)
+          _ <- tokensService.storeToken(user.name, token, expiresIn)
+        } yield token
+      }
 
-  override def login(username: UserName, password: Password): F[JwtToken] = {
-    usersService
-      .find(username)
-      .flatMap {
-        case None => UserNotFound(username).raiseError[F, JwtToken]
-        case Some(user) if !encryptionService.checkPassword(user.password, password, user.salt) =>
-          InvalidPassword(user.name).raiseError[F, JwtToken]
-        case Some(user) =>
-          tokensService.findTokenBy(username).flatMap {
-            case Some(token) => token.pure[F]
-            case None =>
-              for {
-                token <- tokensService.generateToken(user.name, expiresIn, JWSAlgorithm.HS512)
-                _ <- tokensService.storeToken(user.name, token, expiresIn)
-              } yield token
+      override def login(username: UserName, password: Password): F[JwtToken] = {
+        usersService
+          .find(username)
+          .flatMap {
+            case None => UserNotFound(username).raiseError[F, JwtToken]
+            case Some(user) =>
+              Monad[F].ifM(encryptionService.checkPassword(user.password, password, user.salt))(
+                tokensService.findTokenBy(username).flatMap {
+                  case Some(token) => token.pure[F]
+                  case None =>
+                    for {
+                      token <- tokensService.generateToken(user.name, expiresIn, JWSAlgorithm.HS512)
+                      _ <- tokensService.storeToken(user.name, token, expiresIn)
+                    } yield token
+                },
+                InvalidPassword(user.name).raiseError[F, JwtToken]
+              )
           }
       }
-  }
+    }
 }
 
 object UsersAuthServiceImpl {

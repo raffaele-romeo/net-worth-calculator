@@ -8,43 +8,45 @@ import doobie.implicits._
 import networthcalculator.algebras.AssetsService
 import networthcalculator.domain.asset.{Asset, AssetId, AssetType}
 
-final class AssetsServiceImpl[F[_]: Sync](
-    transactor: Resource[F, HikariTransactor[F]]
-) extends AssetsService[F] {
+object AssetsServiceImpl {
+  def make[F[_]: Sync](
+      transactor: Resource[F, HikariTransactor[F]]
+  ): AssetsService[F] = new AssetsService[F] {
 
-  override def findAll: F[List[Asset]] =
-    transactor
-      .use(
-        AssetsQueries.select
-          .transact[F]
-      )
+    override def findAll: F[List[Asset]] =
+      transactor
+        .use(
+          AssetsQueries.select
+            .transact[F]
+        )
 
-  override def create(assetType: AssetType): F[Unit] =
-    transactor
-      .use(
-        AssetsQueries
-          .insert(assetType)
-          .transact[F]
-      )
-      .void
+    override def create(assetType: AssetType): F[Unit] =
+      transactor
+        .use(
+          AssetsQueries
+            .insert(assetType)
+            .transact[F]
+        )
+        .void
 
-  override def update(asset: Asset): F[Unit] =
-    transactor
-      .use(
-        AssetsQueries
-          .update(asset)
-          .transact[F]
-      )
-      .void
+    override def update(asset: Asset): F[Unit] =
+      transactor
+        .use(
+          AssetsQueries
+            .update(asset)
+            .transact[F]
+        )
+        .void
 
-  override def delete(assetId: AssetId): F[Unit] =
-    transactor
-      .use(
-        AssetsQueries
-          .delete(assetId)
-          .transact[F]
-      )
-      .void
+    override def delete(assetId: AssetId): F[Unit] =
+      transactor
+        .use(
+          AssetsQueries
+            .delete(assetId)
+            .transact[F]
+        )
+        .void
+  }
 }
 
 private object AssetsQueries {

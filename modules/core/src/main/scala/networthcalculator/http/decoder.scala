@@ -8,8 +8,7 @@ import org.typelevel.log4cats.Logger
 
 object decoder {
 
-  implicit class RefinedRequestDecoder[F[_]: MonadThrow: Logger](req: Request[F])
-      extends Http4sDsl[F] {
+  implicit class RefinedRequestDecoder[F[_]: MonadThrow: Logger](req: Request[F]) extends Http4sDsl[F] {
 
     def decodeR[A](
         f: A => F[Response[F]]

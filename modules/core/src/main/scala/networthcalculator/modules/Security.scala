@@ -3,13 +3,7 @@ package networthcalculator.modules
 import cats.effect.{Resource, Sync}
 import dev.profunktor.redis4cats.RedisCommands
 import doobie.hikari.HikariTransactor
-import networthcalculator.algebras.{
-  AuthService,
-  EncryptionService,
-  TokensService,
-  UsersAuthService,
-  UsersService
-}
+import networthcalculator.algebras.{AuthService, EncryptionService, TokensService, UsersAuthService, UsersService}
 import networthcalculator.config.data.TokenExpiration
 import networthcalculator.domain.tokens.JwtToken
 import networthcalculator.domain.users.{AdminUser, CommonUser}
@@ -30,11 +24,11 @@ object Security {
       adminToken: JwtToken,
       adminUser: AdminUser
   ): Security[F] = {
-    val usersService      = new UsersServiceImpl[F](transactor)
-    val tokensService     = new TokensServiceImpl[F](redis)
-    val encryptionService = new EncryptionServiceImpl
+    val usersService      = UsersServiceImpl.make[F](transactor)
+    val tokensService     = TokensServiceImpl.make[F](redis)
+    val encryptionService = EncryptionServiceImpl.make[F]
     val authService =
-      new AuthServiceImpl[F](usersService, encryptionService, tokensService, tokenExpiration)
+      AuthServiceImpl.make[F](usersService, encryptionService, tokensService, tokenExpiration)
     val adminUsersAuthService  = UsersAuthServiceImpl.admin(adminToken, adminUser)
     val commonUsersAuthService = UsersAuthServiceImpl.common(tokensService)
 
@@ -53,7 +47,7 @@ object Security {
 final case class Security[F[_]](
     usersService: UsersService[F],
     authService: AuthService[F],
-    encryptionService: EncryptionService,
+    encryptionService: EncryptionService[F],
     tokensService: TokensService[F],
     adminUsersAuthService: UsersAuthService[F, AdminUser],
     commonUsersAuthService: UsersAuthService[F, CommonUser]

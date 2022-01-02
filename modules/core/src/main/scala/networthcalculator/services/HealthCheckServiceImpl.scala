@@ -13,29 +13,31 @@ import networthcalculator.domain.healthcheck.{AppStatus, PostgresStatus, RedisSt
 
 import scala.concurrent.duration._
 
-final class HealthCheckServiceImpl[F[_]: Temporal](
-    transactor: Resource[F, HikariTransactor[F]],
-    redis: RedisCommands[F, String, String]
-) extends HealthCheckService[F] {
+object HealthCheckServiceImpl {
+  def make[F[_]: Temporal](
+      transactor: Resource[F, HikariTransactor[F]],
+      redis: RedisCommands[F, String, String]
+  ): HealthCheckService[F] = new HealthCheckService[F] {
 
-  val q: ConnectionIO[Option[Int]] =
-    sql"SELECT pid FROM pg_stat_activity LIMIT 1".query[Int].option
+    val q: ConnectionIO[Option[Int]] =
+      sql"SELECT pid FROM pg_stat_activity LIMIT 1".query[Int].option
 
-  val redisHealth: F[RedisStatus] =
-    redis.ping
-      .map(_.nonEmpty)
-      .timeout(1.second)
-      .orElse(false.pure[F])
-      .map(RedisStatus.apply)
+    val redisHealth: F[RedisStatus] =
+      redis.ping
+        .map(_.nonEmpty)
+        .timeout(1.second)
+        .orElse(false.pure[F])
+        .map(RedisStatus.apply)
 
-  val postgresHealth: F[PostgresStatus] =
-    transactor
-      .use(q.transact[F])
-      .map(_.nonEmpty)
-      .timeout(1.second)
-      .orElse(false.pure[F])
-      .map(PostgresStatus.apply)
+    val postgresHealth: F[PostgresStatus] =
+      transactor
+        .use(q.transact[F])
+        .map(_.nonEmpty)
+        .timeout(1.second)
+        .orElse(false.pure[F])
+        .map(PostgresStatus.apply)
 
-  val status: F[AppStatus] =
-    (redisHealth, postgresHealth).parMapN(AppStatus.apply)
+    val status: F[AppStatus] =
+      (redisHealth, postgresHealth).parMapN(AppStatus.apply)
+  }
 }

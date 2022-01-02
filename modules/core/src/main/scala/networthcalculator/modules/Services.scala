@@ -5,6 +5,7 @@ import cats.effect.Resource
 import dev.profunktor.redis4cats.RedisCommands
 import doobie.hikari.HikariTransactor
 import networthcalculator.services.{AssetsServiceImpl, HealthCheckServiceImpl}
+import networthcalculator.algebras.{AssetsService, HealthCheckService}
 
 object Services {
 
@@ -13,13 +14,13 @@ object Services {
       redis: RedisCommands[F, String, String]
   ): Services[F] = {
 
-    val assetsService      = new AssetsServiceImpl[F](transactor)
-    val healthCheckService = new HealthCheckServiceImpl[F](transactor, redis)
+    val assetsService      = AssetsServiceImpl.make[F](transactor)
+    val healthCheckService = HealthCheckServiceImpl.make[F](transactor, redis)
     Services[F](assetsService, healthCheckService)
   }
 
   final case class Services[F[_]](
-      assetsService: AssetsServiceImpl[F],
-      healthCheckService: HealthCheckServiceImpl[F]
+      assetsService: AssetsService[F],
+      healthCheckService: HealthCheckService[F]
   )
 }
