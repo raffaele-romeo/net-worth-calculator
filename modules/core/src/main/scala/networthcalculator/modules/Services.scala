@@ -13,7 +13,7 @@ object Services {
       redis: RedisCommands[F, String, String]
   ): Services[F] = {
 
-    val assetsService = new AssetsServiceImpl[F](transactor)
+    val assetsService      = new AssetsServiceImpl[F](transactor)
     val healthCheckService = new HealthCheckServiceImpl[F](transactor, redis)
     Services[F](assetsService, healthCheckService)
   }

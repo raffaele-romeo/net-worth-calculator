@@ -28,17 +28,17 @@ final class HttpApi[F[_]: Async: Logger](
   private val usersMiddleware =
     JWTAuthMiddleware[F, CommonUser](security.commonUsersAuthService.findUser)
 
-  //Auth Routes
+  // Auth Routes
   private val loginRoutes =
     new LoginRoutes[F](security.authService).routes
 
   private val logoutRoutes = new LogoutRoutes[F](security.tokensService).routes(usersMiddleware)
-  private val userRoutes = new UserRoutes[F](security.authService).routes
+  private val userRoutes   = new UserRoutes[F](security.authService).routes
 
   // Open routes
   private val healthRoutes = new HealthRoutes[F](services.healthCheckService).routes
 
-  //Admin routes
+  // Admin routes
   private val adminRoutes = new AssetRoutes[F](services.assetsService).routes(adminMiddleware)
 
   private val nonAdminRoutes: HttpRoutes[F] =

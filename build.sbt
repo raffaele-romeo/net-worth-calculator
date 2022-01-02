@@ -1,5 +1,4 @@
 import Dependencies._
-import sbtassembly.MergeStrategy
 
 ThisBuild / scalaVersion := "3.1.0"
 ThisBuild / version := "0.1.0-SNAPSHOT"
@@ -17,7 +16,6 @@ lazy val tests = (project in file("modules/tests"))
   .settings(
     name := "net-worth-calculator-test-suite",
     scalafmtOnCompile := true,
-    assembly / assemblyMergeStrategy := customMergeStrategy,
     Defaults.itSettings,
     libraryDependencies ++= Seq(
       Libraries.scalaTest
@@ -38,8 +36,6 @@ lazy val core = (project in file("modules/core"))
     dockerExposedPorts ++= Seq(8080),
     makeBatScripts := Seq(),
     dockerUpdateLatest := true,
-    assembly / mainClass := Some("networthcalculator.Main"),
-    assembly / assemblyMergeStrategy := customMergeStrategy,
     libraryDependencies ++= Seq(
       Libraries.cats,
       Libraries.catsEffect,
@@ -65,9 +61,3 @@ lazy val core = (project in file("modules/core"))
       Libraries.squants
     )
   )
-
-def customMergeStrategy: String => MergeStrategy = {
-  case PathList("reference.conf") => MergeStrategy.concat
-  case PathList("META-INF", _) => MergeStrategy.discard
-  case _ => MergeStrategy.first
-}

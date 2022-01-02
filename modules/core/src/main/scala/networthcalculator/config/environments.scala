@@ -17,7 +17,7 @@ object environments {
       value.toLowerCase match {
         case "test" => Some(AppEnvironment.Test)
         case "prod" => Some(AppEnvironment.Prod)
-        case _ => None
+        case _      => None
       }
   }
 }

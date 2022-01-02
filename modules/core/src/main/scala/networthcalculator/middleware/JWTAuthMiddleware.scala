@@ -23,14 +23,15 @@ object JWTAuthMiddleware {
     val dsl = new Http4sDsl[F] {}; import dsl._
 
     val authUser: Kleisli[F, Request[F], Either[String, A]] = Kleisli(request =>
-      AuthHeaders.getBearerToken(request).fold("Bearer token not found".asLeft[A].pure[F]) { token =>
-        S.delay(SignedJWT.parse(token.value))
-          .void
-          .recoverWith {
-            case _: ParseException => ME.raiseError(InvalidJWTToken)
-          }
-          .flatMap(_ => authenticate(token))
-          .map(_.fold("not found".asLeft[A])(_.asRight[String]))
+      AuthHeaders.getBearerToken(request).fold("Bearer token not found".asLeft[A].pure[F]) {
+        token =>
+          S.delay(SignedJWT.parse(token.value))
+            .void
+            .recoverWith { case _: ParseException =>
+              ME.raiseError(InvalidJWTToken)
+            }
+            .flatMap(_ => authenticate(token))
+            .map(_.fold("not found".asLeft[A])(_.asRight[String]))
       }
     )
 

@@ -34,7 +34,12 @@ object users {
       password: PasswordParam
   )
 
-  final case class CreateUserForInsert(name: UserName, password: EncryptedPassword, salt: Salt, role: Role = Role.User)
+  final case class CreateUserForInsert(
+      name: UserName,
+      password: EncryptedPassword,
+      salt: Salt,
+      role: Role = Role.User
+  )
 
   final case class UserWithPassword(
       id: UserId,
@@ -45,9 +50,9 @@ object users {
   )
 
   object UserWithPassword {
-    implicit val roleGet: Get[Role] = Get[String].tmap(fromString)
-    implicit val rolePut: Put[Role] = Put[String].tcontramap(toString)
-    implicit val roleRead: Read[Role] = Read[String].map(fromString)
+    implicit val roleGet: Get[Role]     = Get[String].tmap(fromString)
+    implicit val rolePut: Put[Role]     = Put[String].tcontramap(toString)
+    implicit val roleRead: Read[Role]   = Read[String].map(fromString)
     implicit val roleWrite: Write[Role] = Write[String].contramap(toString)
 
     private def fromString(s: String): Role = {

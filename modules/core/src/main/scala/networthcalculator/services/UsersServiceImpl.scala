@@ -6,7 +6,12 @@ import doobie.ConnectionIO
 import doobie.hikari.HikariTransactor
 import doobie.implicits._
 import networthcalculator.algebras.UsersService
-import networthcalculator.domain.users.{CreateUserForInsert, UserName, UserNameInUse, UserWithPassword}
+import networthcalculator.domain.users.{
+  CreateUserForInsert,
+  UserName,
+  UserNameInUse,
+  UserWithPassword
+}
 
 final class UsersServiceImpl[F[_]: MonadCancelThrow](
     transactor: Resource[F, HikariTransactor[F]]

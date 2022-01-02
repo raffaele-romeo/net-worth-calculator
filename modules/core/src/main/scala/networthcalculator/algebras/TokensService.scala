@@ -6,7 +6,6 @@ import networthcalculator.domain.tokens.JwtToken
 import networthcalculator.domain.users.{CommonUser, UserName}
 
 trait TokensService[F[_]] {
-
   def generateToken(
       userName: UserName,
       expiresIn: TokenExpiration,

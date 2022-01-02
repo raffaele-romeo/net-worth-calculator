@@ -24,10 +24,10 @@ final class TokensServiceImpl[F[_]](
       expiresIn: TokenExpiration,
       jwsAlgorithm: JWSAlgorithm
   ): F[JwtToken] = S.delay {
-    val random = new SecureRandom()
+    val random       = new SecureRandom()
     val sharedSecret = new Array[Byte](32)
     random.nextBytes(sharedSecret)
-    val now = new Date()
+    val now    = new Date()
     val signer = new MACSigner(sharedSecret)
     val claimsSet = new JWTClaimsSet.Builder()
       .subject(userName.value)
@@ -55,7 +55,11 @@ final class TokensServiceImpl[F[_]](
     } yield maybeToken.map(JwtToken.apply)
   }
 
-  override def storeToken(userName: UserName, token: JwtToken, expiresIn: TokenExpiration): F[Unit] = {
+  override def storeToken(
+      userName: UserName,
+      token: JwtToken,
+      expiresIn: TokenExpiration
+  ): F[Unit] = {
     redis.setEx(userName.value, token.value, expiresIn.value) *>
       redis.setEx(token.value, userName.value, expiresIn.value)
   }

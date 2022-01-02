@@ -3,7 +3,13 @@ package networthcalculator.services
 import cats.Applicative
 import cats.syntax.all._
 import com.nimbusds.jose.JWSAlgorithm
-import networthcalculator.algebras.{AuthService, EncryptionService, TokensService, UsersService, UsersAuthService}
+import networthcalculator.algebras.{
+  AuthService,
+  EncryptionService,
+  TokensService,
+  UsersService,
+  UsersAuthService
+}
 import networthcalculator.config.data.TokenExpiration
 import networthcalculator.domain.users.CreateUserForInsert
 import networthcalculator.domain.tokens._

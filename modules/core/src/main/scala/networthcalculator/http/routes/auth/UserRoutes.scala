@@ -17,17 +17,16 @@ final class UserRoutes[F[_]: Concurrent: Logger](
 
   private[routes] val prefixPath = "/auth"
 
-  private val httpRoutes: HttpRoutes[F] = HttpRoutes.of[F] {
-    case req @ POST -> Root / "users" =>
-      req
-        .decodeR[CreateUser] { user =>
-          authService
-            .newUser(user.username.toDomain, user.password.toDomain)
-            .flatMap(Created(_))
-        }
-        .recoverWith {
-          case UserNameInUse(u) => Conflict(u.value)
-        }
+  private val httpRoutes: HttpRoutes[F] = HttpRoutes.of[F] { case req @ POST -> Root / "users" =>
+    req
+      .decodeR[CreateUser] { user =>
+        authService
+          .newUser(user.username.toDomain, user.password.toDomain)
+          .flatMap(Created(_))
+      }
+      .recoverWith { case UserNameInUse(u) =>
+        Conflict(u.value)
+      }
   }
 
   val routes: HttpRoutes[F] = Router(

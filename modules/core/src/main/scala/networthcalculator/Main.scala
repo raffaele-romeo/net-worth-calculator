@@ -19,7 +19,13 @@ object Main extends IOApp {
             services <- IO.delay(Services.make[IO](res.psql, res.redis))
             security <- IO.delay(
               Security
-                .make[IO](res.psql, res.redis, cfg.tokenExpiration, cfg.jwtAdmin.adminToken, cfg.jwtAdmin.adminUser)
+                .make[IO](
+                  res.psql,
+                  res.redis,
+                  cfg.tokenExpiration,
+                  cfg.jwtAdmin.adminToken,
+                  cfg.jwtAdmin.adminUser
+                )
             )
             api <- IO.delay(new HttpApi[IO](services, security))
             _ <- BlazeServerBuilder[IO]
