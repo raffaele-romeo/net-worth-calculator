@@ -7,15 +7,17 @@ import scala.util.control.NoStackTrace
 
 object users {
 
-  final case class UserId(value: Long) extends AnyVal
+  final case class UserId(value: Long)
 
-  final case class UserName private (value: String) extends AnyVal
+  final case class UserName(value: String)
 
-  final case class Password(value: String) extends AnyVal
+  final case class Password(value: String)
 
-  final case class Salt(value: String) extends AnyVal
+  // --------- user registration -----------
 
-  final case class EncryptedPassword(value: String) extends AnyVal
+  final case class Salt(value: String)
+
+  final case class EncryptedPassword(value: String)
 
   final case class CreateUser(username: String, password: String)
 
@@ -39,7 +41,21 @@ object users {
       role: Role = Role.User
   )
 
-  object UserWithPassword {}
+  object UserWithPassword {
+    implicit val roleGet: Get[Role]     = Get[String].tmap(fromString)
+    implicit val rolePut: Put[Role]     = Put[String].tcontramap(toString)
+    implicit val roleRead: Read[Role]   = Read[String].map(fromString)
+    implicit val roleWrite: Write[Role] = Write[String].contramap(toString)
+
+    private def fromString(s: String): Role = {
+      if (s == Role.User.roleRepr) Role.User
+      else Role.Admin
+    }
+
+    private def toString(r: Role) = r match {
+      case role @ (Role.Admin | Role.User) => role.roleRepr
+    }
+  }
 
   final case class AdminUser(userName: UserName)
   final case class CommonUser(userName: UserName)

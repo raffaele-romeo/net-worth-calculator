@@ -13,6 +13,7 @@ import org.http4s.server.AuthMiddleware
 import org.http4s._
 
 import java.text.ParseException
+import org.typelevel.log4cats.Logger
 
 object JWTAuthMiddleware {
 
@@ -20,19 +21,21 @@ object JWTAuthMiddleware {
       authenticate: JwtToken => F[Option[A]]
   )(implicit S: Sync[F], ME: MonadThrow[F]): AuthMiddleware[F, A] = {
 
-    val dsl = new Http4sDsl[F] {}; import dsl._
+    val dsl = new Http4sDsl[F] {}
+    import dsl._
 
     val authUser: Kleisli[F, Request[F], Either[String, A]] = Kleisli(request =>
-      AuthHeaders.getBearerToken(request).fold("Bearer token not found".asLeft[A].pure[F]) {
-        token =>
-          S.delay(SignedJWT.parse(token.value))
+        AuthHeaders.getBearerToken(request).fold("Bearer token not found".asLeft[A].pure[F]) {
+          token =>
+            S.delay(SignedJWT.parse(token.value))
             .void
-            .recoverWith { case _: ParseException =>
-              ME.raiseError(InvalidJWTToken)
+            .attempt
+            .flatMap {
+              case Left(_) => none[A].pure[F]
+              case Right(_) => authenticate(token)
             }
-            .flatMap(_ => authenticate(token))
             .map(_.fold("not found".asLeft[A])(_.asRight[String]))
-      }
+        }
     )
 
     val onFailure: AuthedRoutes[String, F] = Kleisli(req => OptionT.liftF(Forbidden(req.context)))
