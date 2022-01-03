@@ -1,10 +1,10 @@
 package networthcalculator.modules
 
 import cats.effect._
-import cats.syntax.all._
+import cats.syntax.all.*
 import org.typelevel.log4cats.Logger
 import org.http4s._
-import org.http4s.implicits._
+import org.http4s.implicits.*
 import org.http4s.server.Router
 import org.http4s.server.middleware._
 

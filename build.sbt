@@ -5,9 +5,6 @@ ThisBuild / version := "0.1.0-SNAPSHOT"
 
 resolvers += Resolver.sonatypeRepo("snapshots")
 
-fork := true
-envVars := Map("NWC_APP_ENV" -> "test")
-
 lazy val root = (project in file("."))
   .settings(
     name := "net-worth-calculator",

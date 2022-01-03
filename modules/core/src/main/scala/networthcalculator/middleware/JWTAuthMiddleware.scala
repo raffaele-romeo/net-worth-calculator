@@ -4,7 +4,7 @@ import cats.data.{Kleisli, OptionT}
 import cats.effect.Sync
 import cats.syntax.all._
 import com.nimbusds.jwt.SignedJWT
-import networthcalculator.domain.tokens.{InvalidJWTToken, JwtToken}
+import networthcalculator.domain.tokens.JwtToken
 import networthcalculator.effects.MonadThrow
 import org.http4s.Credentials.Token
 import org.http4s.dsl.Http4sDsl
@@ -13,30 +13,32 @@ import org.http4s.server.AuthMiddleware
 import org.http4s._
 
 import java.text.ParseException
-import org.typelevel.log4cats.Logger
+import cats.instances.either
+import cats.Show
 
 object JWTAuthMiddleware {
 
-  def apply[F[_], A](
+  def apply[F[_], A: Show](
       authenticate: JwtToken => F[Option[A]]
   )(implicit S: Sync[F], ME: MonadThrow[F]): AuthMiddleware[F, A] = {
 
     val dsl = new Http4sDsl[F] {}
     import dsl._
 
-    val authUser: Kleisli[F, Request[F], Either[String, A]] = Kleisli(request =>
-        AuthHeaders.getBearerToken(request).fold("Bearer token not found".asLeft[A].pure[F]) {
-          token =>
-            S.delay(SignedJWT.parse(token.value))
+    val authUser: Kleisli[F, Request[F], Either[String, A]] = Kleisli { request =>
+      AuthHeaders.getBearerToken(request).fold("Bearer token not found".asLeft[A].pure[F]) {
+        token =>
+          S.delay(SignedJWT.parse(token.value))
             .void
             .attempt
             .flatMap {
-              case Left(_) => none[A].pure[F]
-              case Right(_) => authenticate(token)
+              _.fold(_ => none[A].pure[F], _ => authenticate(token))
             }
-            .map(_.fold("not found".asLeft[A])(_.asRight[String]))
-        }
-    )
+            .map {
+              _.fold("not found".asLeft[A])(_.asRight[String])
+            }
+      }
+    }
 
     val onFailure: AuthedRoutes[String, F] = Kleisli(req => OptionT.liftF(Forbidden(req.context)))
 

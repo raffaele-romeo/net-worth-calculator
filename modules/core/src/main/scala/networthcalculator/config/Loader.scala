@@ -15,6 +15,7 @@ object Loader {
   def apply[F[_]: Async]: F[AppConfig] =
     env("NWC_APP_ENV")
       .as[AppEnvironment]
+      .default(Test)
       .map {
         case Test =>
           default(

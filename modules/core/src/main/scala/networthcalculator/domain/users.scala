@@ -4,6 +4,7 @@ import doobie.util.{Get, Put, Read, Write}
 import networthcalculator.domain.auth.Role
 
 import scala.util.control.NoStackTrace
+import cats.Show
 
 object users {
 
@@ -58,7 +59,14 @@ object users {
   }
 
   final case class AdminUser(userName: UserName)
+  object AdminUser {
+    implicit val showAdminUser: Show[AdminUser] = Show.show(_.userName.value)
+  }
+
   final case class CommonUser(userName: UserName)
+  object CommonUser {
+    implicit val showCommonUser: Show[CommonUser] = Show.show(_.userName.value)
+  }
 
   final case class UserNameInUse(username: UserName)   extends NoStackTrace
   final case class InvalidPassword(username: UserName) extends NoStackTrace
