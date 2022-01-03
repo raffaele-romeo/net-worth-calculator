@@ -8,6 +8,7 @@ import doobie.hikari.HikariTransactor
 import doobie.implicits.*
 import networthcalculator.algebras.AssetsService
 import networthcalculator.domain.asset.{Asset, AssetId, AssetType, AssetTypeInUse}
+import doobie.postgres.*
 
 object AssetsServiceImpl {
   def make[F[_]: MonadCancelThrow](
@@ -26,10 +27,8 @@ object AssetsServiceImpl {
         .use(
           AssetsQueries
             .insert(assetType)
-            .handleErrorWith {
-              case ex: org.postgresql.util.PSQLException
-                  if ex.getMessage.contains("duplicate key value violates unique constraint") =>
-                AssetTypeInUse(assetType).raiseError[ConnectionIO, Int]
+            .exceptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
+              AssetTypeInUse(assetType).raiseError[ConnectionIO, Int]
             }
             .transact[F]
         )
@@ -40,10 +39,8 @@ object AssetsServiceImpl {
         .use(
           AssetsQueries
             .update(asset)
-            .handleErrorWith {
-              case ex: org.postgresql.util.PSQLException
-                  if ex.getMessage.contains("duplicate key value violates unique constraint") =>
-                AssetTypeInUse(asset.assetType).raiseError[ConnectionIO, Int]
+            .exceptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
+              AssetTypeInUse(asset.assetType).raiseError[ConnectionIO, Int]
             }
             .transact[F]
         )

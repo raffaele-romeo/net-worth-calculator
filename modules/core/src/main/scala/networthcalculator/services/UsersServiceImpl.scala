@@ -12,6 +12,7 @@ import networthcalculator.domain.users.{
   UserNameInUse,
   UserWithPassword
 }
+import doobie.postgres.*
 
 object UsersServiceImpl {
   def make[F[_]: MonadCancelThrow](
@@ -22,10 +23,8 @@ object UsersServiceImpl {
       transactor.use(
         UserQueries
           .insert(user)
-          .handleErrorWith {
-            case ex: org.postgresql.util.PSQLException
-                if ex.getMessage.contains("duplicate key value violates unique constraint") =>
-              UserNameInUse(user.name).raiseError[ConnectionIO, UserWithPassword]
+          .exceptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
+            UserNameInUse(user.name).raiseError[ConnectionIO, UserWithPassword]
           }
           .transact[F]
       )
