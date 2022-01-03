@@ -3,7 +3,13 @@ package networthcalculator.services
 import cats.Applicative
 import cats.syntax.all.*
 import com.nimbusds.jose.JWSAlgorithm
-import networthcalculator.algebras.{AuthService, EncryptionService, TokensService, UsersAuthService, UsersService}
+import networthcalculator.algebras.{
+  AuthService,
+  EncryptionService,
+  TokensService,
+  UsersAuthService,
+  UsersService
+}
 import networthcalculator.config.data.TokenExpiration
 import networthcalculator.domain.users.CreateUserForInsert
 import networthcalculator.domain.tokens.*
@@ -24,7 +30,7 @@ object AuthServiceImpl {
 
       override def newUser(username: UserName, password: Password): F[JwtToken] = {
         for {
-          salt <- encryptionService.generateRandomSalt()
+          salt              <- encryptionService.generateRandomSalt()
           encryptedPassword <- encryptionService.encrypt(password, salt)
           user <- usersService
             .create(
@@ -34,8 +40,8 @@ object AuthServiceImpl {
                 salt = salt
               )
             )
-          token <- tokensService.generateToken(user.name, expiresIn, JWSAlgorithm.HS512)
-          _ <- tokensService.storeToken(user.name, token, expiresIn)
+          token <- tokensService.generateToken(user.name, expiresIn, JWSAlgorithm.HS256)
+          _     <- tokensService.storeToken(user.name, token, expiresIn)
         } yield token
       }
 
@@ -51,7 +57,7 @@ object AuthServiceImpl {
                   case None =>
                     for {
                       token <- tokensService.generateToken(user.name, expiresIn, JWSAlgorithm.HS512)
-                      _ <- tokensService.storeToken(user.name, token, expiresIn)
+                      _     <- tokensService.storeToken(user.name, token, expiresIn)
                     } yield token
                 },
                 InvalidPassword(user.name).raiseError[F, JwtToken]

@@ -6,6 +6,6 @@ object auth {
 
   object Role {
     case object Admin extends Role("Admin")
-    case object User extends Role("User")
+    case object User  extends Role("User")
   }
 }

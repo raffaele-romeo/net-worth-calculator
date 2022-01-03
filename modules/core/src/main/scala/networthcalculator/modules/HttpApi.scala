@@ -46,7 +46,7 @@ object HttpApi {
       healthRoutes <+> userRoutes <+> loginRoutes <+> logoutRoutes
 
     val routes: HttpRoutes[F] = Router(
-      version.v1 -> nonAdminRoutes,
+      version.v1            -> nonAdminRoutes,
       version.v1 + "/admin" -> adminRoutes
     )
 

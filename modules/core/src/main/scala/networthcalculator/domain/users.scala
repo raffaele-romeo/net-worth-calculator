@@ -27,7 +27,7 @@ object users {
     def toDomain: Password = Password(value)
   }
 
-  final case class CreateUser(username: UserNameParam, password: PasswordParam)
+  final case class CreateUser(username: String, password: String)
 
   final case class LoginUser(
       username: UserNameParam,
@@ -68,6 +68,6 @@ object users {
   final case class AdminUser(userName: UserName)
   final case class CommonUser(userName: UserName)
 
-  final case class UserNameInUse(username: UserName) extends NoStackTrace
+  final case class UserNameInUse(username: UserName)   extends NoStackTrace
   final case class InvalidPassword(username: UserName) extends NoStackTrace
 }

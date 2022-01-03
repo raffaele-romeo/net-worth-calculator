@@ -27,17 +27,16 @@ object Main extends IOApp {
             )
           val httpApp = HttpApi.make[IO](services, security)
 
-          for {
-            _ <- BlazeServerBuilder[IO]
-              .bindHttp(
-                cfg.httpServerConfig.port,
-                cfg.httpServerConfig.host
-              )
-              .withHttpApp(httpApp)
-              .serve
-              .compile
-              .drain
-          } yield ExitCode.Success
+          BlazeServerBuilder[IO]
+            .bindHttp(
+              cfg.httpServerConfig.port,
+              cfg.httpServerConfig.host
+            )
+            .withHttpApp(httpApp)
+            .serve
+            .compile
+            .drain
+            .as(ExitCode.Success)
         }
     }
 

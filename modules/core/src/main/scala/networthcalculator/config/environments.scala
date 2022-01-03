@@ -10,8 +10,8 @@ object environments {
     case object Test extends AppEnvironment
     case object Prod extends AppEnvironment
 
-    implicit val posIntConfigDecoder: ConfigDecoder[String, AppEnvironment] =
-      ConfigDecoder[String, String].mapOption("PosInt")(apply)
+    implicit val appEnvConfigDecoder: ConfigDecoder[String, AppEnvironment] =
+      ConfigDecoder[String, String].mapOption("AppEnv")(apply)
 
     private def apply(value: String): Option[AppEnvironment] =
       value.toLowerCase match {

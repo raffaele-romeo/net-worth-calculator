@@ -3,7 +3,13 @@ package networthcalculator.modules
 import cats.effect.{Resource, Sync}
 import dev.profunktor.redis4cats.RedisCommands
 import doobie.hikari.HikariTransactor
-import networthcalculator.algebras.{AuthService, EncryptionService, TokensService, UsersAuthService, UsersService}
+import networthcalculator.algebras.{
+  AuthService,
+  EncryptionService,
+  TokensService,
+  UsersAuthService,
+  UsersService
+}
 import networthcalculator.config.data.TokenExpiration
 import networthcalculator.domain.tokens.JwtToken
 import networthcalculator.domain.users.{AdminUser, CommonUser}

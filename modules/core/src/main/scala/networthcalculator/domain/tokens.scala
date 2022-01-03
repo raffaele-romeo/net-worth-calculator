@@ -8,6 +8,6 @@ object tokens {
   final case class JwtToken(value: String)
 
   final case class JwtTokenNotFound(username: UserName) extends NoStackTrace
-  final case class UserNotFound(username: UserName) extends NoStackTrace
-  object InvalidJWTToken extends NoStackTrace
+  final case class UserNotFound(username: UserName)     extends NoStackTrace
+  object InvalidJWTToken                                extends NoStackTrace
 }

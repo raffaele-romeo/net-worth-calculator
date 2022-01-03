@@ -42,9 +42,9 @@ object transaction {
   final case class FindTotalNetWorth(
       month: Option[Month],
       year: Year,
-      statisticsCurrencyType: Currency, // Output currency
-      currency: Option[Currency], // If specified, get statistics by currency
-      accountType: Option[AssetId], // If specified, get statistics by accountType
+      statisticsCurrencyType: Currency,   // Output currency
+      currency: Option[Currency],         // If specified, get statistics by currency
+      accountType: Option[AssetId],       // If specified, get statistics by accountType
       accountTypeToExclude: List[AssetId] // Account to exclude from statistics
   )
 

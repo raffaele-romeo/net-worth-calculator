@@ -5,11 +5,26 @@ ThisBuild / version := "0.1.0-SNAPSHOT"
 
 resolvers += Resolver.sonatypeRepo("snapshots")
 
+fork := true
+envVars := Map("NWC_APP_ENV" -> "test")
+
 lazy val root = (project in file("."))
   .settings(
-    name := "net-worth-calculator"
+    name := "net-worth-calculator",
+    Compile / run / mainClass := Some("networthcalculator.Main")
   )
+  .dependsOn(core)
   .aggregate(core, tests)
+  .settings(
+    addCommandAlias(
+      "validate",
+      List(
+        "clean",
+        "compile"
+      ).mkString(";", "; ", "")
+    ),
+    addCommandAlias("run", "modules/core/run")
+  )
 
 lazy val tests = (project in file("modules/tests"))
   .configs(IntegrationTest)

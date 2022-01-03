@@ -35,6 +35,11 @@ cd /app
 docker-compose up
 ```
 
+To run the main class:
+
+* Change the redis and postgres hostname with localhost
+* sbt run
+
 # Troubleshooting
 
 Within the container:

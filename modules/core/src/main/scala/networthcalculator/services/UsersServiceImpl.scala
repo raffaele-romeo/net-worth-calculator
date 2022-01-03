@@ -6,7 +6,12 @@ import doobie.ConnectionIO
 import doobie.hikari.HikariTransactor
 import doobie.implicits.*
 import networthcalculator.algebras.UsersService
-import networthcalculator.domain.users.{CreateUserForInsert, UserName, UserNameInUse, UserWithPassword}
+import networthcalculator.domain.users.{
+  CreateUserForInsert,
+  UserName,
+  UserNameInUse,
+  UserWithPassword
+}
 
 object UsersServiceImpl {
   def make[F[_]: MonadCancelThrow](
@@ -44,9 +49,9 @@ private object UserQueries {
          |  role
          |)
          |VALUES (
-         |  ${user.name.value}
-         |  ${user.password.value}
-         |  ${user.salt.value}
+         |  ${user.name.value},
+         |  ${user.password.value},
+         |  ${user.salt.value},
          |  ${user.role.roleRepr}
          |)
         """.stripMargin.update
