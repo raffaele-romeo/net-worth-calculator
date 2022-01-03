@@ -17,25 +17,28 @@ import networthcalculator.domain.users.*
 import networthcalculator.effects.MonadThrow
 import cats.implicits.*
 import cats.Monad
+import cats.data.ValidatedNec
+import cats.data.Validated.{Invalid, Valid}
 import cats.effect.Sync
+import networthcalculator.domain.errors.*
 
 object AuthServiceImpl {
-  def make[F[_]: MonadThrow](
+  def make[F[_]](
       usersService: UsersService[F],
       encryptionService: EncryptionService[F],
       tokensService: TokensService[F],
       expiresIn: TokenExpiration
-  )(implicit S: Sync[F]): AuthService[F] =
+  )(implicit S: Sync[F], ME: MonadThrow[F]): AuthService[F] =
     new AuthService[F] {
 
-      override def newUser(username: UserName, password: Password): F[JwtToken] = {
+      override def newUser(validUser: ValidUser): F[JwtToken] = {
         for {
           salt              <- encryptionService.generateRandomSalt()
-          encryptedPassword <- encryptionService.encrypt(password, salt)
+          encryptedPassword <- encryptionService.encrypt(validUser.password, salt)
           user <- usersService
             .create(
               CreateUserForInsert(
-                name = username,
+                name = validUser.username,
                 password = encryptedPassword,
                 salt = salt
               )
@@ -45,14 +48,16 @@ object AuthServiceImpl {
         } yield token
       }
 
-      override def login(username: UserName, password: Password): F[JwtToken] = {
+      override def login(validUser: ValidUser): F[JwtToken] = {
         usersService
-          .find(username)
+          .find(validUser.username)
           .flatMap {
-            case None => UserNotFound(username).raiseError[F, JwtToken]
+            case None => UserNotFound(validUser.username).raiseError[F, JwtToken]
             case Some(user) =>
-              Monad[F].ifM(encryptionService.checkPassword(user.password, password, user.salt))(
-                tokensService.findTokenBy(username).flatMap {
+              Monad[F].ifM(
+                encryptionService.checkPassword(user.password, validUser.password, user.salt)
+              )(
+                tokensService.findTokenBy(validUser.username).flatMap {
                   case Some(token) => token.pure[F]
                   case None =>
                     for {
@@ -64,7 +69,45 @@ object AuthServiceImpl {
               )
           }
       }
+
+      def validate(username: String, password: String): F[ValidUser] = {
+        FormValidatorNec.validateForm(username: String, password: String) match {
+          case Valid(user) =>
+            user.pure[F]
+          case Invalid(e) =>
+            ME.raiseError(DomainValidationErrors(e.toNonEmptyList.toList.map(_.errorMessage)))
+        }
+      }
     }
+}
+
+object FormValidatorNec {
+
+  type ValidationResult[A] = ValidatedNec[DomainValidation, A]
+
+  private def validateUserName(userName: String): ValidationResult[String] =
+    if (
+      userName.matches(
+        "^(?=.{1,64}@)[\\p{L}0-9_-]+(\\.[\\p{L}0-9_-]+)*@[^-][\\p{L}0-9-]+(\\.[\\p{L}0-9-]+)*(\\.[\\p{L}]{2,})$"
+      )
+    ) userName.validNec
+    else UsernameHasSpecialCharacters.invalidNec
+
+  private def validatePassword(password: String): ValidationResult[String] =
+    if (password.matches("(?=^.{10,}$)((?=.*\\d)|(?=.*\\W+))(?![.\\n])(?=.*[A-Z])(?=.*[a-z]).*$"))
+      password.validNec
+    else PasswordDoesNotMeetCriteria.invalidNec
+
+  def validateForm(
+      username: String,
+      password: String
+  ): ValidationResult[ValidUser] = {
+    (
+      validateUserName(username),
+      validatePassword(password)
+    ).mapN((username, password) => ValidUser(UserName(username), Password(password)))
+  }
+
 }
 
 object UsersAuthServiceImpl {

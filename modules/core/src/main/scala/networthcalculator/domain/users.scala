@@ -27,6 +27,11 @@ object users {
       password: String
   )
 
+  final case class ValidUser(
+      username: UserName,
+      password: Password
+  )
+
   final case class CreateUserForInsert(
       name: UserName,
       password: EncryptedPassword,

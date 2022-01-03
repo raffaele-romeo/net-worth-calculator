@@ -1,11 +1,12 @@
 package networthcalculator.algebras
 
 import networthcalculator.domain.tokens.JwtToken
-import networthcalculator.domain.users.{Password, UserName}
+import networthcalculator.domain.users.{Password, UserName, ValidUser}
 
 trait AuthService[F[_]] {
-  def newUser(username: UserName, password: Password): F[JwtToken]
-  def login(username: UserName, password: Password): F[JwtToken]
+  def newUser(validUser: ValidUser): F[JwtToken]
+  def login(validUser: ValidUser): F[JwtToken]
+  def validate(username: String, password: String): F[ValidUser]
 }
 
 trait UsersAuthService[F[_], A] {

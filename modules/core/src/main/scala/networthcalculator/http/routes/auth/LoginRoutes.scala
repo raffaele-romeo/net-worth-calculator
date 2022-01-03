@@ -13,6 +13,7 @@ import org.typelevel.log4cats.Logger
 import org.http4s.circe._
 import io.circe.generic.auto._
 import io.circe.syntax._
+import networthcalculator.domain.errors.DomainValidationErrors
 
 final class LoginRoutes[F[_]: Concurrent: Logger](
     authService: AuthService[F]
@@ -24,12 +25,18 @@ final class LoginRoutes[F[_]: Concurrent: Logger](
   private val httpRoutes: HttpRoutes[F] = HttpRoutes.of[F] { case req @ POST -> Root / "login" =>
     req
       .decodeR[LoginUser] { user =>
-        authService
-          .login(UserName(user.username.toLowerCase()), Password(user.password))
-          .flatMap(jwtToken => Ok(jwtToken.asJson))
+        for {
+          validUser <- authService.validate(user.username, user.password)
+          result <- authService
+            .login(validUser)
+            .flatMap(jwtToken => Ok(jwtToken.asJson))
+        } yield result
       }
-      .recoverWith { case UserNotFound(_) | InvalidPassword(_) =>
-        Forbidden()
+      .recoverWith {
+        case DomainValidationErrors(errors) =>
+          BadRequest(errors.asJson)
+        case UserNotFound(_) | InvalidPassword(_) =>
+          Forbidden()
       }
   }
 
