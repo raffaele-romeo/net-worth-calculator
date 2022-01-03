@@ -28,14 +28,22 @@ final class AssetRoutes[F[_]: Concurrent: Logger](
       assets.findAll.flatMap(assets => Ok(assets.asJson))
 
     case req @ POST -> Root as _ =>
-      req.req.decodeR[CreateAsset] { asset =>
-        assets.create(asset.toDomain) *> Created()
-      }
+      req.req
+        .decodeR[CreateAsset] { asset =>
+          assets.create(asset.toDomain) *> Created()
+        }
+        .recoverWith { case AssetTypeInUse(assetType) =>
+          Conflict(assetType.name)
+        }
 
     case req @ PUT -> Root as _ =>
-      req.req.decodeR[UpdateAsset] { asset =>
-        assets.update(asset.toDomain) *> Ok()
-      }
+      req.req
+        .decodeR[UpdateAsset] { asset =>
+          assets.update(asset.toDomain) *> Ok()
+        }
+        .recoverWith { case AssetTypeInUse(assetType) =>
+          Conflict(assetType.name)
+        }
 
     case DELETE -> Root / LongVar(id) as _ =>
       assets.delete(AssetId(id)) *> NoContent()

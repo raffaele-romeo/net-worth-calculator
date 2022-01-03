@@ -23,7 +23,8 @@ object UsersServiceImpl {
         UserQueries
           .insert(user)
           .handleErrorWith {
-            case ex: java.sql.SQLException if ex.getErrorCode == 23505 =>
+            case ex: org.postgresql.util.PSQLException
+                if ex.getMessage.contains("duplicate key value violates unique constraint") =>
               UserNameInUse(user.name).raiseError[ConnectionIO, UserWithPassword]
           }
           .transact[F]

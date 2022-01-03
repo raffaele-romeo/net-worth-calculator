@@ -1,15 +1,16 @@
 package networthcalculator.services
 
-import cats.effect.{Resource, Sync}
-import cats.implicits._
+import cats.effect.{Resource, MonadCancelThrow}
+import cats.implicits.*
+import cats.syntax.all.*
 import doobie.ConnectionIO
 import doobie.hikari.HikariTransactor
-import doobie.implicits._
+import doobie.implicits.*
 import networthcalculator.algebras.AssetsService
-import networthcalculator.domain.asset.{Asset, AssetId, AssetType}
+import networthcalculator.domain.asset.{Asset, AssetId, AssetType, AssetTypeInUse}
 
 object AssetsServiceImpl {
-  def make[F[_]: Sync](
+  def make[F[_]: MonadCancelThrow](
       transactor: Resource[F, HikariTransactor[F]]
   ): AssetsService[F] = new AssetsService[F] {
 
@@ -25,6 +26,11 @@ object AssetsServiceImpl {
         .use(
           AssetsQueries
             .insert(assetType)
+            .handleErrorWith {
+              case ex: org.postgresql.util.PSQLException
+                  if ex.getMessage.contains("duplicate key value violates unique constraint") =>
+                AssetTypeInUse(assetType).raiseError[ConnectionIO, Int]
+            }
             .transact[F]
         )
         .void
@@ -34,6 +40,11 @@ object AssetsServiceImpl {
         .use(
           AssetsQueries
             .update(asset)
+            .handleErrorWith {
+              case ex: org.postgresql.util.PSQLException
+                  if ex.getMessage.contains("duplicate key value violates unique constraint") =>
+                AssetTypeInUse(asset.assetType).raiseError[ConnectionIO, Int]
+            }
             .transact[F]
         )
         .void

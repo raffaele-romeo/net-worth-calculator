@@ -22,7 +22,7 @@ object decoder {
               case _                  => BadRequest(e.toString)
             }
           }
-        case Right(a) => Logger[F].info(s"Decoder request successful $a") >> f(a)
+        case Right(a) => f(a)
       }
     }
 

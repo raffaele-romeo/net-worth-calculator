@@ -56,7 +56,7 @@ object AuthServiceImpl {
                   case Some(token) => token.pure[F]
                   case None =>
                     for {
-                      token <- tokensService.generateToken(user.name, expiresIn, JWSAlgorithm.HS512)
+                      token <- tokensService.generateToken(user.name, expiresIn, JWSAlgorithm.HS256)
                       _     <- tokensService.storeToken(user.name, token, expiresIn)
                     } yield token
                 },

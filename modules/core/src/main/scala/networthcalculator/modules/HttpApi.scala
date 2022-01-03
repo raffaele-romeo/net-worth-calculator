@@ -60,9 +60,9 @@ object HttpApi {
 
     val loggers: HttpApp[F] => HttpApp[F] = {
       { (http: HttpApp[F]) =>
-        RequestLogger.httpApp(logHeaders = true, logBody = true)(http)
+        RequestLogger.httpApp(logHeaders = true, logBody = false)(http)
       } andThen { (http: HttpApp[F]) =>
-        ResponseLogger.httpApp(logHeaders = true, logBody = true)(http)
+        ResponseLogger.httpApp(logHeaders = true, logBody = false)(http)
       }
     }
 

@@ -8,8 +8,9 @@ import networthcalculator.middleware.AuthHeaders
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.{AuthMiddleware, Router}
 import org.http4s.{AuthedRoutes, HttpRoutes}
+import org.typelevel.log4cats.Logger
 
-final class LogoutRoutes[F[_]: MonadThrow](
+final class LogoutRoutes[F[_]: MonadThrow: Logger](
     tokens: TokensService[F]
 ) extends Http4sDsl[F] {
 
