@@ -15,13 +15,10 @@ import io.circe.syntax._
 
 final class UserRoutes[F[_]: Concurrent: Logger](
     authService: AuthService[F]
-) {
+) extends Http4sDsl[F] {
 
-  val dsl = Http4sDsl[F]
-  import dsl.*
-
-  private[routes] val prefixPath                             = "/auth"
-  implicit val directorDecoder: EntityDecoder[F, CreateUser] = jsonOf[F, CreateUser]
+  private[routes] val prefixPath                               = "/auth"
+  implicit val createUserDecoder: EntityDecoder[F, CreateUser] = jsonOf[F, CreateUser]
 
   private val httpRoutes: HttpRoutes[F] = HttpRoutes.of[F] { case req @ POST -> Root / "users" =>
     req.decodeR[CreateUser] { user =>
