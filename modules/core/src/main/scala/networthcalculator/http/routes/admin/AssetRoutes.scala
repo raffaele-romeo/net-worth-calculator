@@ -6,25 +6,30 @@ import networthcalculator.algebras.AssetsService
 import networthcalculator.domain.asset._
 import networthcalculator.domain.users.AdminUser
 import networthcalculator.http.decoder._
-import networthcalculator.http.json._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.{AuthMiddleware, Router}
 import org.http4s.{AuthedRoutes, HttpRoutes}
 import org.typelevel.log4cats.Logger
+import org.http4s.circe._
+import io.circe.generic.auto._
+import io.circe.syntax._
+import org.http4s._
 
 final class AssetRoutes[F[_]: Concurrent: Logger](
     assets: AssetsService[F]
 ) extends Http4sDsl[F] {
 
-  private[routes] val prefixPath = "/assets"
+  private[routes] val prefixPath                                 = "/assets"
+  implicit val createAssetDecoder: EntityDecoder[F, CreateAsset] = jsonOf[F, CreateAsset]
+  implicit val updateAssetDecoder: EntityDecoder[F, UpdateAsset] = jsonOf[F, UpdateAsset]
 
   private val httpRoutes: AuthedRoutes[AdminUser, F] = AuthedRoutes.of {
     case _ @GET -> Root as _ =>
-      Ok(assets.findAll)
+      assets.findAll.flatMap(assets => Ok(assets.asJson))
 
     case req @ POST -> Root as _ =>
       req.req.decodeR[CreateAsset] { asset =>
-        assets.create(asset.assetType.toDomain) *> Created()
+        assets.create(asset.toDomain) *> Created()
       }
 
     case req @ PUT -> Root as _ =>
