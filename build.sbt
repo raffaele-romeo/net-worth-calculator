@@ -1,33 +1,16 @@
 import Dependencies._
 
-ThisBuild / scalaVersion := "3.1.0"
-ThisBuild / version := "0.1.0-SNAPSHOT"
-
-resolvers += Resolver.sonatypeRepo("snapshots")
-
 lazy val root = (project in file("."))
   .settings(
-    name := "net-worth-calculator",
     Compile / run / mainClass := Some("networthcalculator.Main")
   )
   .dependsOn(core)
-  .aggregate(core, tests)
-  .settings(
-    addCommandAlias(
-      "validate",
-      List(
-        "clean",
-        "compile"
-      ).mkString(";", "; ", "")
-    ),
-    addCommandAlias("run", "modules/core/run")
-  )
+  .aggregate(core)
 
 lazy val tests = (project in file("modules/tests"))
   .configs(IntegrationTest)
   .settings(
     name := "net-worth-calculator-test-suite",
-    scalafmtOnCompile := true,
     Defaults.itSettings,
     libraryDependencies ++= Seq(
       Libraries.scalaTest
@@ -38,15 +21,17 @@ lazy val tests = (project in file("modules/tests"))
 lazy val core = (project in file("modules/core"))
   .enablePlugins(DockerPlugin)
   .enablePlugins(AshScriptPlugin)
+  .settings(commonSettings: _*)
   .settings(
-    name := "net-worth-calculator-core",
+    name := "net-worth-calculator"
+  )
+  .settings(
     Docker / packageName := "net-worth-calculator",
-    scalafmtOnCompile := true,
     resolvers += Resolver.sonatypeRepo("snapshots"),
     Defaults.itSettings,
     dockerBaseImage := "openjdk:8u201-jre-alpine3.9",
     dockerExposedPorts ++= Seq(8080),
-    makeBatScripts := Seq(),
+    makeBatScripts     := Seq(),
     dockerUpdateLatest := true,
     libraryDependencies ++= Seq(
       Libraries.cats,
@@ -73,3 +58,21 @@ lazy val core = (project in file("modules/core"))
       Libraries.squants
     )
   )
+
+val commonSettings = Def.settings(
+  inThisBuild(
+    List(
+      scalaVersion := "3.1.0",
+      version      := "0.1.0-SNAPSHOT"
+    )
+  ),
+  scalafmtOnCompile := true,
+  addCommandAlias(
+    "validate",
+    List(
+      "clean",
+      "compile"
+    ).mkString(";", "; ", "")
+  ),
+  addCommandAlias("run", "modules/core/run")
+)
