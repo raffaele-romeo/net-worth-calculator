@@ -20,7 +20,7 @@ object JWTAuthMiddleware {
 
   def apply[F[_], A: Show](
       authenticate: JwtToken => F[Option[A]]
-  )(implicit S: Sync[F], ME: MonadThrow[F]): AuthMiddleware[F, A] = {
+  )(using S: Sync[F], ME: MonadThrow[F]): AuthMiddleware[F, A] = {
 
     val dsl = new Http4sDsl[F] {}
     import dsl._

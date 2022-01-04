@@ -4,13 +4,12 @@ import ciris.ConfigDecoder
 
 object environments {
 
-  sealed abstract class AppEnvironment extends Product with Serializable
-
+  enum AppEnvironment {
+    case Test, Prod
+  }
   object AppEnvironment {
-    case object Test extends AppEnvironment
-    case object Prod extends AppEnvironment
 
-    implicit val appEnvConfigDecoder: ConfigDecoder[String, AppEnvironment] =
+    given appEnvConfigDecoder: ConfigDecoder[String, AppEnvironment] =
       ConfigDecoder[String, String].mapOption("AppEnv")(apply)
 
     private def apply(value: String): Option[AppEnvironment] =

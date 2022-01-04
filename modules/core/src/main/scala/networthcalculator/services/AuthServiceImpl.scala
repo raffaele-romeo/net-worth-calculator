@@ -28,7 +28,7 @@ object AuthServiceImpl {
       encryptionService: EncryptionService[F],
       tokensService: TokensService[F],
       expiresIn: TokenExpiration
-  )(implicit S: Sync[F], ME: MonadThrow[F]): AuthService[F] =
+  )(using S: Sync[F], ME: MonadThrow[F]): AuthService[F] =
     new AuthService[F] {
 
       override def newUser(validUser: ValidUser): F[JwtToken] = {
@@ -70,8 +70,8 @@ object AuthServiceImpl {
           }
       }
 
-      def validate(username: String, password: String): F[ValidUser] = {
-        FormValidatorNec.validateForm(username: String, password: String) match {
+      def validate(username: UserName, password: Password): F[ValidUser] = {
+        FormValidatorNec.validateForm(username, password) match {
           case Valid(user) =>
             user.pure[F]
           case Invalid(e) =>
@@ -85,27 +85,31 @@ object FormValidatorNec {
 
   type ValidationResult[A] = ValidatedNec[DomainValidation, A]
 
-  private def validateUserName(userName: String): ValidationResult[String] =
+  private def validateUserName(userName: UserName): ValidationResult[UserName] =
     if (
-      userName.matches(
+      userName.value.matches(
         "^(?=.{1,64}@)[\\p{L}0-9_-]+(\\.[\\p{L}0-9_-]+)*@[^-][\\p{L}0-9-]+(\\.[\\p{L}0-9-]+)*(\\.[\\p{L}]{2,})$"
       )
     ) userName.validNec
     else UsernameHasSpecialCharacters.invalidNec
 
-  private def validatePassword(password: String): ValidationResult[String] =
-    if (password.matches("(?=^.{10,}$)((?=.*\\d)|(?=.*\\W+))(?![.\\n])(?=.*[A-Z])(?=.*[a-z]).*$"))
+  private def validatePassword(password: Password): ValidationResult[Password] =
+    if (
+      password.value.matches(
+        "(?=^.{10,}$)((?=.*\\d)|(?=.*\\W+))(?![.\\n])(?=.*[A-Z])(?=.*[a-z]).*$"
+      )
+    )
       password.validNec
     else PasswordDoesNotMeetCriteria.invalidNec
 
   def validateForm(
-      username: String,
-      password: String
+      username: UserName,
+      password: Password
   ): ValidationResult[ValidUser] = {
     (
       validateUserName(username),
       validatePassword(password)
-    ).mapN((username, password) => ValidUser(UserName(username), Password(password)))
+    ).mapN(ValidUser.apply)
   }
 
 }

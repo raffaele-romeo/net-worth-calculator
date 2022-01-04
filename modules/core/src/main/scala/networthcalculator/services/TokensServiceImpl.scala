@@ -17,7 +17,7 @@ import java.util.{Date, UUID}
 object TokensServiceImpl {
   def make[F[_]](
       redis: RedisCommands[F, String, String]
-  )(implicit S: Sync[F]): TokensService[F] =
+  )(using S: Sync[F]): TokensService[F] =
     new TokensService[F] {
 
       override def generateToken(

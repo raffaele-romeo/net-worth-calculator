@@ -17,7 +17,7 @@ object EncryptionServiceImpl {
   private val SaltSize: Int             = 64
   private val HashAlgorithmName: String = "PBKDF2WithHmacSHA1"
 
-  def make[F[_]: MonadCancelThrow](implicit S: Sync[F]): EncryptionService[F] = {
+  def make[F[_]: MonadCancelThrow](using S: Sync[F]): EncryptionService[F] = {
     new EncryptionService[F] {
 
       override def encrypt(password: Password, salt: Salt): F[EncryptedPassword] = {

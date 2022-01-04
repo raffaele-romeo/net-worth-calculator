@@ -6,7 +6,7 @@ import networthcalculator.domain.users.{Password, UserName, ValidUser}
 trait AuthService[F[_]] {
   def newUser(validUser: ValidUser): F[JwtToken]
   def login(validUser: ValidUser): F[JwtToken]
-  def validate(username: String, password: String): F[ValidUser]
+  def validate(username: UserName, password: Password): F[ValidUser]
 }
 
 trait UsersAuthService[F[_], A] {

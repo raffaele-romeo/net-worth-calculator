@@ -14,19 +14,19 @@ import org.http4s.circe._
 import io.circe.generic.auto._
 import io.circe.syntax._
 import networthcalculator.domain.errors.DomainValidationErrors
+import org.http4s.circe.CirceEntityDecoder.circeEntityDecoder
 
 final class LoginRoutes[F[_]: Concurrent: Logger](
     authService: AuthService[F]
 ) extends Http4sDsl[F] {
 
-  private[routes] val prefixPath                             = "/auth"
-  implicit val loginUserDecoder: EntityDecoder[F, LoginUser] = jsonOf[F, LoginUser]
+  private[routes] val prefixPath = "/auth"
 
   private val httpRoutes: HttpRoutes[F] = HttpRoutes.of[F] { case req @ POST -> Root / "login" =>
     req
       .decodeR[LoginUser] { user =>
         for {
-          validUser <- authService.validate(user.username, user.password)
+          validUser <- authService.validate(UserName(user.username), Password(user.password))
           result <- authService
             .login(validUser)
             .flatMap(jwtToken => Ok(jwtToken.asJson))

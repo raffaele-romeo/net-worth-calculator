@@ -14,14 +14,13 @@ import org.http4s.circe._
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.http4s._
+import org.http4s.circe.CirceEntityDecoder.circeEntityDecoder
 
 final class AssetRoutes[F[_]: Concurrent: Logger](
     assets: AssetsService[F]
 ) extends Http4sDsl[F] {
 
-  private[routes] val prefixPath                                 = "/assets"
-  implicit val createAssetDecoder: EntityDecoder[F, CreateAsset] = jsonOf[F, CreateAsset]
-  implicit val updateAssetDecoder: EntityDecoder[F, UpdateAsset] = jsonOf[F, UpdateAsset]
+  private[routes] val prefixPath = "/assets"
 
   private val httpRoutes: AuthedRoutes[AdminUser, F] = AuthedRoutes.of {
     case _ @GET -> Root as _ =>

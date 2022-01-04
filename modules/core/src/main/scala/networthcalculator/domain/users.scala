@@ -48,29 +48,24 @@ object users {
   )
 
   object UserWithPassword {
-    implicit val roleGet: Get[Role]     = Get[String].tmap(fromString)
-    implicit val rolePut: Put[Role]     = Put[String].tcontramap(toString)
-    implicit val roleRead: Read[Role]   = Read[String].map(fromString)
-    implicit val roleWrite: Write[Role] = Write[String].contramap(toString)
+    given roleGet: Get[Role]     = Get[String].tmap(fromString)
+    given rolePut: Put[Role]     = Put[String].tcontramap(toString)
+    given roleRead: Read[Role]   = Read[String].map(fromString)
+    given roleWrite: Write[Role] = Write[String].contramap(toString)
 
-    private def fromString(s: String): Role = {
-      if (s == Role.User.roleRepr) Role.User
-      else Role.Admin
-    }
+    private def fromString(s: String): Role = Role.valueOf(s)
 
-    private def toString(r: Role) = r match {
-      case role @ (Role.Admin | Role.User) => role.roleRepr
-    }
+    private def toString(r: Role) = r.toString
   }
 
   final case class AdminUser(userName: UserName)
   object AdminUser {
-    implicit val showAdminUser: Show[AdminUser] = Show.show(_.userName.value)
+    given showAdminUser: Show[AdminUser] = Show.show(_.userName.value)
   }
 
   final case class CommonUser(userName: UserName)
   object CommonUser {
-    implicit val showCommonUser: Show[CommonUser] = Show.show(_.userName.value)
+    given showCommonUser: Show[CommonUser] = Show.show(_.userName.value)
   }
 
   final case class UserNameInUse(username: UserName)   extends NoStackTrace

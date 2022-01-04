@@ -10,7 +10,7 @@ import org.typelevel.log4cats
 
 object Main extends IOApp {
 
-  implicit def unsafeLogger: log4cats.SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
+  given unsafeLogger: log4cats.SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
 
   override def run(args: List[String]): IO[ExitCode] =
     config.Loader[IO].flatMap { cfg =>
