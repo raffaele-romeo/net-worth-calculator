@@ -41,7 +41,8 @@ object Loader {
       PostgreSQLConfig(
         host = Host("postgres"),
         port = Port(5432),
-        user = PostgresUser("postgres"),
+        user = User("postgres"),
+        password = Password("secret"),
         database = DatabaseName("networth"),
         max = MaxConnections(10)
       ),

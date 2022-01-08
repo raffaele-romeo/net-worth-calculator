@@ -18,7 +18,8 @@ object data {
   final case class PostgreSQLConfig(
       host: Host,
       port: Port,
-      user: PostgresUser,
+      user: User,
+      password: Password,
       database: DatabaseName,
       max: MaxConnections
   )
@@ -71,13 +72,24 @@ object data {
     def toInt: Int = x
   }
 
-  opaque type PostgresUser = String
-  object PostgresUser {
-    def apply(d: String): PostgresUser = d
+  opaque type User = String
+  object User {
+    def apply(d: String): User = d
   }
 
-  extension (x: PostgresUser) {
-    @targetName("PostgresUser")
+  extension (x: User) {
+    @targetName("User")
+    def toString: String = x
+  }
+
+  opaque type Password = String
+
+  object Password {
+    def apply(d: String): Password = d
+  }
+
+  extension (x: Password) {
+    @targetName("Password")
     def toString: String = x
   }
 
