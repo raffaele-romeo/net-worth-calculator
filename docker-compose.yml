@@ -12,14 +12,15 @@ services:
       - DEBUG=false
     volumes:
       - db-data:/var/lib/postgresql/data
-      - ./modules/core/src/main/resources/tables.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./init/:/docker-entrypoint-initdb.d/
 
   adminer:
     image: adminer
     hostname: adminer
+    container_name: Adminer
     restart: always
     ports:
-      - "8080:8080"
+      - "8686:8080"
 
   Redis:
     restart: always
