@@ -28,14 +28,14 @@ final class UserRoutes[F[_]: Concurrent: Logger](
           validUser <- authService.validate(UserName(user.username), Password(user.password))
           result <- authService
             .newUser(validUser)
-            .flatMap(jwtToken => Created(jwtToken.asJson))
+            .flatMap(jwtToken => Created(jwtToken.toString))
         } yield result
       }
       .recoverWith {
         case DomainValidationErrors(errors) =>
           BadRequest(errors.asJson)
         case UserNameInUse(u) =>
-          Conflict(u.value)
+          Conflict(u.toString)
       }
   }
 

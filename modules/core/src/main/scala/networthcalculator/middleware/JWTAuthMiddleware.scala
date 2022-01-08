@@ -28,14 +28,14 @@ object JWTAuthMiddleware {
     val authUser: Kleisli[F, Request[F], Either[String, A]] = Kleisli { request =>
       AuthHeaders.getBearerToken(request).fold("Bearer token not found".asLeft[A].pure[F]) {
         token =>
-          S.delay(SignedJWT.parse(token.value))
+          S.delay(SignedJWT.parse(token.toString))
             .void
             .attempt
             .flatMap {
               _.fold(_ => none[A].pure[F], _ => authenticate(token))
             }
             .map {
-              _.fold("not found".asLeft[A])(_.asRight[String])
+              _.fold("Bearer token not found or invalid".asLeft[A])(_.asRight[String])
             }
       }
     }

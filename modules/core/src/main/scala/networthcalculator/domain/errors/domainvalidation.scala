@@ -6,7 +6,7 @@ sealed trait DomainValidation {
   def errorMessage: String
 }
 
-case object UsernameHasSpecialCharacters extends DomainValidation {
+case object UsernameDoesNotMeetCriteria extends DomainValidation {
   def errorMessage: String = "Username has to be a valid email."
 }
 

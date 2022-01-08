@@ -38,13 +38,13 @@ object AuthServiceImpl {
           user <- usersService
             .create(
               CreateUserForInsert(
-                name = validUser.username,
+                username = validUser.username,
                 password = encryptedPassword,
                 salt = salt
               )
             )
-          token <- tokensService.generateToken(user.name, expiresIn, JWSAlgorithm.HS256)
-          _     <- tokensService.storeToken(user.name, token, expiresIn)
+          token <- tokensService.generateToken(user.username, expiresIn, JWSAlgorithm.HS256)
+          _     <- tokensService.storeToken(user.username, token, expiresIn)
         } yield token
       }
 
@@ -61,11 +61,12 @@ object AuthServiceImpl {
                   case Some(token) => token.pure[F]
                   case None =>
                     for {
-                      token <- tokensService.generateToken(user.name, expiresIn, JWSAlgorithm.HS256)
-                      _     <- tokensService.storeToken(user.name, token, expiresIn)
+                      token <- tokensService
+                        .generateToken(user.username, expiresIn, JWSAlgorithm.HS256)
+                      _ <- tokensService.storeToken(user.username, token, expiresIn)
                     } yield token
                 },
-                InvalidPassword(user.name).raiseError[F, JwtToken]
+                InvalidPassword(user.username).raiseError[F, JwtToken]
               )
           }
       }
@@ -87,15 +88,15 @@ object FormValidatorNec {
 
   private def validateUserName(userName: UserName): ValidationResult[UserName] =
     if (
-      userName.value.matches(
+      userName.toString.matches(
         "^(?=.{1,64}@)[\\p{L}0-9_-]+(\\.[\\p{L}0-9_-]+)*@[^-][\\p{L}0-9-]+(\\.[\\p{L}0-9-]+)*(\\.[\\p{L}]{2,})$"
       )
     ) userName.validNec
-    else UsernameHasSpecialCharacters.invalidNec
+    else UsernameDoesNotMeetCriteria.invalidNec
 
   private def validatePassword(password: Password): ValidationResult[Password] =
     if (
-      password.value.matches(
+      password.toString.matches(
         "(?=^.{10,}$)((?=.*\\d)|(?=.*\\W+))(?![.\\n])(?=.*[A-Z])(?=.*[a-z]).*$"
       )
     )
@@ -121,7 +122,7 @@ object UsersAuthServiceImpl {
       adminUser: AdminUser
   ): UsersAuthService[F, AdminUser] =
     (token: JwtToken) =>
-      (token.value == adminToken.value)
+      (token == adminToken)
         .guard[Option]
         .as(adminUser)
         .pure[F]

@@ -24,7 +24,7 @@ object UsersServiceImpl {
         UserQueries
           .insert(user)
           .exceptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
-            UserNameInUse(user.name).raiseError[ConnectionIO, UserWithPassword]
+            UserNameInUse(user.username).raiseError[ConnectionIO, UserWithPassword]
           }
           .transact[F]
       )
@@ -43,42 +43,41 @@ private object UserQueries {
   def insert(user: CreateUserForInsert): ConnectionIO[UserWithPassword] =
     sql"""
          |INSERT INTO users (
-         |  name,
+         |  username,
          |  password,
          |  salt,
          |  role
          |)
          |VALUES (
-         |  ${user.name.value},
-         |  ${user.password.value},
-         |  ${user.salt.value},
+         |  ${user.username.toString},
+         |  ${user.password.toString},
+         |  ${user.salt.toString},
          |  ${user.role.toString}
          |)
         """.stripMargin.update
-      .withUniqueGeneratedKeys[UserWithPassword]("id", "name", "password", "salt", "role")
+      .withUniqueGeneratedKeys[UserWithPassword]("id", "username", "password", "salt", "role")
 
   def update(user: UserWithPassword): ConnectionIO[UserWithPassword] =
     sql"""
          |UPDATE users SET
-         | name = ${user.name.value},
-         | password = ${user.password.value},
-         | salt = ${user.salt.value}
+         | username = ${user.username.toString},
+         | password = ${user.password.toString},
+         | salt = ${user.salt.toString}
          | role = ${user.role.toString}
-         | where id = ${user.id.value}
+         | where id = ${user.userId.toLong}
     """.stripMargin.update
-      .withUniqueGeneratedKeys[UserWithPassword]("id", "name", "password", "salt", "role")
+      .withUniqueGeneratedKeys[UserWithPassword]("userId", "username", "password", "salt", "role")
 
   def select(userName: UserName): ConnectionIO[Option[UserWithPassword]] =
     sql"""
-         | SELECT id, name, password, salt, role 
+         | SELECT id, username, password, salt, role 
          | FROM users 
-         | WHERE name = ${userName.value}
+         | WHERE username = ${userName.toString}
     """.stripMargin.query[UserWithPassword].option
 
   def delete(userName: UserName): ConnectionIO[Int] =
     sql"""
-         | DELETE FROM users 
-         | WHERE name = ${userName.value}
+         | DELETE FROM users
+         | WHERE username = ${userName.toString}
     """.stripMargin.update.run
-
 }

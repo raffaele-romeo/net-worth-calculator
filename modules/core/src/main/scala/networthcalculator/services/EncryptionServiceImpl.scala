@@ -23,7 +23,12 @@ object EncryptionServiceImpl {
       override def encrypt(password: Password, salt: Salt): F[EncryptedPassword] = {
         S.delay {
           val keySpec =
-            new PBEKeySpec(password.value.toCharArray, salt.value.getBytes(), Iteration, KeyLength)
+            new PBEKeySpec(
+              password.toString.toCharArray,
+              salt.toString.getBytes(),
+              Iteration,
+              KeyLength
+            )
 
           val keyFactory     = SecretKeyFactory.getInstance(HashAlgorithmName)
           val securePassword = keyFactory.generateSecret(keySpec).getEncoded
@@ -41,7 +46,7 @@ object EncryptionServiceImpl {
       ): F[Boolean] = {
         for {
           encrypted <- this.encrypt(password, salt)
-        } yield encrypted.value == encryptedPassword.value
+        } yield encrypted == encryptedPassword
       }
 
       override def generateRandomSalt(): F[Salt] = {

@@ -6,11 +6,20 @@ import squants.market.{Currency, Money}
 import java.time.{Month, Year}
 
 object transaction {
+  opaque type TransactionId = Long
+  object TransactionId {
+    def fromLong(d: Long): TransactionId = d
+  }
 
-  final case class TransactionId(value: Long)
+  opaque type BankName = String
+  object BankName {
+    def fromString(d: String): BankName = d
+  }
 
-  final case class BankName(name: String)
-  final case class AccountName(name: String)
+  opaque type AccountName = String
+  object AccountName {
+    def fromString(d: String): AccountName = d
+  }
 
   final case class Transaction(
       transactionId: TransactionId,

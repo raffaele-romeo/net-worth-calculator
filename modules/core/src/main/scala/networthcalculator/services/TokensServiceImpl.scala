@@ -31,9 +31,11 @@ object TokensServiceImpl {
         val now    = new Date()
         val signer = new MACSigner(sharedSecret)
         val claimsSet = new JWTClaimsSet.Builder()
-          .subject(userName.value)
+          .subject(userName.toString)
           .issuer("net-worth-calculator")
-          .expirationTime(new Date(now.toInstant.toEpochMilli + expiresIn.value.toMillis))
+          .expirationTime(
+            new Date(now.toInstant.toEpochMilli + expiresIn.toFiniteDuration.toMillis)
+          )
           .notBeforeTime(now)
           .issueTime(now)
           .jwtID(UUID.randomUUID().toString)
@@ -46,13 +48,13 @@ object TokensServiceImpl {
 
       override def findUserNameBy(token: JwtToken): F[Option[CommonUser]] = {
         for {
-          maybeUser <- redis.get(token.value)
+          maybeUser <- redis.get(token.toString)
         } yield maybeUser.map(user => CommonUser(UserName(user)))
       }
 
       override def findTokenBy(userName: UserName): F[Option[JwtToken]] = {
         for {
-          maybeToken <- redis.get(userName.value)
+          maybeToken <- redis.get(userName.toString)
         } yield maybeToken.map(JwtToken.apply)
       }
 
@@ -61,12 +63,12 @@ object TokensServiceImpl {
           token: JwtToken,
           expiresIn: TokenExpiration
       ): F[Unit] = {
-        redis.setEx(userName.value, token.value, expiresIn.value) *>
-          redis.setEx(token.value, userName.value, expiresIn.value)
+        redis.setEx(userName.toString, token.toString, expiresIn.toFiniteDuration) *>
+          redis.setEx(token.toString, userName.toString, expiresIn.toFiniteDuration)
       }
 
       override def deleteToken(userName: UserName, token: JwtToken): F[Unit] = {
-        redis.del(userName.value) *> redis.del(token.value).void
+        redis.del(userName.toString) *> redis.del(token.toString).void
       }
     }
 }

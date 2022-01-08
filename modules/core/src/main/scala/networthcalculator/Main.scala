@@ -29,8 +29,8 @@ object Main extends IOApp {
 
           BlazeServerBuilder[IO]
             .bindHttp(
-              cfg.httpServerConfig.port,
-              cfg.httpServerConfig.host
+              cfg.httpServerConfig.port.toInt,
+              cfg.httpServerConfig.host.toString
             )
             .withHttpApp(httpApp)
             .serve

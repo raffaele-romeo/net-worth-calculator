@@ -29,7 +29,7 @@ final class LoginRoutes[F[_]: Concurrent: Logger](
           validUser <- authService.validate(UserName(user.username), Password(user.password))
           result <- authService
             .login(validUser)
-            .flatMap(jwtToken => Ok(jwtToken.asJson))
+            .flatMap(jwtToken => Ok(jwtToken.toString))
         } yield result
       }
       .recoverWith {

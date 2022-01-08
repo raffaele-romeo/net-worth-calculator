@@ -19,7 +19,7 @@ object Loader {
       .map {
         case Test =>
           default(
-            redisUri = RedisURI("redis://localhost")
+            redisUri = RedisURI("redis://redis")
           )
         case Prod =>
           default(
@@ -39,16 +39,16 @@ object Loader {
         AdminUser(UserName("admin"))
       ),
       PostgreSQLConfig(
-        host = "localhost",
-        port = 5432,
-        user = "postgres",
-        database = "networth",
-        max = 10
+        host = Host("postgres"),
+        port = Port(5432),
+        user = PostgresUser("postgres"),
+        database = DatabaseName("networth"),
+        max = MaxConnections(10)
       ),
       RedisConfig(redisUri),
       HttpServerConfig(
-        host = "0.0.0.0",
-        port = 8080
+        host = Host("0.0.0.0"),
+        port = Port(8080)
       )
     )
 }

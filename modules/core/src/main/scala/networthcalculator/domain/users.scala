@@ -5,20 +5,63 @@ import networthcalculator.domain.auth.Role
 
 import scala.util.control.NoStackTrace
 import cats.Show
+import scala.annotation.targetName
 
 object users {
 
-  final case class UserId(value: Long)
+  opaque type UserId = Long
 
-  final case class UserName(value: String)
+  object UserId {
+    def apply(d: Long): UserId = d
+  }
 
-  final case class Password(value: String)
+  extension (x: UserId) {
+    def toLong: Long = x
+  }
 
-  // --------- user registration -----------
+  opaque type UserName = String
 
-  final case class Salt(value: String)
+  object UserName {
+    def apply(d: String): UserName = d
+  }
 
-  final case class EncryptedPassword(value: String)
+  extension (x: UserName) {
+    @targetName("UserName")
+    def toString: String = x
+  }
+
+  opaque type Password = String
+
+  object Password {
+    def apply(d: String): Password = d
+  }
+
+  extension (x: Password) {
+    @targetName("Password")
+    def toString: String = x
+  }
+
+  opaque type Salt = String
+
+  object Salt {
+    def apply(d: String): Salt = d
+  }
+
+  extension (x: Salt) {
+    @targetName("Salt")
+    def toString: String = x
+  }
+
+  opaque type EncryptedPassword = String
+
+  object EncryptedPassword {
+    def apply(d: String): EncryptedPassword = d
+  }
+
+  extension (x: EncryptedPassword) {
+    @targetName("EncryptedPassword")
+    def toString: String = x
+  }
 
   final case class CreateUser(username: String, password: String)
 
@@ -33,39 +76,52 @@ object users {
   )
 
   final case class CreateUserForInsert(
-      name: UserName,
+      username: UserName,
       password: EncryptedPassword,
       salt: Salt,
       role: Role = Role.User
   )
 
   final case class UserWithPassword(
-      id: UserId,
-      name: UserName,
+      userId: UserId,
+      username: UserName,
       password: EncryptedPassword,
       salt: Salt,
       role: Role = Role.User
   )
 
   object UserWithPassword {
-    given roleGet: Get[Role]     = Get[String].tmap(fromString)
-    given rolePut: Put[Role]     = Put[String].tcontramap(toString)
-    given roleRead: Read[Role]   = Read[String].map(fromString)
-    given roleWrite: Write[Role] = Write[String].contramap(toString)
-
-    private def fromString(s: String): Role = Role.valueOf(s)
-
-    private def toString(r: Role) = r.toString
+    implicit val userWithPasswordRead: Read[UserWithPassword] =
+      Read[(Long, String, String, String, String)].map {
+        case (id, username, password, salt, role) =>
+          UserWithPassword(
+            UserId(id),
+            UserName(username),
+            EncryptedPassword(password),
+            Salt(salt),
+            Role.fromString(role)
+          )
+      }
+    implicit val userWithPasswordWrite: Write[UserWithPassword] =
+      Write[(Long, String, String, String, String)].contramap { userWithPassword =>
+        (
+          userWithPassword.userId.toLong,
+          userWithPassword.username.toString,
+          userWithPassword.password.toString,
+          userWithPassword.salt.toString,
+          userWithPassword.role.toString
+        )
+      }
   }
 
   final case class AdminUser(userName: UserName)
   object AdminUser {
-    given showAdminUser: Show[AdminUser] = Show.show(_.userName.value)
+    given showAdminUser: Show[AdminUser] = Show.show(_.userName)
   }
 
   final case class CommonUser(userName: UserName)
   object CommonUser {
-    given showCommonUser: Show[CommonUser] = Show.show(_.userName.value)
+    given showCommonUser: Show[CommonUser] = Show.show(_.userName)
   }
 
   final case class UserNameInUse(username: UserName)   extends NoStackTrace
