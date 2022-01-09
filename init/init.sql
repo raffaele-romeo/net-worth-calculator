@@ -36,8 +36,11 @@ ADD FOREIGN KEY (user_id) REFERENCES users (id);
 ALTER TABLE transactions
 ADD FOREIGN KEY (account_id) REFERENCES accounts (id);
 
-CREATE INDEX account_user_id_index
+CREATE INDEX accounts_user_id_index
 ON accounts (user_id);
 
-CREATE INDEX transaction_user_id_index
+CREATE INDEX transactions_user_id_index
 ON transactions (user_id);
+
+CREATE INDEX users_username_index
+ON users (username);

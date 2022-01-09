@@ -9,7 +9,6 @@ import scala.annotation.targetName
 object data {
   final case class AppConfig(
       tokenExpiration: TokenExpiration,
-      jwtAdmin: JWTAdmin,
       postgreSQL: PostgreSQLConfig,
       redis: RedisConfig,
       httpServerConfig: HttpServerConfig

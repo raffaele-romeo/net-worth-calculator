@@ -31,13 +31,6 @@ object Loader {
   private def default(redisUri: RedisURI): AppConfig =
     AppConfig(
       TokenExpiration(30.minutes),
-      JWTAdmin(
-        JwtToken(
-          // Make it a secret with env variable
-          "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWZmYWVsZUBmYWtlLmNvbSIsIm5iZiI6MTY0MTIyODE0OCwiaXNzIjoibmV0LXdvcnRoLWNhbGN1bGF0b3IiLCJleHAiOjE2NDEyMjk5NDgsImlhdCI6MTY0MTIyODE0OCwianRpIjoiOGQ0Yzc3NWUtMzA2MS00YTNmLTllMGItNmE0YTZlNmI5OWE2In0.-MUWm3bFVhhxuz8l1WUnEqX0jmzAjcDC9T4mWXeaCfs"
-        ),
-        AdminUser(UserName("admin"))
-      ),
       PostgreSQLConfig(
         host = Host("localhost"),
         port = Port(5432),

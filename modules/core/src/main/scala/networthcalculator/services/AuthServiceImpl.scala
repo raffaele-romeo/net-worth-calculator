@@ -44,7 +44,7 @@ object AuthServiceImpl {
               )
             )
           token <- tokensService.generateToken(user.username, expiresIn, JWSAlgorithm.HS256)
-          _     <- tokensService.storeToken(user.username, token, expiresIn)
+          _ <- tokensService.storeToken(CommonUser(user.userId, user.username), token, expiresIn)
         } yield token
       }
 
@@ -54,7 +54,7 @@ object AuthServiceImpl {
           .flatMap {
             case None => UserNotFound(validUser.username).raiseError[F, JwtToken]
             case Some(user) =>
-              Monad[F].ifM(
+              ME.ifM(
                 encryptionService.checkPassword(user.password, validUser.password, user.salt)
               )(
                 tokensService.findTokenBy(validUser.username).flatMap {
@@ -63,7 +63,8 @@ object AuthServiceImpl {
                     for {
                       token <- tokensService
                         .generateToken(user.username, expiresIn, JWSAlgorithm.HS256)
-                      _ <- tokensService.storeToken(user.username, token, expiresIn)
+                      _ <- tokensService
+                        .storeToken(CommonUser(user.userId, user.username), token, expiresIn)
                     } yield token
                 },
                 InvalidPassword(user.username).raiseError[F, JwtToken]
@@ -76,7 +77,7 @@ object AuthServiceImpl {
           case Valid(user) =>
             user.pure[F]
           case Invalid(e) =>
-            ME.raiseError(DomainValidationErrors(e.toNonEmptyList.toList.map(_.errorMessage)))
+            ME.raiseError(DomainValidationErrors(e.toList.map(_.errorMessage)))
         }
       }
     }
@@ -132,6 +133,6 @@ object UsersAuthServiceImpl {
   ): UsersAuthService[F, CommonUser] =
     (token: JwtToken) =>
       tokensService
-        .findUserNameBy(token)
+        .findUserBy(token)
 
 }

@@ -10,6 +10,9 @@ import networthcalculator.algebras.TokensService
 import networthcalculator.config.data.TokenExpiration
 import networthcalculator.domain.tokens.JwtToken
 import networthcalculator.domain.users.{CommonUser, UserName}
+import io.circe.generic.auto._
+import io.circe.syntax._
+import io.circe.parser.decode
 
 import java.security.SecureRandom
 import java.util.{Date, UUID}
@@ -19,7 +22,6 @@ object TokensServiceImpl {
       redis: RedisCommands[F, String, String]
   )(using S: Sync[F]): TokensService[F] =
     new TokensService[F] {
-
       override def generateToken(
           userName: UserName,
           expiresIn: TokenExpiration,
@@ -46,10 +48,10 @@ object TokensServiceImpl {
         JwtToken(signedJWT.serialize())
       }
 
-      override def findUserNameBy(token: JwtToken): F[Option[CommonUser]] = {
+      override def findUserBy(token: JwtToken): F[Option[CommonUser]] = {
         for {
           maybeUser <- redis.get(token.toString)
-        } yield maybeUser.map(user => CommonUser(UserName(user)))
+        } yield maybeUser.flatMap(user => decode[CommonUser](user).toOption)
       }
 
       override def findTokenBy(userName: UserName): F[Option[JwtToken]] = {
@@ -59,12 +61,12 @@ object TokensServiceImpl {
       }
 
       override def storeToken(
-          userName: UserName,
+          user: CommonUser,
           token: JwtToken,
           expiresIn: TokenExpiration
       ): F[Unit] = {
-        redis.setEx(userName.toString, token.toString, expiresIn.toFiniteDuration) *>
-          redis.setEx(token.toString, userName.toString, expiresIn.toFiniteDuration)
+        redis.setEx(user.userName.toString, token.toString, expiresIn.toFiniteDuration) *>
+          redis.setEx(token.toString, user.asJson.noSpaces, expiresIn.toFiniteDuration)
       }
 
       override def deleteToken(userName: UserName, token: JwtToken): F[Unit] = {

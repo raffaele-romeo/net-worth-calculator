@@ -21,9 +21,7 @@ object Main extends IOApp {
             .make[IO](
               res.psql,
               res.redis,
-              cfg.tokenExpiration,
-              cfg.jwtAdmin.adminToken,
-              cfg.jwtAdmin.adminUser
+              cfg.tokenExpiration
             )
           val httpApp = HttpApi.make[IO](services, security)
 

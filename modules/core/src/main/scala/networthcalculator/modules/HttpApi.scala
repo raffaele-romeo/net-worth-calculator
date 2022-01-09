@@ -9,7 +9,7 @@ import org.http4s.server.Router
 import org.http4s.server.middleware._
 
 import networthcalculator.domain.users.{AdminUser, CommonUser}
-import networthcalculator.http.routes.admin.AssetRoutes
+import networthcalculator.http.routes.account.AccountRoutes
 import networthcalculator.http.routes.auth.{LoginRoutes, LogoutRoutes, UserRoutes}
 import networthcalculator.http.routes.{HealthRoutes, version}
 import networthcalculator.middleware.JWTAuthMiddleware
@@ -22,9 +22,6 @@ object HttpApi {
       services: Services[F],
       security: Security[F]
   ): HttpApp[F] = {
-
-    val adminMiddleware =
-      JWTAuthMiddleware[F, AdminUser](security.adminUsersAuthService.findUser)
 
     val usersMiddleware =
       JWTAuthMiddleware[F, CommonUser](security.commonUsersAuthService.findUser)
@@ -39,15 +36,14 @@ object HttpApi {
     // Open routes
     val healthRoutes = new HealthRoutes[F](services.healthCheckService).routes
 
-    // Admin routes
-    val adminRoutes = new AssetRoutes[F](services.assetsService).routes(adminMiddleware)
+    // Account routes
+    val accountsRoutes = new AccountRoutes[F](services.accountService).routes(usersMiddleware)
 
     val nonAdminRoutes: HttpRoutes[F] =
-      healthRoutes <+> userRoutes <+> loginRoutes <+> logoutRoutes
+      healthRoutes <+> userRoutes <+> loginRoutes <+> logoutRoutes <+> accountsRoutes
 
     val routes: HttpRoutes[F] = Router(
-      version.v1            -> nonAdminRoutes,
-      version.v1 + "/admin" -> adminRoutes
+      version.v1 -> nonAdminRoutes
     )
 
     val middleware: HttpRoutes[F] => HttpRoutes[F] = {

@@ -25,16 +25,13 @@ object Security {
   def make[F[_]: Sync](
       transactor: Resource[F, HikariTransactor[F]],
       redis: RedisCommands[F, String, String],
-      tokenExpiration: TokenExpiration,
-      adminToken: JwtToken,
-      adminUser: AdminUser
+      tokenExpiration: TokenExpiration
   ): Security[F] = {
     val usersService      = UsersServiceImpl.make[F](transactor)
     val tokensService     = TokensServiceImpl.make[F](redis)
     val encryptionService = EncryptionServiceImpl.make[F]
     val authService =
       AuthServiceImpl.make[F](usersService, encryptionService, tokensService, tokenExpiration)
-    val adminUsersAuthService  = UsersAuthServiceImpl.admin(adminToken, adminUser)
     val commonUsersAuthService = UsersAuthServiceImpl.common(tokensService)
 
     Security(
@@ -42,7 +39,6 @@ object Security {
       authService,
       encryptionService,
       tokensService,
-      adminUsersAuthService,
       commonUsersAuthService
     )
   }
@@ -54,6 +50,5 @@ final case class Security[F[_]](
     authService: AuthService[F],
     encryptionService: EncryptionService[F],
     tokensService: TokensService[F],
-    adminUsersAuthService: UsersAuthService[F, AdminUser],
     commonUsersAuthService: UsersAuthService[F, CommonUser]
 )

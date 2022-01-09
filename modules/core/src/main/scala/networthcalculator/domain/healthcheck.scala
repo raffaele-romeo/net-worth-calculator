@@ -1,7 +1,6 @@
 package networthcalculator.domain
 
 import io.circe._
-import io.circe.syntax._
 
 object healthcheck {
   opaque type RedisStatus = Boolean

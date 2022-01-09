@@ -25,10 +25,10 @@ final class UserRoutes[F[_]: Concurrent: Logger](
     req
       .decodeR[CreateUser] { user =>
         for {
-          validUser <- authService.validate(UserName(user.username), Password(user.password))
+          validUser <- authService.validate(user.username, user.password)
           result <- authService
             .newUser(validUser)
-            .flatMap(jwtToken => Created(jwtToken.toString))
+            .flatMap(jwtToken => Created(jwtToken.toString.asJson))
         } yield result
       }
       .recoverWith {

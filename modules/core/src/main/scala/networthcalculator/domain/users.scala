@@ -1,11 +1,14 @@
 package networthcalculator.domain
 
-import doobie.util.{Get, Put, Read, Write}
+import doobie.util.{Read, Write}
 import networthcalculator.domain.auth.Role
 
 import scala.util.control.NoStackTrace
 import cats.Show
 import scala.annotation.targetName
+import io.circe._
+import io.circe.generic.auto._
+import io.circe.syntax._
 
 object users {
 
@@ -13,6 +16,9 @@ object users {
 
   object UserId {
     def apply(d: Long): UserId = d
+
+    given Decoder[UserId] = Decoder.decodeLong
+    given Encoder[UserId] = Encoder.encodeLong
   }
 
   extension (x: UserId) {
@@ -23,6 +29,9 @@ object users {
 
   object UserName {
     def apply(d: String): UserName = d
+
+    given Decoder[UserName] = Decoder.decodeString
+    given Encoder[UserName] = Encoder.encodeString
   }
 
   extension (x: UserName) {
@@ -34,6 +43,8 @@ object users {
 
   object Password {
     def apply(d: String): Password = d
+    given Decoder[Password]        = Decoder.decodeString
+    given Encoder[Password]        = Encoder.encodeString
   }
 
   extension (x: Password) {
@@ -63,12 +74,9 @@ object users {
     def toString: String = x
   }
 
-  final case class CreateUser(username: String, password: String)
+  final case class CreateUser(username: UserName, password: Password)
 
-  final case class LoginUser(
-      username: String,
-      password: String
-  )
+  final case class LoginUser(username: UserName, password: Password)
 
   final case class ValidUser(
       username: UserName,
@@ -91,7 +99,7 @@ object users {
   )
 
   object UserWithPassword {
-    implicit val userWithPasswordRead: Read[UserWithPassword] =
+    given userWithPasswordRead: Read[UserWithPassword] =
       Read[(Long, String, String, String, String)].map {
         case (id, username, password, salt, role) =>
           UserWithPassword(
@@ -102,7 +110,7 @@ object users {
             Role.fromString(role)
           )
       }
-    implicit val userWithPasswordWrite: Write[UserWithPassword] =
+    given userWithPasswordWrite: Write[UserWithPassword] =
       Write[(Long, String, String, String, String)].contramap { userWithPassword =>
         (
           userWithPassword.userId.toLong,
@@ -119,9 +127,9 @@ object users {
     given showAdminUser: Show[AdminUser] = Show.show(_.userName)
   }
 
-  final case class CommonUser(userName: UserName)
+  final case class CommonUser(userId: UserId, userName: UserName) derives Encoder.AsObject
   object CommonUser {
-    given showCommonUser: Show[CommonUser] = Show.show(_.userName)
+    given showCommonUser: Show[CommonUser] = Show.show(_.asJson.toString)
   }
 
   final case class UserNameInUse(username: UserName)   extends NoStackTrace

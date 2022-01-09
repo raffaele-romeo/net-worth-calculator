@@ -38,7 +38,6 @@ object UsersServiceImpl {
   }
 }
 private object UserQueries {
-  import UserWithPassword.given // This is needed to avoid error "Cannot find or construct a Read instance for type: UserWithPassword"
 
   def insert(user: CreateUserForInsert): ConnectionIO[UserWithPassword] =
     sql"""
@@ -66,7 +65,7 @@ private object UserQueries {
          | role = ${user.role.toString}
          | where id = ${user.userId.toLong}
     """.stripMargin.update
-      .withUniqueGeneratedKeys[UserWithPassword]("userId", "username", "password", "salt", "role")
+      .withUniqueGeneratedKeys[UserWithPassword]("id", "username", "password", "salt", "role")
 
   def select(userName: UserName): ConnectionIO[Option[UserWithPassword]] =
     sql"""

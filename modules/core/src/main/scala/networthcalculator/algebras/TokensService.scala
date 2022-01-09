@@ -11,8 +11,8 @@ trait TokensService[F[_]] {
       expiresIn: TokenExpiration,
       jwsAlgorithm: JWSAlgorithm
   ): F[JwtToken]
-  def findUserNameBy(token: JwtToken): F[Option[CommonUser]]
+  def findUserBy(token: JwtToken): F[Option[CommonUser]]
   def findTokenBy(userName: UserName): F[Option[JwtToken]]
-  def storeToken(userName: UserName, token: JwtToken, expiresIn: TokenExpiration): F[Unit]
+  def storeToken(user: CommonUser, token: JwtToken, expiresIn: TokenExpiration): F[Unit]
   def deleteToken(userName: UserName, token: JwtToken): F[Unit]
 }
