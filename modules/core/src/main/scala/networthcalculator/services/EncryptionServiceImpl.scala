@@ -1,6 +1,6 @@
 package networthcalculator.services
 
-import cats.effect.{MonadCancelThrow, Sync}
+import cats.effect.Sync
 import networthcalculator.algebras.EncryptionService
 import networthcalculator.domain.users.{EncryptedPassword, Password, Salt}
 import org.apache.commons.codec.binary.Hex
@@ -17,7 +17,7 @@ object EncryptionServiceImpl {
   private val SaltSize: Int             = 64
   private val HashAlgorithmName: String = "PBKDF2WithHmacSHA1"
 
-  def make[F[_]: MonadCancelThrow](using S: Sync[F]): EncryptionService[F] = {
+  def make[F[_]](using S: Sync[F]): EncryptionService[F] = {
     new EncryptionService[F] {
 
       override def encrypt(password: Password, salt: Salt): F[EncryptedPassword] = {

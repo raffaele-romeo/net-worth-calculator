@@ -1,14 +1,15 @@
 package networthcalculator.modules
 
-import cats.effect.kernel.{MonadCancelThrow, Temporal}
+import cats.effect.kernel.{Sync, Temporal}
 import cats.effect.Resource
 import dev.profunktor.redis4cats.RedisCommands
 import doobie.hikari.HikariTransactor
 import networthcalculator.services.{HealthCheckServiceImpl, AccountsServiceImpl}
 import networthcalculator.algebras.{AccountsService, HealthCheckService}
+import org.typelevel.log4cats.Logger
 
 object Services {
-  def make[F[_]: MonadCancelThrow: Temporal](
+  def make[F[_]: Sync: Temporal: Logger](
       transactor: Resource[F, HikariTransactor[F]],
       redis: RedisCommands[F, String, String]
   ): Services[F] = {

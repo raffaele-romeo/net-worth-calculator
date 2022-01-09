@@ -13,7 +13,7 @@ CREATE TABLE accounts (
   id SERIAL NOT NULL,
   PRIMARY KEY (id),
   account_name VARCHAR NOT NULL,
-  account_type category,
+  account_type category NOT NULL,
   user_id INTEGER NOT NULL
 );
 

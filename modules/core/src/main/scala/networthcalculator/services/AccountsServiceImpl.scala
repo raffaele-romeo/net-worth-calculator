@@ -1,6 +1,6 @@
 package networthcalculator.services
 
-import cats.effect.{MonadCancelThrow, Resource}
+import cats.effect.{Resource, Sync}
 import cats.implicits.*
 import cats.syntax.all.*
 import doobie.ConnectionIO
@@ -10,11 +10,15 @@ import networthcalculator.algebras.AccountsService
 import networthcalculator.domain.accounts.*
 import doobie.postgres.*
 import networthcalculator.domain.users.UserId
+import org.typelevel.log4cats.Logger
+import doobie.util.log.LogHandler
 
 object AccountsServiceImpl {
-  def make[F[_]: MonadCancelThrow](
+  def make[F[_]](
       transactor: Resource[F, HikariTransactor[F]]
-  ): AccountsService[F] = new AccountsService[F] {
+  )(using S: Sync[F], L: Logger[F]): AccountsService[F] = new AccountsService[F] {
+
+    given LogHandler = LogHandler.jdkLogHandler
 
     override def findAll(userId: UserId): F[List[Account]] =
       transactor
@@ -49,20 +53,20 @@ private object AccountsQueries {
   def insert(createAccount: CreateAccount, userId: UserId): ConnectionIO[Int] =
     sql"""
          | INSERT INTO accounts (
-         | account_name,
          | account_type,
+         | account_name,
          | user_id
          | )
          | VALUES (
-         | ${createAccount.accountName.toString},
-         | ${createAccount.accountType.toString},
-         | ${userId.toString}
+         | ${createAccount.accountType.toString.toLowerCase},
+         | ${createAccount.accountName.toString.toLowerCase},
+         | ${userId.toLong}
          | )
          """.stripMargin.update.run
 
   def select(userId: UserId): ConnectionIO[List[Account]] =
     sql"""
-         | SELECT id, account_name, account_type, user_id
+         | SELECT id, account_type, account_name, user_id
          | FROM accounts
          | WHERE user_id = ${userId.toLong}
          """.stripMargin.query[Account].to[List]
