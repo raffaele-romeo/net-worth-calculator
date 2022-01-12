@@ -18,8 +18,6 @@ object AccountsServiceImpl {
       transactor: Resource[F, HikariTransactor[F]]
   )(using S: Sync[F], L: Logger[F]): AccountsService[F] = new AccountsService[F] {
 
-    given LogHandler = LogHandler.jdkLogHandler
-
     override def findAll(userId: UserId): F[List[Account]] =
       transactor
         .use(
@@ -28,11 +26,11 @@ object AccountsServiceImpl {
             .transact[F]
         )
 
-    override def create(createAccount: CreateAccount, userId: UserId): F[Unit] =
+    override def create(accountType: AssetType, accountName: AccountName, userId: UserId): F[Unit] =
       transactor
         .use(
           AccountsQueries
-            .insert(createAccount, userId)
+            .insert(accountType, accountName, userId)
             .transact[F]
         )
         .void
@@ -50,7 +48,7 @@ object AccountsServiceImpl {
 
 private object AccountsQueries {
 
-  def insert(createAccount: CreateAccount, userId: UserId): ConnectionIO[Int] =
+  def insert(accountType: AssetType, accountName: AccountName, userId: UserId): ConnectionIO[Int] =
     sql"""
          | INSERT INTO accounts (
          | account_type,
@@ -58,8 +56,8 @@ private object AccountsQueries {
          | user_id
          | )
          | VALUES (
-         | ${createAccount.accountType.toString.toLowerCase},
-         | ${createAccount.accountName.toString.toLowerCase},
+         | ${accountType.toString.toLowerCase},
+         | ${accountName.toString.toLowerCase},
          | ${userId.toLong}
          | )
          """.stripMargin.update.run

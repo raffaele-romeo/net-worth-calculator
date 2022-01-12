@@ -36,6 +36,7 @@ object Dependencies {
     val circeParser = circe("circe-parser")
 
     val cirisCore = ciris("ciris")
+    val cirisCirce = ciris("ciris-circe")
 
     val commonsCodec = "commons-codec" % "commons-codec" % Versions.commonsCodec
 

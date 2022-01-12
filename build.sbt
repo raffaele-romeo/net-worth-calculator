@@ -41,6 +41,7 @@ lazy val core = (project in file("modules/core"))
       Libraries.circeGeneric,
       Libraries.circeParser,
       Libraries.cirisCore,
+      Libraries.cirisCirce,
       Libraries.commonsCodec,
       Libraries.doobieCore,
       Libraries.doobieHikari,

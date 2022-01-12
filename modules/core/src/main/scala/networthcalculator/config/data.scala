@@ -5,6 +5,8 @@ import networthcalculator.domain.users.AdminUser
 
 import scala.concurrent.duration._
 import scala.annotation.targetName
+import ciris._
+import cats.Show
 
 object data {
   final case class AppConfig(
@@ -18,7 +20,7 @@ object data {
       host: Host,
       port: Port,
       user: User,
-      password: Password,
+      password: Secret[Password],
       database: DatabaseName,
       max: MaxConnections
   )
@@ -44,6 +46,8 @@ object data {
 
   object RedisURI {
     def apply(d: String): RedisURI = d
+
+    given ConfigDecoder[String, RedisURI] = ConfigDecoder[String, String].map(apply)
   }
 
   extension (x: RedisURI) {
@@ -54,6 +58,8 @@ object data {
   opaque type Host = String
   object Host {
     def apply(d: String): Host = d
+
+    given ConfigDecoder[String, Host] = ConfigDecoder[String, String].map(apply)
   }
 
   extension (x: Host) {
@@ -74,6 +80,8 @@ object data {
   opaque type User = String
   object User {
     def apply(d: String): User = d
+
+    given ConfigDecoder[String, User] = ConfigDecoder[String, String].map(apply)
   }
 
   extension (x: User) {
@@ -85,6 +93,9 @@ object data {
 
   object Password {
     def apply(d: String): Password = d
+
+    given ConfigDecoder[String, Password] = ConfigDecoder[String, String].map(apply)
+    given showPassword: Show[Password]    = Show.show(_.toString)
   }
 
   extension (x: Password) {

@@ -72,7 +72,7 @@ object AuthServiceImpl {
           }
       }
 
-      def validate(username: UserName, password: Password): F[ValidUser] = {
+      override def validate(username: UserName, password: Password): F[ValidUser] = {
         FormValidatorNec.validateForm(username, password) match {
           case Valid(user) =>
             user.pure[F]

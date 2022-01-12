@@ -2,6 +2,8 @@ package networthcalculator.config
 
 import cats.effect._
 import ciris._
+import ciris.circe._
+import cats.implicits._
 import networthcalculator.config.data._
 import networthcalculator.config.environments.AppEnvironment._
 import networthcalculator.config.environments._
@@ -13,36 +15,38 @@ import scala.concurrent.duration._
 object Loader {
 
   def apply[F[_]: Async]: F[AppConfig] =
-    env("NWC_APP_ENV")
-      .as[AppEnvironment]
-      .default(Test)
-      .map {
-        case Test =>
-          default(
-            redisUri = RedisURI("redis://localhost")
-          )
-        case Prod =>
-          default(
-            redisUri = RedisURI("redis://prod-host")
-          )
-      }
-      .load[F]
+    (
+      postgresConfig,
+      redisConfig
+    ).parMapN { (postgresConfig, redisConfig) =>
+      AppConfig(
+        TokenExpiration(30.minutes),
+        postgresConfig,
+        redisConfig,
+        HttpServerConfig(
+          host = Host("0.0.0.0"),
+          port = Port(8080)
+        )
+      )
+    }.load[F]
 
-  private def default(redisUri: RedisURI): AppConfig =
-    AppConfig(
-      TokenExpiration(30.minutes),
+  val postgresConfig: ConfigValue[Effect, PostgreSQLConfig] =
+    (
+      env("DATABASE_HOST").as[Host],
+      env("DATABASE_USERNAME").as[User],
+      env("DATABASE_PASSWORD").as[Password].secret
+    ).parMapN { (host, user, password) =>
       PostgreSQLConfig(
-        host = Host("localhost"),
+        host = host,
         port = Port(5432),
-        user = User("postgres"),
-        password = Password("secret"),
+        user = user,
+        password = password,
         database = DatabaseName("networth"),
         max = MaxConnections(10)
-      ),
-      RedisConfig(redisUri),
-      HttpServerConfig(
-        host = Host("0.0.0.0"),
-        port = Port(8080)
       )
-    )
+    }
+
+  val redisConfig: ConfigValue[Effect, RedisConfig] = {
+    env("REDIS_HOST").as[RedisURI].map(RedisConfig.apply)
+  }
 }

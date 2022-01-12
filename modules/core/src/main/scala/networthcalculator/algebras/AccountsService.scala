@@ -5,6 +5,6 @@ import networthcalculator.domain.users.UserId
 
 trait AccountsService[F[_]] {
   def findAll(userId: UserId): F[List[Account]]
-  def create(createAccount: CreateAccount, userId: UserId): F[Unit]
+  def create(accountType: AssetType, accountName: AccountName, userId: UserId): F[Unit]
   def delete(accountId: AccountId, userId: UserId): F[Unit]
 }

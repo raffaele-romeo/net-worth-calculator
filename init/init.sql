@@ -7,13 +7,11 @@ CREATE TABLE users (
   role VARCHAR NOT NULL
 );
 
-CREATE TYPE category AS ENUM ('cash', 'loan', 'property', 'investment');
-
 CREATE TABLE accounts (
   id SERIAL NOT NULL,
   PRIMARY KEY (id),
   account_name VARCHAR NOT NULL,
-  account_type category NOT NULL,
+  account_type VARCHAR NOT NULL,
   user_id INTEGER NOT NULL
 );
 

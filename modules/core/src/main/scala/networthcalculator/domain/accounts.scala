@@ -3,7 +3,8 @@ package networthcalculator.domain
 import scala.util.control.NoStackTrace
 import io.circe._
 import users.UserId
-import doobie.util._
+import doobie.util.{Read => DRead, Write => DWrite}
+import io.circe.generic.semiauto._
 
 object accounts {
 
@@ -26,33 +27,25 @@ object accounts {
     given Encoder[AccountName] = Encoder.encodeString
   }
 
-  opaque type AccountType = String
-  object AccountType {
-    def apply(d: String): AccountType = d
-
-    given Decoder[AccountType] = Decoder.decodeString
-    given Encoder[AccountType] = Encoder.encodeString
-  }
-
   final case class Account(
       accountId: AccountId,
-      accountType: AccountType,
+      accountType: AssetType,
       accountName: AccountName,
       userId: UserId
   ) derives Encoder.AsObject
 
   object Account {
-    given accountRead: Read[Account] =
-      Read[(Long, String, String, Long)].map { case (id, accountType, accountName, userId) =>
+    given accountRead: DRead[Account] =
+      DRead[(Long, String, String, Long)].map { case (id, accountType, accountName, userId) =>
         Account(
           AccountId(id),
-          AccountType(accountType),
+          AssetType.make(accountType),
           AccountName(accountName),
           UserId(userId)
         )
       }
-    given accountWrite: Write[Account] =
-      Write[(Long, String, String, Long)].contramap { account =>
+    given accountWrite: DWrite[Account] =
+      DWrite[(Long, String, String, Long)].contramap { account =>
         (
           account.accountId.toLong,
           account.accountType.toString,
@@ -62,7 +55,17 @@ object accounts {
       }
   }
 
-  final case class CreateAccount(accountType: AccountType, accountName: AccountName)
+  final case class CreateAccount(accountType: String, accountName: AccountName)
 
-  final case class AccountTypeNotAllowed(accountType: AccountType) extends NoStackTrace
+  enum AssetType {
+    case Loan, Cash, Investment, Property
+  }
+
+  object AssetType {
+    def make(s: String): AssetType = {
+      AssetType.valueOf(s.toLowerCase.capitalize)
+    }
+  }
+
+  final case class AccountTypeNotAllowed(error: String) extends NoStackTrace
 }

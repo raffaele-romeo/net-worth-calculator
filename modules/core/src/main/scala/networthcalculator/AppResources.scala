@@ -20,7 +20,7 @@ object AppResources {
           "org.postgresql.Driver",
           s"jdbc:postgresql://${c.host.toString}:${c.port.toInt}/${c.database.toString}",
           c.user.toString,
-          c.password.toString,
+          c.password.value.toString,
           ce
         )
       } yield xa
