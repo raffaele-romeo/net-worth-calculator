@@ -1,6 +1,6 @@
 package networthcalculator.http.routes.auth
 
-import cats.effect.kernel.Concurrent
+import cats.effect.Concurrent
 import cats.implicits._
 import networthcalculator.algebras.AuthService
 import networthcalculator.domain.tokens.UserNotFound

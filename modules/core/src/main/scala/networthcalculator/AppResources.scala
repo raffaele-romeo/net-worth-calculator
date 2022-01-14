@@ -1,6 +1,5 @@
 package networthcalculator
 
-import cats.effect.kernel.Async
 import cats.effect._
 import dev.profunktor.redis4cats.effect.Log.Stdout._
 import dev.profunktor.redis4cats.{Redis, RedisCommands}
@@ -20,7 +19,7 @@ object AppResources {
           "org.postgresql.Driver",
           s"jdbc:postgresql://${c.host.toString}:${c.port.toInt}/${c.database.toString}",
           c.user.toString,
-          c.password.value.toString,
+          c.password.toString,
           ce
         )
       } yield xa

@@ -5,16 +5,13 @@ services:
     image: net-worth-calculator:latest
     container_name: net-worth-calculator
     ports:
-      - "8080:8080"
+      - "9000:9000"
     depends_on:
       - postgres
       - redis
     environment:
       - DEBUG=true
-      - DATABASE_HOST = postgres
-      - DATABASE_USERNAME = postgres
-      - DATABASE_PASSWORD = secret
-      - REDIS_HOST = redis
+      - NWC_APP_ENV=test
 
   adminer:
     image: adminer
@@ -22,7 +19,7 @@ services:
     container_name: adminer
     restart: always
     ports:
-      - "8686:8080"
+      - "8080:8080"
 
   postgres:
     image: postgres:12.0-alpine

@@ -1,7 +1,6 @@
 package networthcalculator.modules
 
-import cats.effect.kernel.{Sync, Temporal}
-import cats.effect.Resource
+import cats.effect.{Sync, Resource, Temporal}
 import dev.profunktor.redis4cats.RedisCommands
 import doobie.hikari.HikariTransactor
 import networthcalculator.services.{HealthCheckServiceImpl, AccountsServiceImpl}

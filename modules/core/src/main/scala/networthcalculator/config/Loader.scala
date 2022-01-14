@@ -2,7 +2,6 @@ package networthcalculator.config
 
 import cats.effect._
 import ciris._
-import ciris.circe._
 import cats.implicits._
 import networthcalculator.config.data._
 import networthcalculator.config.environments.AppEnvironment._
@@ -15,38 +14,38 @@ import scala.concurrent.duration._
 object Loader {
 
   def apply[F[_]: Async]: F[AppConfig] =
-    (
-      postgresConfig,
-      redisConfig
-    ).parMapN { (postgresConfig, redisConfig) =>
-      AppConfig(
-        TokenExpiration(30.minutes),
-        postgresConfig,
-        redisConfig,
-        HttpServerConfig(
-          host = Host("0.0.0.0"),
-          port = Port(8080)
-        )
-      )
-    }.load[F]
+    env("NWC_APP_ENV")
+      .as[AppEnvironment]
+      .default(Local)
+      .map {
+        case Local =>
+          default(
+            postgresHost = Host("localhost"),
+            redisUri = RedisURI("redis://localhost")
+          )
+        case Test =>
+          default(
+            postgresHost = Host("postgres"),
+            redisUri = RedisURI("redis://redis")
+          )
+      }
+      .load[F]
 
-  val postgresConfig: ConfigValue[Effect, PostgreSQLConfig] =
-    (
-      env("DATABASE_HOST").as[Host],
-      env("DATABASE_USERNAME").as[User],
-      env("DATABASE_PASSWORD").as[Password].secret
-    ).parMapN { (host, user, password) =>
+  private def default(postgresHost: Host, redisUri: RedisURI): AppConfig =
+    AppConfig(
+      TokenExpiration(30.minutes),
       PostgreSQLConfig(
-        host = host,
+        host = postgresHost,
         port = Port(5432),
-        user = user,
-        password = password,
+        user = User("postgres"),
+        password = Password("secret"),
         database = DatabaseName("networth"),
         max = MaxConnections(10)
+      ),
+      RedisConfig(redisUri),
+      HttpServerConfig(
+        host = Host("0.0.0.0"),
+        port = Port(9000)
       )
-    }
-
-  val redisConfig: ConfigValue[Effect, RedisConfig] = {
-    env("REDIS_HOST").as[RedisURI].map(RedisConfig.apply)
-  }
+    )
 }

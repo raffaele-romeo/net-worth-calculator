@@ -1,6 +1,6 @@
 package networthcalculator.http.routes.account
 
-import cats.effect.kernel.Async
+import cats.effect.Concurrent
 import cats.syntax.all._
 import cats.implicits._
 import networthcalculator.algebras.AccountsService
@@ -18,10 +18,9 @@ import org.http4s._
 import org.http4s.circe.CirceEntityDecoder.circeEntityDecoder
 import networthcalculator.effects._
 
-final class AccountRoutes[F[_]: Logger](
+final class AccountRoutes[F[_]: Concurrent: Logger](
     accounts: AccountsService[F]
-)(using A: Async[F])
-    extends Http4sDsl[F] {
+) extends Http4sDsl[F] {
 
   private[routes] val prefixPath = "/accounts"
 
@@ -33,29 +32,29 @@ final class AccountRoutes[F[_]: Logger](
       req.req
         .decodeR[CreateAccount] { account =>
           for {
-            assetType <- validateInput(account.accountType)
+            // assetType <- validateInput(account.accountType)
             result <- accounts.create(
-              assetType,
+              AssetType.make(account.accountType),
               account.accountName,
               user.userId
             ) *> Created()
           } yield result
         }
-        .recoverWith { case AccountTypeNotAllowed(assetType) =>
-          BadRequest(assetType.asJson)
-        }
+//        .recoverWith { case AccountTypeNotAllowed(assetType) =>
+//          BadRequest(assetType.asJson)
+//        }
 
     case DELETE -> Root / LongVar(id) as user =>
       accounts.delete(AccountId(id), user.userId) *> NoContent()
   }
 
-  private def validateInput(assetType: String): F[AssetType] = {
-    A.delay(AssetType.make(assetType)).adaptError { case e =>
-      AccountTypeNotAllowed(
-        s"Asset type: $assetType is not supported. Choose one of ${AssetType.values.mkString(", ")}"
-      )
-    }
-  }
+//  private def validateInput(assetType: String): F[AssetType] = {
+//    A.delay(AssetType.make(assetType)).adaptError { case e =>
+//      AccountTypeNotAllowed(
+//        s"Asset type: $assetType is not supported. Choose one of ${AssetType.values.mkString(", ")}"
+//      )
+//    }
+//  }
 
   def routes(authMiddleware: AuthMiddleware[F, CommonUser]): HttpRoutes[F] = Router(
     prefixPath -> authMiddleware(httpRoutes)

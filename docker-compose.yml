@@ -22,7 +22,7 @@ services:
     container_name: Adminer
     restart: always
     ports:
-      - "8686:8080"
+      - "8080:8080"
 
   Redis:
     restart: always

@@ -5,7 +5,7 @@ import ciris.ConfigDecoder
 object environments {
 
   enum AppEnvironment {
-    case Test, Prod
+    case Local, Test
   }
   object AppEnvironment {
 
@@ -14,9 +14,9 @@ object environments {
 
     private def apply(value: String): Option[AppEnvironment] =
       value.toLowerCase match {
-        case "test" => Some(AppEnvironment.Test)
-        case "prod" => Some(AppEnvironment.Prod)
-        case _      => None
+        case "test"  => Some(AppEnvironment.Test)
+        case "local" => Some(AppEnvironment.Local)
+        case _       => None
       }
   }
 }
