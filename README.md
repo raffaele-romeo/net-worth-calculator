@@ -1,17 +1,20 @@
-## Tests
+## Net Worth Calculator
+Welcome to Net Worth Calculator! The application is written in Scala 3 using the Tagless Final Pattern and pure functional libraries like Cats, Cats Effect, Http4s and Doobie.
 
-To run Unit Tests:
+It uses PostgreSQL as a relational database and Redis as an in-memory data structure store.
+
+## Run the application using sbt
+
+* run both `PostgreSQL` and `Redis`:
 
 ```
-sbt test
+docker-compose up -d
 ```
 
-To run Integration Tests we need to run both `PostgreSQL` and `Redis`:
+* run the application
 
 ```
-docker-compose up
-sbt it:test
-docker-compose down
+sbt run
 ```
 
 ## Build Docker image
@@ -28,26 +31,21 @@ REPOSITORY                           TAG                 IMAGE ID            CRE
 net-worth-calculator                 latest              646501a87362        2 seconds ago       138MB
 ```
 
-To run the application using docker compose:
+## Run the application using docker compose
 
 ```
 cd /app
 docker-compose up
 ```
 
-To run the main class:
-
-* Change the redis and postgres hostname with localhost
-* sbt run
-
-# Troubleshooting
+## Troubleshooting
 
 Within the container:
 
 * netstat -tulpn
 * wget
 
-docker run -d -p 8080:8080 --env NWC_APP_ENV=test net-worth-calculator
+docker run -d -p 9000:9000 --env NWC_APP_ENV=test net-worth-calculator
 
 Postgres docker container:
 
