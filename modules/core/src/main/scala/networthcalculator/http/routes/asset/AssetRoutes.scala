@@ -1,10 +1,10 @@
-package networthcalculator.http.routes.account
+package networthcalculator.http.routes.asset
 
 import cats.effect.Concurrent
 import cats.syntax.all._
 import cats.implicits._
-import networthcalculator.algebras.AccountsService
-import networthcalculator.domain.accounts._
+import networthcalculator.algebras.AssetsService
+import networthcalculator.domain.assets._
 import networthcalculator.domain.users.CommonUser
 import networthcalculator.http.decoder._
 import org.http4s.dsl.Http4sDsl
@@ -18,24 +18,24 @@ import org.http4s._
 import org.http4s.circe.CirceEntityDecoder.circeEntityDecoder
 import networthcalculator.effects._
 
-final class AccountRoutes[F[_]: Concurrent: Logger](
-    accounts: AccountsService[F]
+final class AssetRoutes[F[_]: Concurrent: Logger](
+    assets: AssetsService[F]
 ) extends Http4sDsl[F] {
 
-  private[routes] val prefixPath = "/accounts"
+  private[routes] val prefixPath = "/assets"
 
   private val httpRoutes: AuthedRoutes[CommonUser, F] = AuthedRoutes.of {
     case _ @GET -> Root as user =>
-      accounts.findAll(user.userId).flatMap(accounts => Ok(accounts.asJson))
+      assets.findAll(user.userId).flatMap(assets => Ok(assets.asJson))
 
     case req @ POST -> Root as user =>
       req.req
-        .decodeR[CreateAccount] { account =>
+        .decodeR[CreateAsset] { asset =>
           for {
             // assetType <- validateInput(account.accountType)
-            result <- accounts.create(
-              AssetType.make(account.accountType),
-              account.accountName,
+            result <- assets.create(
+              AssetType.make(asset.assetType),
+              asset.assetName,
               user.userId
             ) *> Created()
           } yield result
@@ -45,7 +45,7 @@ final class AccountRoutes[F[_]: Concurrent: Logger](
 //        }
 
     case DELETE -> Root / LongVar(id) as user =>
-      accounts.delete(AccountId(id), user.userId) *> NoContent()
+      assets.delete(AssetId(id), user.userId) *> NoContent()
   }
 
 //  private def validateInput(assetType: String): F[AssetType] = {

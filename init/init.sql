@@ -7,11 +7,11 @@ CREATE TABLE users (
   role VARCHAR NOT NULL
 );
 
-CREATE TABLE accounts (
+CREATE TABLE assets (
   id SERIAL NOT NULL,
   PRIMARY KEY (id),
-  account_name VARCHAR NOT NULL,
-  account_type VARCHAR NOT NULL,
+  asset_name VARCHAR NOT NULL,
+  asset_type VARCHAR NOT NULL,
   user_id INTEGER NOT NULL
 );
 
@@ -21,21 +21,21 @@ CREATE TABLE transactions (
   amount MONEY,
   month SMALLINT,
   year SMALLINT,
-  account_id INTEGER NOT NULL,
+  asset_id INTEGER NOT NULL,
   user_id INTEGER NOT NULL
 );
 
-ALTER TABLE accounts
+ALTER TABLE assets
 ADD FOREIGN KEY (user_id) REFERENCES users (id);
 
 ALTER TABLE transactions
 ADD FOREIGN KEY (user_id) REFERENCES users (id);
 
 ALTER TABLE transactions
-ADD FOREIGN KEY (account_id) REFERENCES accounts (id);
+ADD FOREIGN KEY (asset_id) REFERENCES assets (id);
 
-CREATE INDEX accounts_user_id_index
-ON accounts (user_id);
+CREATE INDEX assets_user_id_index
+ON assets (user_id);
 
 CREATE INDEX transactions_user_id_index
 ON transactions (user_id);

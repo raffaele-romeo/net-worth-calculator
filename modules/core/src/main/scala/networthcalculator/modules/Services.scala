@@ -3,8 +3,8 @@ package networthcalculator.modules
 import cats.effect.{Sync, Resource, Temporal}
 import dev.profunktor.redis4cats.RedisCommands
 import doobie.hikari.HikariTransactor
-import networthcalculator.services.{HealthCheckServiceImpl, AccountsServiceImpl}
-import networthcalculator.algebras.{AccountsService, HealthCheckService}
+import networthcalculator.services.{HealthCheckServiceImpl, AssetsServiceImpl}
+import networthcalculator.algebras.{AssetsService, HealthCheckService}
 import org.typelevel.log4cats.Logger
 
 object Services {
@@ -12,14 +12,14 @@ object Services {
       transactor: Resource[F, HikariTransactor[F]],
       redis: RedisCommands[F, String, String]
   ): Services[F] = {
-    val accountService     = AccountsServiceImpl.make[F](transactor)
+    val assetService       = AssetsServiceImpl.make[F](transactor)
     val healthCheckService = HealthCheckServiceImpl.make[F](transactor, redis)
 
-    Services[F](healthCheckService, accountService)
+    Services[F](healthCheckService, assetService)
   }
 }
 
 final case class Services[F[_]](
     healthCheckService: HealthCheckService[F],
-    accountService: AccountsService[F]
+    assetService: AssetsService[F]
 )

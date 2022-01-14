@@ -1,0 +1,71 @@
+package networthcalculator.domain
+
+import scala.util.control.NoStackTrace
+import io.circe._
+import users.UserId
+import doobie.util.{Read => DRead, Write => DWrite}
+import io.circe.generic.semiauto._
+
+object assets {
+
+  opaque type AssetId = Long
+  object AssetId {
+    def apply(d: Long): AssetId = d
+
+    given Decoder[AssetId] = Decoder.decodeLong
+    given Encoder[AssetId] = Encoder.encodeLong
+  }
+  extension (x: AssetId) {
+    def toLong: Long = x
+  }
+
+  opaque type AssetName = String
+  object AssetName {
+    def apply(d: String): AssetName = d
+
+    given Decoder[AssetName] = Decoder.decodeString
+    given Encoder[AssetName] = Encoder.encodeString
+  }
+
+  final case class Asset(
+      assetId: AssetId,
+      assetType: AssetType,
+      assetName: AssetName,
+      userId: UserId
+  ) derives Encoder.AsObject
+
+  object Asset {
+    given DRead[Asset] =
+      DRead[(Long, String, String, Long)].map { case (id, assetType, assetName, userId) =>
+        Asset(
+          AssetId(id),
+          AssetType.make(assetType),
+          AssetName(assetName),
+          UserId(userId)
+        )
+      }
+    given DWrite[Asset] =
+      DWrite[(Long, String, String, Long)].contramap { asset =>
+        (
+          asset.assetId.toLong,
+          asset.assetType.toString,
+          asset.assetName.toString,
+          asset.userId.toLong
+        )
+      }
+  }
+
+  final case class CreateAsset(assetType: String, assetName: AssetName)
+
+  enum AssetType {
+    case Loan, Cash, Investment, Property
+  }
+
+  object AssetType {
+    def make(s: String): AssetType = {
+      AssetType.valueOf(s.toLowerCase.capitalize)
+    }
+  }
+
+  final case class AssetTypeNotAllowed(error: String) extends NoStackTrace
+}
