@@ -11,16 +11,17 @@ CREATE TABLE assets (
   id SERIAL NOT NULL,
   PRIMARY KEY (id),
   asset_name VARCHAR NOT NULL,
-  asset_type VARCHAR NOT NULL,
+  asset_type VARCHAR(10) NOT NULL,
   user_id INTEGER NOT NULL
 );
 
 CREATE TABLE transactions (
   id SERIAL NOT NULL,
   PRIMARY KEY (id),
-  amount MONEY,
-  month SMALLINT,
-  year SMALLINT,
+  amount NUMERIC(6, 4) NOT NUL,
+  currency VARCHAR(3) NOT NUL,
+  month SMALLINT NOT NUL,
+  year SMALLINT NOT NUL,
   asset_id INTEGER NOT NULL,
   user_id INTEGER NOT NULL
 );
