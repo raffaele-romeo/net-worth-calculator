@@ -1,6 +1,6 @@
 package networthcalculator.http.routes.asset
 
-import cats.effect.Async
+import cats.effect.Concurrent
 import cats.syntax.all.*
 import cats.implicits.*
 import networthcalculator.algebras.AssetsService
@@ -15,11 +15,12 @@ import org.http4s.circe.*
 import io.circe.generic.auto.*
 import io.circe.syntax.*
 import org.http4s.*
-import networthcalculator.effects.*
+import cats.MonadThrow
 
-final class AssetRoutes[F[_]: Async: Logger](
+final class AssetRoutes[F[_]: Concurrent: Logger](
     assets: AssetsService[F]
-) extends Http4sDsl[F] {
+)(using ME: MonadThrow[F])
+    extends Http4sDsl[F] {
 
   import org.http4s.circe.CirceEntityDecoder.circeEntityDecoder
   private[routes] val prefixPath = "/assets"
@@ -40,8 +41,9 @@ final class AssetRoutes[F[_]: Async: Logger](
             ) *> Created()
           } yield result
         }
-        .recoverWith { case AssetTypeNotAllowed(assetType) =>
-          BadRequest(assetType.asJson)
+        .recoverWith {
+          case AssetTypeNotAllowed(error)   => BadRequest(error.asJson)
+          case AssetTypeAlreadyInUse(error) => BadRequest(error.asJson)
         }
 
     case DELETE -> Root / LongVar(id) as user =>
@@ -49,7 +51,7 @@ final class AssetRoutes[F[_]: Async: Logger](
   }
 
   private def validateInput(assetType: String): F[AssetType] = {
-    Async[F].delay(AssetType.make(assetType)).adaptError { case e =>
+    ME.catchNonFatal(AssetType.make(assetType)).adaptError { case e =>
       AssetTypeNotAllowed(
         s"Asset type: $assetType is not supported. Choose one of ${AssetType.values.mkString(", ")}"
       )

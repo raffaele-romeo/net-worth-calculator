@@ -12,7 +12,7 @@ import org.typelevel.log4cats.Logger
 import org.http4s.circe._
 import io.circe.generic.auto._
 import io.circe.syntax._
-import networthcalculator.domain.errors.DomainValidationErrors
+import networthcalculator.domain.errors.AuthValidationErrors
 
 final class UserRoutes[F[_]: Concurrent: Logger](
     authService: AuthService[F]
@@ -32,7 +32,7 @@ final class UserRoutes[F[_]: Concurrent: Logger](
         } yield result
       }
       .recoverWith {
-        case DomainValidationErrors(errors) =>
+        case AuthValidationErrors(errors) =>
           BadRequest(errors.asJson)
         case UserNameInUse(u) =>
           Conflict(u.toString)

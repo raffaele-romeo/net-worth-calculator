@@ -14,7 +14,7 @@ import networthcalculator.config.data.TokenExpiration
 import networthcalculator.domain.users.CreateUserForInsert
 import networthcalculator.domain.tokens.*
 import networthcalculator.domain.users.*
-import networthcalculator.effects.MonadThrow
+import cats.MonadThrow
 import cats.implicits.*
 import cats.Monad
 import cats.data.ValidatedNec
@@ -77,7 +77,7 @@ object AuthServiceImpl {
           case Valid(user) =>
             user.pure[F]
           case Invalid(e) =>
-            ME.raiseError(DomainValidationErrors(e.toList.map(_.errorMessage)))
+            ME.raiseError(AuthValidationErrors(e.toList.map(_.errorMessage)))
         }
       }
     }
@@ -85,7 +85,7 @@ object AuthServiceImpl {
 
 object FormValidatorNec {
 
-  type ValidationResult[A] = ValidatedNec[DomainValidation, A]
+  type ValidationResult[A] = ValidatedNec[AuthValidation, A]
 
   private def validateUserName(userName: UserName): ValidationResult[UserName] =
     if (

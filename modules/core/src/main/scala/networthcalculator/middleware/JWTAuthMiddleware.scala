@@ -5,7 +5,7 @@ import cats.effect.Sync
 import cats.syntax.all._
 import com.nimbusds.jwt.SignedJWT
 import networthcalculator.domain.tokens.JwtToken
-import networthcalculator.effects.MonadThrow
+import cats.MonadThrow
 import org.http4s.Credentials.Token
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.Authorization

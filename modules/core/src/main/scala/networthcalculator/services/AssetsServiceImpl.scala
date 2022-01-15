@@ -1,6 +1,6 @@
 package networthcalculator.services
 
-import cats.effect.{Resource, Sync}
+import cats.effect.{Resource, MonadCancelThrow}
 import cats.implicits.*
 import cats.syntax.all.*
 import doobie.ConnectionIO
@@ -14,36 +14,38 @@ import org.typelevel.log4cats.Logger
 import doobie.util.log.LogHandler
 
 object AssetsServiceImpl {
-  def make[F[_]](
-      transactor: Resource[F, HikariTransactor[F]]
-  )(using S: Sync[F], L: Logger[F]): AssetsService[F] = new AssetsService[F] {
+  def make[F[_]: MonadCancelThrow](transactor: Resource[F, HikariTransactor[F]]): AssetsService[F] =
+    new AssetsService[F] {
 
-    override def findAll(userId: UserId): F[List[Asset]] =
-      transactor
-        .use(
-          AssetsQueries
-            .select(userId)
-            .transact[F]
-        )
+      override def findAll(userId: UserId): F[List[Asset]] =
+        transactor
+          .use(
+            AssetsQueries
+              .select(userId)
+              .transact[F]
+          )
 
-    override def create(asseType: AssetType, assetName: AssetName, userId: UserId): F[Unit] =
-      transactor
-        .use(
-          AssetsQueries
-            .insert(asseType, assetName, userId)
-            .transact[F]
-        )
-        .void
+      override def create(asseType: AssetType, assetName: AssetName, userId: UserId): F[Unit] =
+        transactor
+          .use(
+            AssetsQueries
+              .insert(asseType, assetName, userId)
+              .exceptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
+                AssetTypeAlreadyInUse(s"Asset type ${asseType.toString} already in use").raiseError
+              }
+              .transact[F]
+          )
+          .void
 
-    override def delete(assetId: AssetId, userId: UserId): F[Unit] =
-      transactor
-        .use(
-          AssetsQueries
-            .delete(assetId, userId)
-            .transact[F]
-        )
-        .void
-  }
+      override def delete(assetId: AssetId, userId: UserId): F[Unit] =
+        transactor
+          .use(
+            AssetsQueries
+              .delete(assetId, userId)
+              .transact[F]
+          )
+          .void
+    }
 }
 
 private object AssetsQueries {

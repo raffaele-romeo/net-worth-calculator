@@ -5,13 +5,13 @@ It uses PostgreSQL as a relational database and Redis as an in-memory data struc
 
 ## Run the application using sbt
 
-* run both `PostgreSQL` and `Redis`:
+run both `PostgreSQL` and `Redis`:
 
 ```
 docker-compose up -d
 ```
 
-* run the application
+run the application
 
 ```
 sbt run

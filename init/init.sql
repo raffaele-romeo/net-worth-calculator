@@ -12,7 +12,8 @@ CREATE TABLE assets (
   PRIMARY KEY (id),
   asset_name VARCHAR NOT NULL,
   asset_type VARCHAR(10) NOT NULL,
-  user_id INTEGER NOT NULL
+  user_id INTEGER NOT NULL,
+  UNIQUE (asset_type, user_id)
 );
 
 CREATE TABLE transactions (
