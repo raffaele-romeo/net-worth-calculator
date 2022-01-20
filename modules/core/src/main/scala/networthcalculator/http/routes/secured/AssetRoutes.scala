@@ -3,7 +3,7 @@ package networthcalculator.http.routes.secured
 import cats.effect.Concurrent
 import cats.syntax.all.*
 import cats.implicits.*
-import networthcalculator.algebras.AssetsService
+import networthcalculator.algebras.{AssetsService, ValidationService}
 import networthcalculator.domain.assets.*
 import networthcalculator.domain.users.CommonUser
 import networthcalculator.http.decoder.*
@@ -18,7 +18,8 @@ import org.http4s.*
 import cats.MonadThrow
 
 final class AssetRoutes[F[_]: Concurrent: Logger](
-    assets: AssetsService[F]
+    assets: AssetsService[F],
+    validationService: ValidationService[F]
 )(using ME: MonadThrow[F])
     extends Http4sDsl[F] {
 
@@ -33,7 +34,7 @@ final class AssetRoutes[F[_]: Concurrent: Logger](
       req.req
         .decodeR[CreateAsset] { asset =>
           for {
-            assetType <- validateInput(asset.assetType)
+            assetType <- validationService.validate(asset.assetType)
             result <- assets.create(
               assetType,
               asset.assetName,
@@ -48,14 +49,6 @@ final class AssetRoutes[F[_]: Concurrent: Logger](
 
     case DELETE -> Root / LongVar(id) as user =>
       assets.delete(AssetId(id), user.userId) *> NoContent()
-  }
-
-  private def validateInput(assetType: String): F[AssetType] = {
-    ME.catchNonFatal(AssetType.make(assetType)).adaptError { case e =>
-      AssetTypeNotAllowed(
-        s"Asset type: $assetType is not supported. Choose one of ${AssetType.values.mkString(", ")}"
-      )
-    }
   }
 
   def routes(authMiddleware: AuthMiddleware[F, CommonUser]): HttpRoutes[F] = Router(

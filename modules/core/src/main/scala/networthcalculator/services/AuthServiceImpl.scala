@@ -72,49 +72,7 @@ object AuthServiceImpl {
               )
           }
       }
-
-      override def validate(username: UserName, password: Password): F[ValidUser] = {
-        FormValidatorNec.validateForm(username, password) match {
-          case Valid(user) =>
-            user.pure[F]
-          case Invalid(e) =>
-            ME.raiseError(AuthValidationErrors(e.toList.map(_.errorMessage)))
-        }
-      }
     }
-}
-
-object FormValidatorNec {
-
-  type ValidationResult[A] = ValidatedNec[AuthValidation, A]
-
-  private def validateUserName(userName: UserName): ValidationResult[UserName] =
-    if (
-      userName.toString.matches(
-        "^(?=.{1,64}@)[\\p{L}0-9_-]+(\\.[\\p{L}0-9_-]+)*@[^-][\\p{L}0-9-]+(\\.[\\p{L}0-9-]+)*(\\.[\\p{L}]{2,})$"
-      )
-    ) userName.validNec
-    else UsernameDoesNotMeetCriteria.invalidNec
-
-  private def validatePassword(password: Password): ValidationResult[Password] =
-    if (
-      password.toString.matches(
-        "(?=^.{10,}$)((?=.*\\d)|(?=.*\\W+))(?![.\\n])(?=.*[A-Z])(?=.*[a-z]).*$"
-      )
-    )
-      password.validNec
-    else PasswordDoesNotMeetCriteria.invalidNec
-
-  def validateForm(
-      username: UserName,
-      password: Password
-  ): ValidationResult[ValidUser] = {
-    (
-      validateUserName(username),
-      validatePassword(password)
-    ).mapN(ValidUser.apply)
-  }
-
 }
 
 object UsersAuthServiceImpl {

@@ -1,22 +1,23 @@
 package networthcalculator.http.routes.auth
 
 import cats.effect.Concurrent
-import cats.implicits._
-import networthcalculator.algebras.AuthService
+import cats.implicits.*
+import networthcalculator.algebras.{AuthService, ValidationService}
 import networthcalculator.domain.tokens.UserNotFound
-import networthcalculator.domain.users._
-import networthcalculator.http.decoder._
-import org.http4s._
+import networthcalculator.domain.users.*
+import networthcalculator.http.decoder.*
+import org.http4s.*
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.Router
 import org.typelevel.log4cats.Logger
-import org.http4s.circe._
-import io.circe.generic.auto._
-import io.circe.syntax._
+import org.http4s.circe.*
+import io.circe.generic.auto.*
+import io.circe.syntax.*
 import networthcalculator.domain.errors.AuthValidationErrors
 
 final class LoginRoutes[F[_]: Concurrent: Logger](
-    authService: AuthService[F]
+    authService: AuthService[F],
+    validationService: ValidationService[F]
 ) extends Http4sDsl[F] {
   import org.http4s.circe.CirceEntityDecoder.circeEntityDecoder
 
@@ -26,7 +27,7 @@ final class LoginRoutes[F[_]: Concurrent: Logger](
     req
       .decodeR[LoginUser] { user =>
         for {
-          validUser <- authService.validate(user.username, user.password)
+          validUser <- validationService.validate(user.username, user.password)
           result <- authService
             .login(validUser)
             .flatMap(jwtToken => Ok(jwtToken.toString.asJson))

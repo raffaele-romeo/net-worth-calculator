@@ -1,14 +1,21 @@
 package networthcalculator.modules
 
-import cats.effect.{Resource, Async}
+import cats.effect.{Async, Resource}
 import dev.profunktor.redis4cats.RedisCommands
 import doobie.hikari.HikariTransactor
-import networthcalculator.services.{HealthCheckServiceImpl, AssetsServiceImpl}
-import networthcalculator.algebras.{AssetsService, HealthCheckService}
+import networthcalculator.services.{
+  AssetsServiceImpl,
+  HealthCheckServiceImpl,
+  TransactionServiceImpl,
+  ValidationServiceImpl
+}
+import networthcalculator.algebras.{
+  AssetsService,
+  HealthCheckService,
+  TransactionsService,
+  ValidationService
+}
 import org.typelevel.log4cats.Logger
-import networthcalculator.algebras.TransactionsService
-import networthcalculator.services.TransactionServiceImpl
-import networthcalculator.programs.{TransactionProgram, TransactionProgramImpl}
 
 object Services {
   def make[F[_]: Async](
@@ -18,9 +25,9 @@ object Services {
     val healthCheckService = HealthCheckServiceImpl.make[F](transactor, redis)
     val assetService       = AssetsServiceImpl.make[F](transactor)
     val transactionService = TransactionServiceImpl.make[F](transactor)
-    val transactionProgram = TransactionProgramImpl.make[F]
+    val validationService  = ValidationServiceImpl.make[F]
 
-    Services[F](healthCheckService, assetService, transactionService, transactionProgram)
+    Services[F](healthCheckService, assetService, transactionService, validationService)
   }
 }
 
@@ -28,5 +35,5 @@ final case class Services[F[_]](
     healthCheckService: HealthCheckService[F],
     assetService: AssetsService[F],
     transactionsService: TransactionsService[F],
-    transactionProgram: TransactionProgram[F]
+    validationService: ValidationService[F]
 )

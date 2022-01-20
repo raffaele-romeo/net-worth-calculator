@@ -28,18 +28,19 @@ object HttpApi {
 
     // Auth Routes
     val loginRoutes =
-      new LoginRoutes[F](security.authService).routes
+      new LoginRoutes[F](security.authService, services.validationService).routes
 
     val logoutRoutes = new LogoutRoutes[F](security.tokensService).routes(usersMiddleware)
-    val userRoutes   = new UserRoutes[F](security.authService).routes
+    val userRoutes   = new UserRoutes[F](security.authService, services.validationService).routes
 
     // Open routes
     val healthRoutes = new HealthRoutes[F](services.healthCheckService).routes
 
     // Secured routes
-    val assetsRoutes = new AssetRoutes[F](services.assetService).routes(usersMiddleware)
+    val assetsRoutes =
+      new AssetRoutes[F](services.assetService, services.validationService).routes(usersMiddleware)
     val transactionRoutes =
-      new TransactionRoutes[F](services.transactionsService, services.transactionProgram)
+      new TransactionRoutes[F](services.transactionsService, services.validationService)
         .routes(usersMiddleware)
 
     val nonAdminRoutes: HttpRoutes[F] =

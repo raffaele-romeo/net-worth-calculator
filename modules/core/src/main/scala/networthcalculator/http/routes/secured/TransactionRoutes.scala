@@ -3,8 +3,7 @@ package networthcalculator.http.routes.secured
 import cats.effect.Concurrent
 import cats.syntax.all.*
 import cats.implicits.*
-import networthcalculator.algebras.TransactionsService
-import networthcalculator.programs.TransactionProgram
+import networthcalculator.algebras.{TransactionsService, ValidationService}
 import networthcalculator.domain.assets.*
 import networthcalculator.domain.users.CommonUser
 import networthcalculator.http.decoder.*
@@ -18,13 +17,13 @@ import io.circe.syntax.*
 import org.http4s.*
 import cats.MonadThrow
 import networthcalculator.domain.transactions.CreateTransaction
-import networthcalculator.domain.errors.TransactionValidation._
+import networthcalculator.domain.errors.TransactionValidation.*
 import networthcalculator.domain.errors.TransactionValidationErrors
 import networthcalculator.domain.transactions.TransactionAlreadyCreated
 
 final class TransactionRoutes[F[_]: Concurrent: Logger](
     transactionService: TransactionsService[F],
-    transactionProgram: TransactionProgram[F]
+    validationService: ValidationService[F]
 )(using ME: MonadThrow[F])
     extends Http4sDsl[F] {
 
@@ -36,7 +35,7 @@ final class TransactionRoutes[F[_]: Concurrent: Logger](
       req.req
         .decodeR[CreateTransaction] { transaction =>
           for {
-            validTransaction <- transactionProgram.validateInput(transaction)
+            validTransaction <- validationService.validate(transaction)
             result <- transactionService.create(
               user.userId,
               validTransaction
