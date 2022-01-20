@@ -11,6 +11,8 @@ import doobie.implicits.*
 import doobie.postgres.*
 import networthcalculator.domain.transactions.*
 import networthcalculator.domain.users.*
+import squants.market.Money
+import squants.market.MoneyContext
 
 object TransactionServiceImpl {
   def make[F[_]: MonadCancelThrow](transactor: Resource[F, HikariTransactor[F]]) =
@@ -21,15 +23,30 @@ object TransactionServiceImpl {
           .use(
             TransactionQueries
               .insert(userId, transaction)
+              .exceptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
+                TransactionAlreadyCreated(
+                  s"Transaction of ${transaction.month.toString}/${transaction.year.toInt} already inserted in the system"
+                ).raiseError
+              }
               .transact[F]
           )
           .void
+
+      override def totalNetWorthByCurrencyYear(
+          userId: UserId,
+          year: Year
+      )(using fxContext: MoneyContext): F[List[Money]] = transactor.use(
+        TransactionQueries
+        .calculateNetWorthByCurrencyYear(userId, year)
+        .transact[F]
+      )
     }
 }
 
 private object TransactionQueries {
-  def insert(userId: UserId, transaction: ValidTransaction): ConnectionIO[Int] =
-    sql"""
+  import MoneyImplicits.given
+  
+  def insert(userId: UserId, transaction: ValidTransaction): ConnectionIO[Int] = sql"""
        | INSERT INTO transactions (
        | amount,
        | currency,
@@ -47,4 +64,21 @@ private object TransactionQueries {
        | ${userId.toLong}
        | )
          """.stripMargin.update.run
-}
+
+    def calculateNetWorthByCurrencyYear(
+        userId: UserId,
+        year: Year
+    )(using fxContext: MoneyContext): ConnectionIO[List[Money]] = sql"""
+           | WITH relevant_transactions AS (
+           | SELECT amount, currency, month, year, asset_name, asset_type,
+           | ROW_NUMBER() OVER(PARTITION BY asset_name, asset_type, currency ORDER BY month DESC) AS rank
+           | FROM transactions 
+           | INNER JOIN assets ON transactions.asset_id = assets.id
+           | WHERE transactions.user_id = ${userId.toLong} and year = ${year.toInt}
+           | )
+           | SELECT SUM(amount) as total, currency
+           | FROM relevant_transactions
+           | WHERE rank = 1
+           | GROUP BY currency;
+          """.stripMargin.query[Money].to[List]
+    }

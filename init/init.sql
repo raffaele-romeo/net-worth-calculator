@@ -13,18 +13,19 @@ CREATE TABLE assets (
   asset_name VARCHAR NOT NULL,
   asset_type VARCHAR(10) NOT NULL,
   user_id INTEGER NOT NULL,
-  UNIQUE (asset_type, user_id)
+  UNIQUE (asset_name, asset_type, user_id)
 );
 
 CREATE TABLE transactions (
   id SERIAL NOT NULL,
   PRIMARY KEY (id),
-  amount NUMERIC(6, 4) NOT NUL,
-  currency VARCHAR(3) NOT NUL,
-  month SMALLINT NOT NUL,
-  year SMALLINT NOT NUL,
+  amount NUMERIC NOT NULL,
+  currency VARCHAR(3) NOT NULL,
+  month SMALLINT NOT NULL,
+  year SMALLINT NOT NULL,
   asset_id INTEGER NOT NULL,
-  user_id INTEGER NOT NULL
+  user_id INTEGER NOT NULL,
+  UNIQUE (month, year, asset_id, user_id)
 );
 
 ALTER TABLE assets

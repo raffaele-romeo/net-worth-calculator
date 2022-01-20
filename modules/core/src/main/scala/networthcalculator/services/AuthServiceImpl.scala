@@ -20,7 +20,8 @@ import cats.Monad
 import cats.data.ValidatedNec
 import cats.data.Validated.{Invalid, Valid}
 import cats.effect.Sync
-import networthcalculator.domain.errors.*
+import networthcalculator.domain.errors.AuthValidation._
+import networthcalculator.domain.errors.{AuthValidation, AuthValidationErrors}
 
 object AuthServiceImpl {
   def make[F[_]](

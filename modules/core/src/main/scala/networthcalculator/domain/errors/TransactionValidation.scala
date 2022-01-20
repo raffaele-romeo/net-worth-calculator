@@ -6,8 +6,11 @@ sealed trait TransactionValidation {
   def errorMessage: String
 }
 
-case class CurrencyIsNotSupported(errorMessage: String) extends TransactionValidation
+object TransactionValidation {
 
-case class MonthIsNotValid(errorMessage: String) extends TransactionValidation
+  final case class CurrencyIsNotSupported(errorMessage: String) extends TransactionValidation
+
+  final case class MonthIsNotValid(errorMessage: String) extends TransactionValidation
+}
 
 final case class TransactionValidationErrors(errors: List[String]) extends NoStackTrace

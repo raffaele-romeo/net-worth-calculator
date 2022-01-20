@@ -5,13 +5,13 @@ It uses PostgreSQL as a relational database and Redis as an in-memory data struc
 
 ## Run the application using sbt
 
-run both `PostgreSQL` and `Redis`:
+Run both `PostgreSQL` and `Redis`:
 
 ```
 docker-compose up -d
 ```
 
-run the application
+Run the application
 
 ```
 sbt run
@@ -36,6 +36,17 @@ net-worth-calculator                 latest              646501a87362        2 s
 ```
 cd /app
 docker-compose up
+```
+
+## Access Adminer
+Using your browser of choice, connect to localhost:8080 and input the following information:
+
+```
+System: PostgreSQL
+Server: postgres
+Username: postgres
+Password: secret
+Database: networth
 ```
 
 ## Troubleshooting

@@ -5,10 +5,13 @@ import networthcalculator.domain.users.UserId
 import networthcalculator.domain.assets.AssetId
 import squants.market.{Currency, Money}
 import squants.market.defaultMoneyContext
+import doobie.util.{Read, Write}
 
 import io.circe._
 
 import java.time.{Month, Year}
+import scala.util.control.NoStackTrace
+import squants.market.MoneyContext
 
 object transactions {
   opaque type TransactionId = Long
@@ -23,8 +26,8 @@ object transactions {
   object Year {
     def apply(d: Int): Year = d
 
-    given Decoder[Int] = Decoder.decodeInt
-    given Encoder[Int] = Encoder.encodeInt
+    given Decoder[Year] = Decoder.decodeInt
+    given Encoder[Year] = Encoder.encodeInt
   }
 
   extension (x: Year) {
@@ -54,6 +57,17 @@ object transactions {
       year: Year,
       assetId: AssetId
   )
+
+  object MoneyImplicits {
+     given moneyRead(using fxContext: MoneyContext): Read[Money] =
+      Read[(BigDecimal, String)].map {
+        case (total, currency) =>
+          Money(
+            total,
+            currency
+          ).get
+      }
+  }
 
   enum Month(val value: Int) {
     def getIntRepr = value
@@ -94,32 +108,6 @@ object transactions {
     given Encoder[Month] = Encoder[String].contramap(_.toString.capitalize)
   }
 
-//   final case class FindTotalNetWorth(
-//       month: Option[Month],
-//       year: Year,
-//       statisticsCurrencyType: Currency,   // Output currency
-//       currency: Option[Currency],         // If specified, get statistics by currency
-//       accountType: Option[AssetId],       // If specified, get statistics by accountType
-//       accountTypeToExclude: List[AssetId] // Account to exclude from statistics
-//   )
-
-//   final case class FindTrendNetWorth(
-//       monthFrom: Option[Month],
-//       yearFrom: Year,
-//       monthTo: Option[Month],
-//       yearTo: Year,
-//       statisticsCurrencyType: Currency,
-//       currency: Option[Currency],
-//       assetType: Option[AssetType],
-//       assetTypesToExclude: List[
-//         AssetType
-//       ] // Query parameter of string with comma separator. Needs to be split
-//   )
-
-//   final case class Statistics(
-//       assetType: Option[AssetType],
-//       currency: Currency,
-//       amount: Money
-//   )
+  final case class TransactionAlreadyCreated(error: String) extends NoStackTrace
 
 }

@@ -1,10 +1,11 @@
-package networthcalculator.logic
+package networthcalculator.programs
 
 import networthcalculator.domain.transactions._
 import cats.data.{Validated, ValidatedNec}
 import cats.data.Validated.{Invalid, Valid}
 import cats.effect.Sync
-import networthcalculator.domain.errors._
+import networthcalculator.domain.errors.TransactionValidation._
+import networthcalculator.domain.errors.{TransactionValidation, TransactionValidationErrors}
 import squants.market.Money
 import squants.market.defaultMoneyContext
 import scala.util.Failure
@@ -14,20 +15,21 @@ import scala.util.Try
 import cats.implicits._
 import cats.MonadThrow
 
-trait TransactionLogic[F[_]] {
+trait TransactionProgram[F[_]] {
   def validateInput(transaction: CreateTransaction): F[ValidTransaction]
 }
 
-object TransactionLogicImpl {
-  def make[F[_]](using S: Sync[F], ME: MonadThrow[F]) = new TransactionLogic[F] {
-    override def validateInput(transaction: CreateTransaction): F[ValidTransaction] =
-      FormValidatorNec.validateForm(transaction) match {
-        case Valid(transaction) =>
-          transaction.pure[F]
-        case Invalid(e) =>
-          ME.raiseError(TransactionValidationErrors(e.toList.map(_.errorMessage)))
-      }
-  }
+object TransactionProgramImpl {
+  def make[F[_]](using S: Sync[F], ME: MonadThrow[F]): TransactionProgram[F] =
+    new TransactionProgram[F] {
+      override def validateInput(transaction: CreateTransaction): F[ValidTransaction] =
+        FormValidatorNec.validateForm(transaction) match {
+          case Valid(transaction) =>
+            transaction.pure[F]
+          case Invalid(e) =>
+            ME.raiseError(TransactionValidationErrors(e.toList.map(_.errorMessage)))
+        }
+    }
 }
 
 object FormValidatorNec {

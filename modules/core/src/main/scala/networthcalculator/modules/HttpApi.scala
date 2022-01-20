@@ -9,7 +9,7 @@ import org.http4s.server.Router
 import org.http4s.server.middleware._
 
 import networthcalculator.domain.users.{AdminUser, CommonUser}
-import networthcalculator.http.routes.asset.AssetRoutes
+import networthcalculator.http.routes.secured.{TransactionRoutes, AssetRoutes}
 import networthcalculator.http.routes.auth.{LoginRoutes, LogoutRoutes, UserRoutes}
 import networthcalculator.http.routes.{HealthRoutes, version}
 import networthcalculator.middleware.JWTAuthMiddleware
@@ -36,11 +36,14 @@ object HttpApi {
     // Open routes
     val healthRoutes = new HealthRoutes[F](services.healthCheckService).routes
 
-    // Asset routes
+    // Secured routes
     val assetsRoutes = new AssetRoutes[F](services.assetService).routes(usersMiddleware)
+    val transactionRoutes =
+      new TransactionRoutes[F](services.transactionsService, services.transactionProgram)
+        .routes(usersMiddleware)
 
     val nonAdminRoutes: HttpRoutes[F] =
-      healthRoutes <+> userRoutes <+> loginRoutes <+> logoutRoutes <+> assetsRoutes
+      healthRoutes <+> userRoutes <+> loginRoutes <+> logoutRoutes <+> assetsRoutes <+> transactionRoutes
 
     val routes: HttpRoutes[F] = Router(
       version.v1 -> nonAdminRoutes

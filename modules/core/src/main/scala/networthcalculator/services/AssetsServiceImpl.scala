@@ -31,7 +31,9 @@ object AssetsServiceImpl {
             AssetsQueries
               .insert(asseType, assetName, userId)
               .exceptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
-                AssetTypeAlreadyInUse(s"Asset type ${asseType.toString} already in use").raiseError
+                AssetAlreadyInUse(
+                  s"Asset ${assetName.toString} - ${asseType.toString} already in use"
+                ).raiseError
               }
               .transact[F]
           )

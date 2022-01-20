@@ -1,4 +1,4 @@
-package networthcalculator.http.routes.asset
+package networthcalculator.http.routes.secured
 
 import cats.effect.Concurrent
 import cats.syntax.all.*
@@ -42,8 +42,8 @@ final class AssetRoutes[F[_]: Concurrent: Logger](
           } yield result
         }
         .recoverWith {
-          case AssetTypeNotAllowed(error)   => BadRequest(error.asJson)
-          case AssetTypeAlreadyInUse(error) => BadRequest(error.asJson)
+          case AssetTypeNotAllowed(error) => BadRequest(error.asJson)
+          case AssetAlreadyInUse(error)   => BadRequest(error.asJson)
         }
 
     case DELETE -> Root / LongVar(id) as user =>

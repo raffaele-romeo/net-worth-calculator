@@ -66,10 +66,9 @@ object assets {
       AssetType.valueOf(s.toLowerCase.capitalize)
     }
 
-    given Decoder[AssetType] = Decoder[String].map(AssetType.make)
     given Encoder[AssetType] = Encoder[String].contramap(_.toString)
   }
 
-  final case class AssetTypeNotAllowed(error: String)   extends NoStackTrace
-  final case class AssetTypeAlreadyInUse(error: String) extends NoStackTrace
+  final case class AssetTypeNotAllowed(error: String) extends NoStackTrace
+  final case class AssetAlreadyInUse(error: String)   extends NoStackTrace
 }

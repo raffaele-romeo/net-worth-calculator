@@ -19,18 +19,17 @@ lazy val tests = (project in file("modules/tests"))
   .dependsOn(core)
 
 lazy val core = (project in file("modules/core"))
-  .enablePlugins(DockerPlugin)
-  .enablePlugins(AshScriptPlugin)
+  .enablePlugins(
+    DockerPlugin,
+    AshScriptPlugin
+  )
   .settings(commonSettings: _*)
   .settings(
     name := "net-worth-calculator"
   )
   .settings(
     Docker / packageName := "net-worth-calculator",
-    resolvers += Resolver.sonatypeRepo("snapshots"),
-    Defaults.itSettings,
-    dockerBaseImage := "openjdk:8u201-jre-alpine3.9",
-    dockerExposedPorts ++= Seq(8080),
+    dockerBaseImage := "openjdk:11-jdk-slim",
     makeBatScripts     := Seq(),
     dockerUpdateLatest := true,
     libraryDependencies ++= Seq(
@@ -66,12 +65,16 @@ val commonSettings = Def.settings(
       version      := "0.1.0-SNAPSHOT"
     )
   ),
-  scalafmtOnCompile := true,
+  ThisBuild / scalafixDependencies += "com.nequissimus" %% "sort-imports" % "0.5.5",
+  resolvers += Resolver.sonatypeRepo("snapshots"),
+  scalafmtOnCompile := false,
   addCommandAlias(
     "validate",
     List(
       "clean",
-      "compile"
+      "scalafmtCheckAll",
+      "compile",
+      "missinglinkCheck"
     ).mkString(";", "; ", "")
   ),
   addCommandAlias("run", "modules/core/run")
