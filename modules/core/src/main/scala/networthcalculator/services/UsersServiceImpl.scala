@@ -5,14 +5,9 @@ import cats.syntax.all.*
 import doobie.ConnectionIO
 import doobie.hikari.HikariTransactor
 import doobie.implicits.*
-import networthcalculator.algebras.UsersService
-import networthcalculator.domain.users.{
-  CreateUserForInsert,
-  UserName,
-  UserNameInUse,
-  UserWithPassword
-}
 import doobie.postgres.*
+import networthcalculator.algebras.UsersService
+import networthcalculator.domain.users._
 
 object UsersServiceImpl {
   def make[F[_]: MonadCancelThrow](

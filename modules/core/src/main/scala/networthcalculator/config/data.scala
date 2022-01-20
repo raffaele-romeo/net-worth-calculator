@@ -1,12 +1,12 @@
 package networthcalculator.config
 
+import cats.Show
+import ciris._
 import networthcalculator.domain.tokens.JwtToken
 import networthcalculator.domain.users.AdminUser
 
-import scala.concurrent.duration._
 import scala.annotation.targetName
-import ciris._
-import cats.Show
+import scala.concurrent.duration._
 
 object data {
   final case class AppConfig(

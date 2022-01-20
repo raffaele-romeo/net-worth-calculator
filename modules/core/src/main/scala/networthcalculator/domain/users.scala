@@ -1,14 +1,14 @@
 package networthcalculator.domain
 
-import doobie.util.{Read, Write}
-import networthcalculator.domain.auth.Role
-
-import scala.util.control.NoStackTrace
 import cats.Show
-import scala.annotation.targetName
+import doobie.util.{Read, Write}
 import io.circe._
 import io.circe.generic.auto._
 import io.circe.syntax._
+import networthcalculator.domain.auth.Role
+
+import scala.annotation.targetName
+import scala.util.control.NoStackTrace
 
 object users {
 

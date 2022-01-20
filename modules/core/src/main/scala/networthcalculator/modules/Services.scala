@@ -3,18 +3,8 @@ package networthcalculator.modules
 import cats.effect.{Async, Resource}
 import dev.profunktor.redis4cats.RedisCommands
 import doobie.hikari.HikariTransactor
-import networthcalculator.services.{
-  AssetsServiceImpl,
-  HealthCheckServiceImpl,
-  TransactionServiceImpl,
-  ValidationServiceImpl
-}
-import networthcalculator.algebras.{
-  AssetsService,
-  HealthCheckService,
-  TransactionsService,
-  ValidationService
-}
+import networthcalculator.algebras._
+import networthcalculator.services._
 import org.typelevel.log4cats.Logger
 
 object Services {

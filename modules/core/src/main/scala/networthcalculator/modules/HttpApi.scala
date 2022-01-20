@@ -2,18 +2,17 @@ package networthcalculator.modules
 
 import cats.effect._
 import cats.syntax.all.*
-import org.typelevel.log4cats.Logger
+import networthcalculator.domain.users.{AdminUser, CommonUser}
+import networthcalculator.http.routes.auth.{LoginRoutes, LogoutRoutes, UserRoutes}
+import networthcalculator.http.routes.secured.{AssetRoutes, TransactionRoutes}
+import networthcalculator.http.routes.{HealthRoutes, version}
+import networthcalculator.middleware.JWTAuthMiddleware
+import networthcalculator.modules.Services
 import org.http4s._
 import org.http4s.implicits.*
 import org.http4s.server.Router
 import org.http4s.server.middleware._
-
-import networthcalculator.domain.users.{AdminUser, CommonUser}
-import networthcalculator.http.routes.secured.{TransactionRoutes, AssetRoutes}
-import networthcalculator.http.routes.auth.{LoginRoutes, LogoutRoutes, UserRoutes}
-import networthcalculator.http.routes.{HealthRoutes, version}
-import networthcalculator.middleware.JWTAuthMiddleware
-import networthcalculator.modules.Services
+import org.typelevel.log4cats.Logger
 
 import scala.concurrent.duration._
 

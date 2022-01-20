@@ -65,16 +65,16 @@ val commonSettings = Def.settings(
       version      := "0.1.0-SNAPSHOT"
     )
   ),
-  ThisBuild / scalafixDependencies += "com.nequissimus" %% "sort-imports" % "0.5.5",
+  ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.6.0",
   resolvers += Resolver.sonatypeRepo("snapshots"),
   scalafmtOnCompile := false,
   addCommandAlias(
     "validate",
     List(
       "clean",
-      "scalafmtCheckAll",
-      "compile",
-      "missinglinkCheck"
+      "scalafixAll",
+      "scalafmtAll",
+      "compile"
     ).mkString(";", "; ", "")
   ),
   addCommandAlias("run", "modules/core/run")

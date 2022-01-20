@@ -1,21 +1,20 @@
 package networthcalculator.http.routes.secured
 
+import cats.MonadThrow
 import cats.effect.Concurrent
-import cats.syntax.all.*
 import cats.implicits.*
+import cats.syntax.all.*
+import io.circe.generic.auto.*
+import io.circe.syntax.*
 import networthcalculator.algebras.{AssetsService, ValidationService}
 import networthcalculator.domain.assets.*
 import networthcalculator.domain.users.CommonUser
 import networthcalculator.http.decoder.*
+import org.http4s.*
+import org.http4s.circe.*
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.{AuthMiddleware, Router}
-import org.http4s.{AuthedRoutes, HttpRoutes}
 import org.typelevel.log4cats.Logger
-import org.http4s.circe.*
-import io.circe.generic.auto.*
-import io.circe.syntax.*
-import org.http4s.*
-import cats.MonadThrow
 
 final class AssetRoutes[F[_]: Concurrent: Logger](
     assets: AssetsService[F],

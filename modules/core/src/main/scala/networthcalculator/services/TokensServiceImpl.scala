@@ -6,13 +6,13 @@ import com.nimbusds.jose.crypto.MACSigner
 import com.nimbusds.jose.{JWSAlgorithm, JWSHeader}
 import com.nimbusds.jwt.{JWTClaimsSet, SignedJWT}
 import dev.profunktor.redis4cats.RedisCommands
+import io.circe.generic.auto._
+import io.circe.parser.decode
+import io.circe.syntax._
 import networthcalculator.algebras.TokensService
 import networthcalculator.config.data.TokenExpiration
 import networthcalculator.domain.tokens.JwtToken
 import networthcalculator.domain.users.{CommonUser, UserName}
-import io.circe.generic.auto._
-import io.circe.syntax._
-import io.circe.parser.decode
 
 import java.security.SecureRandom
 import java.util.{Date, UUID}

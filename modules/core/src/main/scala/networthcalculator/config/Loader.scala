@@ -1,8 +1,8 @@
 package networthcalculator.config
 
 import cats.effect._
-import ciris._
 import cats.implicits._
+import ciris._
 import networthcalculator.config.data._
 import networthcalculator.config.environments.AppEnvironment._
 import networthcalculator.config.environments._

@@ -2,19 +2,18 @@ package networthcalculator.middleware
 
 import cats.data.{Kleisli, OptionT}
 import cats.effect.Sync
+import cats.instances.either
 import cats.syntax.all._
+import cats.{MonadThrow, Show}
 import com.nimbusds.jwt.SignedJWT
 import networthcalculator.domain.tokens.JwtToken
-import cats.MonadThrow
 import org.http4s.Credentials.Token
+import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.Authorization
 import org.http4s.server.AuthMiddleware
-import org.http4s._
 
 import java.text.ParseException
-import cats.instances.either
-import cats.Show
 
 object JWTAuthMiddleware {
 

@@ -1,10 +1,11 @@
 package networthcalculator.domain
 
-import scala.util.control.NoStackTrace
-import io.circe._
-import users.UserId
 import doobie.util.{Read => DRead, Write => DWrite}
+import io.circe._
 import io.circe.generic.semiauto._
+import networthcalculator.domain.users.UserId
+
+import scala.util.control.NoStackTrace
 
 object assets {
 

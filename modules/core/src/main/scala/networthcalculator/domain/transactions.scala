@@ -1,17 +1,13 @@
 package networthcalculator.domain
 
+import doobie.util.{Read, Write}
+import io.circe._
 import networthcalculator.domain.assets._
 import networthcalculator.domain.users.UserId
-import networthcalculator.domain.assets.AssetId
-import squants.market.{Currency, Money}
-import squants.market.defaultMoneyContext
-import doobie.util.{Read, Write}
-
-import io.circe._
+import squants.market._
 
 import java.time.{Month, Year}
 import scala.util.control.NoStackTrace
-import squants.market.MoneyContext
 
 object transactions {
   opaque type TransactionId = Long

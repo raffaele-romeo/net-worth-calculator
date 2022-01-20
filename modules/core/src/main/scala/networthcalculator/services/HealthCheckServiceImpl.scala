@@ -1,8 +1,7 @@
 package networthcalculator.services
 
 import cats.effect.implicits._
-import cats.effect.Temporal
-import cats.effect.Resource
+import cats.effect.{Resource, Temporal}
 import cats.syntax.all._
 import dev.profunktor.redis4cats.RedisCommands
 import doobie.ConnectionIO

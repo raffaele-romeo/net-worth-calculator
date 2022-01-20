@@ -2,18 +2,18 @@ package networthcalculator.http.routes.auth
 
 import cats.effect.Concurrent
 import cats.implicits.*
+import io.circe.generic.auto.*
+import io.circe.syntax.*
 import networthcalculator.algebras.{AuthService, ValidationService}
+import networthcalculator.domain.errors.AuthValidationErrors
 import networthcalculator.domain.tokens.UserNotFound
 import networthcalculator.domain.users.*
 import networthcalculator.http.decoder.*
 import org.http4s.*
+import org.http4s.circe.*
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.Router
 import org.typelevel.log4cats.Logger
-import org.http4s.circe.*
-import io.circe.generic.auto.*
-import io.circe.syntax.*
-import networthcalculator.domain.errors.AuthValidationErrors
 
 final class LoginRoutes[F[_]: Concurrent: Logger](
     authService: AuthService[F],

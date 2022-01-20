@@ -1,10 +1,10 @@
 package networthcalculator.services
 
 import cats.effect.Sync
+import cats.implicits.*
 import networthcalculator.algebras.EncryptionService
 import networthcalculator.domain.users.{EncryptedPassword, Password, Salt}
 import org.apache.commons.codec.binary.Hex
-import cats.implicits.*
 
 import java.security.SecureRandom
 import javax.crypto.SecretKeyFactory

@@ -1,11 +1,11 @@
 package networthcalculator.http
 
-import cats.syntax.all._
 import cats.MonadThrow
+import cats.syntax.all._
+import io.circe.DecodingFailure
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import org.typelevel.log4cats.Logger
-import io.circe.DecodingFailure
 
 object decoder {
 

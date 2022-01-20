@@ -1,7 +1,11 @@
 package networthcalculator.algebras
 
 import networthcalculator.domain.assets.AssetType
-import networthcalculator.domain.transactions.{CreateTransaction, ValidTransaction, ExplodeCreateTransaction}
+import networthcalculator.domain.transactions.{
+  CreateTransaction,
+  ExplodeCreateTransaction,
+  ValidTransaction
+}
 import networthcalculator.domain.users.{Password, UserName, ValidUser}
 
 trait ValidationService[F[_]] {

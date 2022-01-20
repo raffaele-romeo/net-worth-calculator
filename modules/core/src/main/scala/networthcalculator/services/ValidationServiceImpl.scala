@@ -1,41 +1,34 @@
 package networthcalculator.services
 
 import cats.MonadThrow
-import cats.data.ValidatedNec
 import cats.data.Validated.{Invalid, Valid}
+import cats.data.ValidatedNec
 import cats.effect.Sync
-import networthcalculator.algebras.ValidationService
-import networthcalculator.domain.errors.{
-  AuthValidation,
-  AuthValidationErrors,
-  TransactionValidation,
-  TransactionValidationErrors
-}
-import networthcalculator.domain.transactions.*
-import networthcalculator.domain.errors.TransactionValidation.{
-  CurrencyIsNotSupported,
-  MonthIsNotValid
-}
-import networthcalculator.domain.transactions.{CreateTransaction, Month, ValidTransaction}
-import squants.market.{Money, defaultMoneyContext}
-import cats.syntax.all.*
-
-import scala.util.Try
 import cats.implicits.*
-import cats.MonadThrow
+import cats.syntax.all.*
+import networthcalculator.algebras.ValidationService
 import networthcalculator.domain.assets.{AssetType, AssetTypeNotAllowed}
 import networthcalculator.domain.errors.AuthValidation.{
   PasswordDoesNotMeetCriteria,
   UsernameDoesNotMeetCriteria
 }
+import networthcalculator.domain.errors.TransactionValidation.{
+  CurrencyIsNotSupported,
+  MonthIsNotValid
+}
+import networthcalculator.domain.errors._
+import networthcalculator.domain.transactions.*
 import networthcalculator.domain.users.{Password, UserName, ValidUser}
+import squants.market.{Money, defaultMoneyContext}
 
 import scala.util.{Failure, Success, Try}
 
 object ValidationServiceImpl {
   def make[F[_]](using S: Sync[F], ME: MonadThrow[F]): ValidationService[F] =
     new ValidationService[F] {
-      override def validate(transactions: List[ExplodeCreateTransaction]): F[List[ValidTransaction]] =
+      override def validate(
+          transactions: List[ExplodeCreateTransaction]
+      ): F[List[ValidTransaction]] =
         TransactionValidatorNec.validateForm(transactions) match {
           case Valid(transactions) =>
             transactions.pure[F]
@@ -116,11 +109,13 @@ object TransactionValidatorNec {
   def validateForm(
       transaction: List[ExplodeCreateTransaction]
   ): ValidationResult[List[ValidTransaction]] = {
-    transaction.traverse( transaction =>
+    transaction.traverse(transaction =>
       (
-      validateCurrency(transaction.amount, transaction.currency),
-      validateMonth(transaction.month)
-    ).mapN((money, month) => ValidTransaction(money, month, transaction.year, transaction.assetId))
+        validateCurrency(transaction.amount, transaction.currency),
+        validateMonth(transaction.month)
+      ).mapN((money, month) =>
+        ValidTransaction(money, month, transaction.year, transaction.assetId)
+      )
     )
   }
 }

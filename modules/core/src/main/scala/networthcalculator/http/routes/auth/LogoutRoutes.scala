@@ -1,9 +1,9 @@
 package networthcalculator.http.routes.auth
 
+import cats.MonadThrow
 import cats.syntax.all._
 import networthcalculator.algebras.TokensService
 import networthcalculator.domain.users._
-import cats.MonadThrow
 import networthcalculator.middleware.AuthHeaders
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.{AuthMiddleware, Router}

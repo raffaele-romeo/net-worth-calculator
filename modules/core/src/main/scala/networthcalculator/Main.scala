@@ -1,12 +1,12 @@
 package networthcalculator
 
 import cats.effect.*
-import org.typelevel.log4cats.Logger
-import org.typelevel.log4cats.slf4j.Slf4jLogger
 import networthcalculator.modules.{HttpApi, Security, Services}
 import org.http4s.HttpApp
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.typelevel.log4cats
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 object Main extends IOApp {
 
