@@ -16,7 +16,7 @@ import io.circe.generic.auto.*
 import io.circe.syntax.*
 import org.http4s.*
 import cats.MonadThrow
-import networthcalculator.domain.transactions.CreateTransaction
+import networthcalculator.domain.transactions.{ExplodeCreateTransaction, CreateTransaction}
 import networthcalculator.domain.errors.TransactionValidation.*
 import networthcalculator.domain.errors.TransactionValidationErrors
 import networthcalculator.domain.transactions.TransactionAlreadyCreated
@@ -34,8 +34,18 @@ final class TransactionRoutes[F[_]: Concurrent: Logger](
     case req @ POST -> Root as user =>
       req.req
         .decodeR[CreateTransaction] { transaction =>
+          val explodedTransactions = transaction.transactionValue.map(value => 
+              ExplodeCreateTransaction(
+                value.amount,
+                value.currency,
+                transaction.month,
+                transaction.year,
+                value.assetId
+              )
+            )
+
           for {
-            validTransaction <- validationService.validate(transaction)
+            validTransaction <- validationService.validate(explodedTransactions)
             result <- transactionService.create(
               user.userId,
               validTransaction

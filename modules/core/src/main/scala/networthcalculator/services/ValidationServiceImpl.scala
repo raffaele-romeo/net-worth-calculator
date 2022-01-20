@@ -35,10 +35,10 @@ import scala.util.{Failure, Success, Try}
 object ValidationServiceImpl {
   def make[F[_]](using S: Sync[F], ME: MonadThrow[F]): ValidationService[F] =
     new ValidationService[F] {
-      override def validate(transaction: CreateTransaction): F[ValidTransaction] =
-        TransactionValidatorNec.validateForm(transaction) match {
-          case Valid(transaction) =>
-            transaction.pure[F]
+      override def validate(transactions: List[ExplodeCreateTransaction]): F[List[ValidTransaction]] =
+        TransactionValidatorNec.validateForm(transactions) match {
+          case Valid(transactions) =>
+            transactions.pure[F]
           case Invalid(e) =>
             ME.raiseError(TransactionValidationErrors(e.toList.map(_.errorMessage)))
         }
@@ -114,11 +114,13 @@ object TransactionValidatorNec {
     }
 
   def validateForm(
-      transaction: CreateTransaction
-  ): ValidationResult[ValidTransaction] = {
-    (
+      transaction: List[ExplodeCreateTransaction]
+  ): ValidationResult[List[ValidTransaction]] = {
+    transaction.traverse( transaction =>
+      (
       validateCurrency(transaction.amount, transaction.currency),
       validateMonth(transaction.month)
     ).mapN((money, month) => ValidTransaction(money, month, transaction.year, transaction.assetId))
+    )
   }
 }

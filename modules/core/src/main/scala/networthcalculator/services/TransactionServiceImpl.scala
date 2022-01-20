@@ -18,7 +18,9 @@ object TransactionServiceImpl {
   def make[F[_]: MonadCancelThrow](transactor: Resource[F, HikariTransactor[F]]) =
     new TransactionsService[F] {
 
-      override def create(userId: UserId, transaction: ValidTransaction): F[Unit] =
+      override def create(userId: UserId, transactions: List[ValidTransaction]): F[Unit] =
+        //TODO Update to use Bulk Insert
+        transactions.traverse(transaction =>
         transactor
           .use(
             TransactionQueries
@@ -30,6 +32,7 @@ object TransactionServiceImpl {
               }
               .transact[F]
           )
+        )
           .void
 
       override def totalNetWorthByCurrencyYear(

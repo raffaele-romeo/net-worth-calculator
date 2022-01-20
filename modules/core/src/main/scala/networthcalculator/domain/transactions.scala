@@ -44,6 +44,14 @@ object transactions {
   )
 
   final case class CreateTransaction(
+      month: String,
+      year: Year,
+      transactionValue: List[TransactionValue]
+  )
+
+  final case class TransactionValue(amount: BigDecimal, currency: String, assetId: AssetId)
+
+  final case class ExplodeCreateTransaction(
       amount: BigDecimal,
       currency: String,
       month: String,
@@ -59,13 +67,12 @@ object transactions {
   )
 
   object MoneyImplicits {
-     given moneyRead(using fxContext: MoneyContext): Read[Money] =
-      Read[(BigDecimal, String)].map {
-        case (total, currency) =>
-          Money(
-            total,
-            currency
-          ).get
+    given moneyRead(using fxContext: MoneyContext): Read[Money] =
+      Read[(BigDecimal, String)].map { case (total, currency) =>
+        Money(
+          total,
+          currency
+        ).get
       }
   }
 
