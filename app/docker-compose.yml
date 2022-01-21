@@ -29,8 +29,8 @@ services:
       - "5432:5432"
     environment:
       - DEBUG=false
-      - POSTGRES_PASSWORD = secret
-      - POSTGRES_USER = postgres
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_USER=postgres
     volumes:
       - ./../init:/docker-entrypoint-initdb.d/
       - db-data:/var/lib/postgresql/data

@@ -33,7 +33,7 @@ object Loader {
 
   private def default(postgresHost: Host, redisUri: RedisURI): AppConfig =
     AppConfig(
-      TokenExpiration(30.minutes),
+      TokenExpiration(60.minutes),
       PostgreSQLConfig(
         host = postgresHost,
         port = Port(5432),

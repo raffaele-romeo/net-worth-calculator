@@ -21,6 +21,7 @@ import networthcalculator.domain.transactions.*
 import networthcalculator.domain.users.{Password, UserName, ValidUser}
 import squants.market.{Money, defaultMoneyContext}
 
+import java.time.Month
 import scala.util.{Failure, Success, Try}
 
 object ValidationServiceImpl {
@@ -97,14 +98,13 @@ object TransactionValidatorNec {
       case Success(v) => v.valid
     }
 
-  private def validateMonth(month: String): ValidationResult[Month] =
-    Try(Month.fromString(month)) match {
-      case Failure(e) =>
-        MonthIsNotValid(
-          s"Month must be one of the following: ${Month.values.mkString(", ")}"
-        ).invalidNec
-      case Success(v) => v.valid
-    }
+  private def validateMonth(month: Int): ValidationResult[Month] = Try(Month.of(month)).fold(
+    _ =>
+      MonthIsNotValid(
+        s"Month must be one of the following: ${Month.values.mkString(", ")}"
+      ).invalidNec,
+    value => value.valid
+  )
 
   def validateForm(
       transaction: List[ExplodeCreateTransaction]

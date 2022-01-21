@@ -41,7 +41,7 @@ object assets {
         Asset(
           AssetId(id),
           AssetType.make(assetType),
-          AssetName(assetName),
+          AssetName(assetName.capitalize),
           UserId(userId)
         )
       }

@@ -18,18 +18,6 @@ object transactions {
     given Encoder[TransactionId] = Encoder.encodeLong
   }
 
-  opaque type Year = Int
-  object Year {
-    def apply(d: Int): Year = d
-
-    given Decoder[Year] = Decoder.decodeInt
-    given Encoder[Year] = Encoder.encodeInt
-  }
-
-  extension (x: Year) {
-    def toInt: Int = x
-  }
-
   final case class Transaction(
       transactionId: TransactionId,
       money: Money,
@@ -40,9 +28,9 @@ object transactions {
   )
 
   final case class CreateTransaction(
-      month: String,
+      month: Int,
       year: Year,
-      transactionValue: List[TransactionValue]
+      transactions: List[TransactionValue]
   )
 
   final case class TransactionValue(amount: BigDecimal, currency: String, assetId: AssetId)
@@ -50,7 +38,7 @@ object transactions {
   final case class ExplodeCreateTransaction(
       amount: BigDecimal,
       currency: String,
-      month: String,
+      month: Int,
       year: Year,
       assetId: AssetId
   )
@@ -70,45 +58,13 @@ object transactions {
           currency
         ).get
       }
-  }
 
-  enum Month(val value: Int) {
-    def getIntRepr = value
-
-    case Jan  extends Month(1)
-    case Feb  extends Month(2)
-    case Mar  extends Month(3)
-    case Apr  extends Month(4)
-    case May  extends Month(5)
-    case Jun  extends Month(6)
-    case Jul  extends Month(7)
-    case Aug  extends Month(8)
-    case Sept extends Month(9)
-    case Oct  extends Month(10)
-    case Nov  extends Month(11)
-    case Dec  extends Month(12)
-  }
-
-  object Month {
-    def fromInt(s: Int): Month = s match {
-      case 1  => Jan
-      case 2  => Feb
-      case 3  => Mar
-      case 4  => Apr
-      case 5  => May
-      case 6  => Jun
-      case 7  => Jul
-      case 8  => Aug
-      case 9  => Sept
-      case 10 => Oct
-      case 11 => Nov
-      case 12 => Dec
+    given Encoder[Money] = new Encoder[Money] {
+      final def apply(money: Money): Json = Json.obj(
+        ("amount", Json.fromBigDecimal(money.amount)),
+        ("currency", Json.fromString(money.currency.code))
+      )
     }
-
-    def fromString(s: String): Month = Month.valueOf(s.toLowerCase.capitalize)
-
-    given Decoder[Month] = Decoder[String].map(Month.fromString)
-    given Encoder[Month] = Encoder[String].contramap(_.toString.capitalize)
   }
 
   final case class TransactionAlreadyCreated(error: String) extends NoStackTrace

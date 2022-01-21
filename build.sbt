@@ -29,7 +29,8 @@ lazy val core = (project in file("modules/core"))
   )
   .settings(
     Docker / packageName := "net-worth-calculator",
-    dockerBaseImage := "openjdk:11-jdk-slim",
+    dockerBaseImage      := "openjdk:11-jdk-slim",
+    dockerExposedPorts ++= Seq(9000),
     makeBatScripts     := Seq(),
     dockerUpdateLatest := true,
     libraryDependencies ++= Seq(
@@ -61,8 +62,10 @@ lazy val core = (project in file("modules/core"))
 val commonSettings = Def.settings(
   inThisBuild(
     List(
-      scalaVersion := "3.1.0",
-      version      := "0.1.0-SNAPSHOT"
+      scalaVersion      := "3.1.0",
+      version           := "0.1.0-SNAPSHOT",
+      semanticdbEnabled := true,
+      semanticdbVersion := scalafixSemanticdb.revision
     )
   ),
   ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.6.0",
@@ -74,8 +77,10 @@ val commonSettings = Def.settings(
       "clean",
       "scalafixAll",
       "scalafmtAll",
+      "scalafmtSbt",
       "compile"
     ).mkString(";", "; ", "")
   ),
-  addCommandAlias("run", "modules/core/run")
+  addCommandAlias("run", "modules/core/run"),
+  addCommandAlias("fix", List("scalafixAll", "scalafmtAll", "scalafmtSbt").mkString(";", "; ", ""))
 )

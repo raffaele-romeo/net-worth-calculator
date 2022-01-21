@@ -12,6 +12,8 @@ import networthcalculator.domain.transactions.*
 import networthcalculator.domain.users.*
 import squants.market.{Money, MoneyContext}
 
+import java.time.{Month, Year}
+
 object TransactionServiceImpl {
   def make[F[_]: MonadCancelThrow](transactor: Resource[F, HikariTransactor[F]]) =
     new TransactionsService[F] {
@@ -19,22 +21,21 @@ object TransactionServiceImpl {
       override def create(userId: UserId, transactions: List[ValidTransaction]): F[Unit] =
         // TODO Update to use Bulk Insert
         transactions
-          .traverse(transaction =>
+          .traverse_(transaction =>
             transactor
               .use(
                 TransactionQueries
                   .insert(userId, transaction)
                   .exceptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
                     TransactionAlreadyCreated(
-                      s"Transaction of ${transaction.month.toString}/${transaction.year.toInt} already inserted in the system"
+                      s"Transaction of ${transaction.month.getValue()}/${transaction.year.getValue()} already inserted in the system"
                     ).raiseError
                   }
                   .transact[F]
               )
           )
-          .void
 
-      override def totalNetWorthByCurrencyYear(
+      override def totalNetWorthByCurrency(
           userId: UserId,
           year: Year
       )(using fxContext: MoneyContext): F[List[Money]] = transactor.use(
@@ -60,8 +61,8 @@ private object TransactionQueries {
        | VALUES (
        | ${transaction.money.amount},
        | ${transaction.money.currency.toString},
-       | ${transaction.month.getIntRepr},
-       | ${transaction.year.toInt},
+       | ${transaction.month.getValue()},
+       | ${transaction.year.getValue()},
        | ${transaction.assetId.toLong},
        | ${userId.toLong}
        | )
@@ -76,9 +77,9 @@ private object TransactionQueries {
            | ROW_NUMBER() OVER(PARTITION BY asset_name, asset_type, currency ORDER BY month DESC) AS rank
            | FROM transactions 
            | INNER JOIN assets ON transactions.asset_id = assets.id
-           | WHERE transactions.user_id = ${userId.toLong} and year = ${year.toInt}
+           | WHERE transactions.user_id = ${userId.toLong} and year = ${year.getValue()}
            | )
-           | SELECT SUM(amount) as total, currency
+           | SELECT SUM(CASE asset_type WHEN 'loan' THEN -amount ELSE amount END) as total, currency
            | FROM relevant_transactions
            | WHERE rank = 1
            | GROUP BY currency;
