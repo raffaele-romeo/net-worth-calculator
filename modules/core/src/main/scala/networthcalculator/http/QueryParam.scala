@@ -11,5 +11,5 @@ object QueryParam {
 
   object OptionalYearQueryParamMatcher extends OptionalQueryParamDecoderMatcher[Year]("year")
 
-  object Flag extends FlagQueryParamMatcher("byAssetName")
+  object AssetNameFlag extends FlagQueryParamMatcher("assetName")
 }

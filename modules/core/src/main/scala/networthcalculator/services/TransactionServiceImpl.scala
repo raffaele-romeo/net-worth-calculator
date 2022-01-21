@@ -40,9 +40,26 @@ object TransactionServiceImpl {
           year: Year
       )(using fxContext: MoneyContext): F[List[Money]] = transactor.use(
         TransactionQueries
-          .calculateNetWorthByCurrencyYear(userId, year)
+          .calculateTotalNetWorthByCurrencyYear(userId, year)
           .transact[F]
       )
+
+      override def netWorthByCurrencyAndAssetType(userId: UserId, year: Year)(using
+          fxContext: MoneyContext
+      ): F[List[Money]] = transactor.use(
+        TransactionQueries
+          .calculateNetWorthByCurrencyYearAndAssetType(userId, year)
+          .transact[F]
+      )
+
+      override def netWorthByCurrencyAndAssetName(userId: UserId, year: Year)(using
+          fxContext: MoneyContext
+      ): F[List[Money]] = transactor.use(
+        TransactionQueries
+          .calculateNetWorthByCurrencyYearAndAssetName(userId, year)
+          .transact[F]
+      )
+
     }
 }
 
@@ -68,7 +85,7 @@ private object TransactionQueries {
        | )
          """.stripMargin.update.run
 
-  def calculateNetWorthByCurrencyYear(
+  def calculateTotalNetWorthByCurrencyYear(
       userId: UserId,
       year: Year
   )(using fxContext: MoneyContext): ConnectionIO[List[Money]] = sql"""
@@ -83,5 +100,39 @@ private object TransactionQueries {
            | FROM relevant_transactions
            | WHERE rank = 1
            | GROUP BY currency;
+          """.stripMargin.query[Money].to[List]
+
+  def calculateNetWorthByCurrencyYearAndAssetType(
+      userId: UserId,
+      year: Year
+  )(using fxContext: MoneyContext): ConnectionIO[List[Money]] = sql"""
+           | WITH relevant_transactions AS (
+           | SELECT amount, currency, month, year, asset_name, asset_type,
+           | ROW_NUMBER() OVER(PARTITION BY asset_name, asset_type, currency ORDER BY month DESC) AS rank
+           | FROM transactions 
+           | INNER JOIN assets ON transactions.asset_id = assets.id
+           | WHERE transactions.user_id = ${userId.toLong} and year = ${year.getValue()}
+           | )
+           | SELECT SUM(amount) as total, asset_type, currency
+           | FROM relevant_transactions
+           | WHERE rank = 1
+           | GROUP BY asset_type, currency;
+          """.stripMargin.query[Money].to[List]
+
+  def calculateNetWorthByCurrencyYearAndAssetName(
+      userId: UserId,
+      year: Year
+  )(using fxContext: MoneyContext): ConnectionIO[List[Money]] = sql"""
+           | WITH relevant_transactions AS (
+           | SELECT amount, currency, month, year, asset_name, asset_type,
+           | ROW_NUMBER() OVER(PARTITION BY asset_name, asset_type, currency ORDER BY month DESC) AS rank
+           | FROM transactions 
+           | INNER JOIN assets ON transactions.asset_id = assets.id
+           | WHERE transactions.user_id = ${userId.toLong} and year = ${year.getValue()}
+           | )
+           | SELECT SUM(amount) as total, asset_name, asset_type, currency
+           | FROM relevant_transactions
+           | WHERE rank = 1
+           | GROUP BY asset_name, asset_type, currency;
           """.stripMargin.query[Money].to[List]
 }

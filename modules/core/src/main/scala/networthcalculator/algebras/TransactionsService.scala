@@ -11,7 +11,12 @@ trait TransactionsService[F[_]] {
   def totalNetWorthByCurrency(userId: UserId, year: Year)(using
       fxContext: MoneyContext
   ): F[List[Money]]
-  def net
+  def netWorthByCurrencyAndAssetType(userId: UserId, year: Year)(using
+      fxContext: MoneyContext
+  ): F[List[Money]]
+  def netWorthByCurrencyAndAssetName(userId: UserId, year: Year)(using
+      fxContext: MoneyContext
+  ): F[List[Money]]
 
   // def totalNetWorthByYear(userId: UserId, year: Year, currency: Currency)(using fxContext: MoneyContext): F[List[Money]]
   // def delete(userId: UserId, transactionId: TransactionId): F[Unit]

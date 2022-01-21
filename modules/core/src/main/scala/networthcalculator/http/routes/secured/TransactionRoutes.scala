@@ -68,8 +68,26 @@ final class TransactionRoutes[F[_]: Concurrent: Logger](
       val year = maybeYear.fold(Year.now)(identity)
 
       transactionService
-        .totalNetWorthByCurrency(user.userId, Year.now)
+        .totalNetWorthByCurrency(user.userId, year)
         .flatMap(total => Ok(total.asJson))
+    }
+
+    case req @ GET -> Root / "net-worth" :? OptionalYearQueryParamMatcher(
+          maybeYear
+        ) :? AssetNameFlag(flag) as user => {
+      given MoneyContext = defaultMoneyContext
+      import MoneyImplicits.given
+
+      val year = maybeYear.fold(Year.now)(identity)
+
+      if (flag)
+        transactionService
+          .netWorthByCurrencyAndAssetName(user.userId, year)
+          .flatMap(total => Ok(total.asJson))
+      else
+        transactionService
+          .netWorthByCurrencyAndAssetType(user.userId, year)
+          .flatMap(total => Ok(total.asJson))
     }
   }
 
