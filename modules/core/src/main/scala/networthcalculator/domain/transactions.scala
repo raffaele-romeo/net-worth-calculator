@@ -6,7 +6,7 @@ import io.circe.generic.semiauto._
 import networthcalculator.domain.assets._
 import networthcalculator.domain.users.UserId
 import squants.market._
-import squants.market.defaultMoneyContext
+
 import java.time.{Month, Year}
 import scala.util.control.NoStackTrace
 

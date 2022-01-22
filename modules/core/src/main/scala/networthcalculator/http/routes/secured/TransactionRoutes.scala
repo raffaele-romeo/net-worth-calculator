@@ -12,8 +12,8 @@ import networthcalculator.domain.errors.TransactionValidation.*
 import networthcalculator.domain.errors.TransactionValidationErrors
 import networthcalculator.domain.transactions._
 import networthcalculator.domain.users.CommonUser
-import networthcalculator.http.HttpParam._
 import networthcalculator.http.decoder.*
+import networthcalculator.http.httpParam._
 import org.http4s.*
 import org.http4s.circe.*
 import org.http4s.dsl.Http4sDsl
@@ -71,9 +71,19 @@ final class TransactionRoutes[F[_]: Concurrent: Logger](
         ) as user => {
       given MoneyContext = defaultMoneyContext
 
-      transactionService
-        .totalNetWorthByCurrency(user.userId, maybeYear)
-        .flatMap(total => Ok(total.asJson))
+      val validatedMaybeYear: cats.data.ValidatedNel[org.http4s.ParseFailure, Option[Year]] =
+        maybeYear.sequence
+
+      validatedMaybeYear.fold(
+        parseFailures =>
+          Logger[F].error(
+            s"Failed to to parse argument 'year' with error: ${parseFailures.head.details}"
+          ) *> BadRequest("Unable to parse argument 'year'"),
+        maybeYear =>
+          transactionService
+            .totalNetWorthByCurrency(user.userId, maybeYear)
+            .flatMap(total => Ok(total.asJson))
+      )
     }
 
     case req @ GET -> Root / "net-worth" / LongVar(assetId) :? OptionalYearQueryParamMatcher(
@@ -81,20 +91,47 @@ final class TransactionRoutes[F[_]: Concurrent: Logger](
         ) as user => {
       given MoneyContext = defaultMoneyContext
 
-      transactionService
-        .netWorthByCurrencyAndAsset(user.userId, AssetId(assetId), maybeYear)
-        .flatMap(total => Ok(total.asJson))
+      val validatedMaybeYear: cats.data.ValidatedNel[org.http4s.ParseFailure, Option[Year]] =
+        maybeYear.sequence
+
+      validatedMaybeYear.fold(
+        parseFailures =>
+          Logger[F].error(
+            s"Failed to to parse argument 'year' with error: ${parseFailures.head.details}"
+          ) *> BadRequest("Unable to parse argument 'year'"),
+        maybeYear =>
+          transactionService
+            .netWorthByCurrencyAndAsset(user.userId, AssetId(assetId), maybeYear)
+            .flatMap(total => Ok(total.asJson))
+      )
 
     }
 
     case req @ GET -> Root / "net-worth" :? OptionalYearQueryParamMatcher(
           maybeYear
-        ) :? AssetQueryParamMatcher(assetType) as user => {
+        ) :? AssetQueryParamMatcher(assetTypeValidated) as user => {
       given MoneyContext = defaultMoneyContext
 
-      transactionService
-        .netWorthByCurrencyAndAssetType(user.userId, assetType, maybeYear)
-        .flatMap(total => Ok(total.asJson))
+      val validatedMaybeYear: cats.data.ValidatedNel[org.http4s.ParseFailure, Option[Year]] =
+        maybeYear.sequence
+
+      validatedMaybeYear.fold(
+        parseFailures =>
+          Logger[F].error(
+            s"Failed to to parse argument 'year' with error: ${parseFailures.head.details}"
+          ) *> BadRequest("Unable to parse argument 'year'"),
+        maybeYear =>
+          assetTypeValidated.fold(
+            parseFailures =>
+              Logger[F].error(
+                s"Failed to to parse argument 'assetType' with error: ${parseFailures.head.details}"
+              ) *> BadRequest("Unable to parse argument 'assetType'"),
+            assetType =>
+              transactionService
+                .netWorthByCurrencyAndAssetType(user.userId, assetType, maybeYear)
+                .flatMap(total => Ok(total.asJson))
+          )
+      )
     }
   }
 
