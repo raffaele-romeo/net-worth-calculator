@@ -40,7 +40,7 @@ object assets {
       DRead[(Long, String, String, Long)].map { case (id, assetType, assetName, userId) =>
         Asset(
           AssetId(id),
-          AssetType.make(assetType),
+          AssetType.of(assetType),
           AssetName(assetName.capitalize),
           UserId(userId)
         )
@@ -63,7 +63,7 @@ object assets {
   }
 
   object AssetType {
-    def make(s: String): AssetType = {
+    def of(s: String): AssetType = {
       AssetType.valueOf(s.toLowerCase.capitalize)
     }
 

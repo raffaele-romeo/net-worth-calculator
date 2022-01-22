@@ -1,5 +1,6 @@
 package networthcalculator.algebras
 
+import networthcalculator.domain.assets._
 import networthcalculator.domain.transactions._
 import networthcalculator.domain.users.UserId
 import squants.market.{Money, MoneyContext}
@@ -8,17 +9,24 @@ import java.time.{Month, Year}
 
 trait TransactionsService[F[_]] {
   def create(userId: UserId, transaction: List[ValidTransaction]): F[Unit]
-  def totalNetWorthByCurrency(userId: UserId, year: Year)(using
-      fxContext: MoneyContext
-  ): F[List[Money]]
-  def netWorthByCurrencyAndAssetType(userId: UserId, year: Year)(using
-      fxContext: MoneyContext
-  ): F[List[Money]]
-  def netWorthByCurrencyAndAssetName(userId: UserId, year: Year)(using
-      fxContext: MoneyContext
-  ): F[List[Money]]
 
-  // def totalNetWorthByYear(userId: UserId, year: Year, currency: Currency)(using fxContext: MoneyContext): F[List[Money]]
-  // def delete(userId: UserId, transactionId: TransactionId): F[Unit]
-  // def findAll(userId: UserId): F[List[Transaction]] // TODO Add pagination logic
+  def delete(userId: UserId, transactionId: TransactionId): F[Unit]
+
+  // TODO Add pagination logic to all the methods that retrieve a list
+  def totalNetWorthByCurrency(userId: UserId, year: Option[Year])(using
+      fxContext: MoneyContext
+  ): F[List[TotalNetWorthByCurrency]]
+
+  def netWorthByCurrencyAndAsset(userId: UserId, assetId: AssetId, year: Option[Year])(using
+      fxContext: MoneyContext
+  ): F[List[TotalNetWorthByCurrency]]
+
+  def netWorthByCurrencyAndAssetType(userId: UserId, assetType: AssetType, year: Option[Year])(using
+      fxContext: MoneyContext
+  ): F[List[TotalNetWorthByCurrency]]
+
+  def findAll(userId: UserId): F[List[Transaction]]
+
+  // def totalNetWorth(userId: UserId, year: Option[Year], currency: Currency)(using fxContext: MoneyContext): F[List[Money]]
+
 }

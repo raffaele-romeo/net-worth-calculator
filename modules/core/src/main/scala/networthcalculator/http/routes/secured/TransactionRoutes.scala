@@ -12,11 +12,12 @@ import networthcalculator.domain.errors.TransactionValidation.*
 import networthcalculator.domain.errors.TransactionValidationErrors
 import networthcalculator.domain.transactions._
 import networthcalculator.domain.users.CommonUser
-import networthcalculator.http.QueryParam._
+import networthcalculator.http.HttpParam._
 import networthcalculator.http.decoder.*
 import org.http4s.*
 import org.http4s.circe.*
 import org.http4s.dsl.Http4sDsl
+import org.http4s.dsl.impl.LongVar
 import org.http4s.server.{AuthMiddleware, Router}
 import org.typelevel.log4cats.Logger
 import squants.market.{MoneyContext, defaultMoneyContext}
@@ -59,35 +60,41 @@ final class TransactionRoutes[F[_]: Concurrent: Logger](
           case TransactionAlreadyCreated(error)   => BadRequest(error.asJson)
         }
 
+    case DELETE -> Root / LongVar(id) as user =>
+      transactionService.delete(user.userId, TransactionId(id)) *> NoContent()
+
+    case _ @GET -> Root as user =>
+      transactionService.findAll(user.userId).flatMap(transactions => Ok(transactions.asJson))
+
     case req @ GET -> Root / "net-worth" / "total" :? OptionalYearQueryParamMatcher(
           maybeYear
         ) as user => {
       given MoneyContext = defaultMoneyContext
-      import MoneyImplicits.given
-
-      val year = maybeYear.fold(Year.now)(identity)
 
       transactionService
-        .totalNetWorthByCurrency(user.userId, year)
+        .totalNetWorthByCurrency(user.userId, maybeYear)
         .flatMap(total => Ok(total.asJson))
+    }
+
+    case req @ GET -> Root / "net-worth" / LongVar(assetId) :? OptionalYearQueryParamMatcher(
+          maybeYear
+        ) as user => {
+      given MoneyContext = defaultMoneyContext
+
+      transactionService
+        .netWorthByCurrencyAndAsset(user.userId, AssetId(assetId), maybeYear)
+        .flatMap(total => Ok(total.asJson))
+
     }
 
     case req @ GET -> Root / "net-worth" :? OptionalYearQueryParamMatcher(
           maybeYear
-        ) :? AssetNameFlag(flag) as user => {
+        ) :? AssetQueryParamMatcher(assetType) as user => {
       given MoneyContext = defaultMoneyContext
-      import MoneyImplicits.given
 
-      val year = maybeYear.fold(Year.now)(identity)
-
-      if (flag)
-        transactionService
-          .netWorthByCurrencyAndAssetName(user.userId, year)
-          .flatMap(total => Ok(total.asJson))
-      else
-        transactionService
-          .netWorthByCurrencyAndAssetType(user.userId, year)
-          .flatMap(total => Ok(total.asJson))
+      transactionService
+        .netWorthByCurrencyAndAssetType(user.userId, assetType, maybeYear)
+        .flatMap(total => Ok(total.asJson))
     }
   }
 

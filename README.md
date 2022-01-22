@@ -55,13 +55,3 @@ Within the container:
 
 * netstat -tulpn
 * wget
-
-docker run -d -p 9000:9000 --env NWC_APP_ENV=test net-worth-calculator
-
-Postgres docker container:
-
-* docker exec
-* /var/lib/pgsql/data
-* psql --host=postgres --username=postgres --dbname=networth
-* \dt (list of tables)
-

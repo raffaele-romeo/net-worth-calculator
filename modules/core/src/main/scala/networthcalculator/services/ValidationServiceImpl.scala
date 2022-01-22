@@ -46,7 +46,7 @@ object ValidationServiceImpl {
         }
 
       override def validate(assetType: String): F[AssetType] = {
-        ME.catchNonFatal(AssetType.make(assetType)).adaptError { case e =>
+        ME.catchNonFatal(AssetType.of(assetType)).adaptError { case e =>
           AssetTypeNotAllowed(
             s"Asset type: $assetType is not supported. Choose one of ${AssetType.values.mkString(", ")}"
           )
@@ -107,9 +107,9 @@ object TransactionValidatorNec {
   )
 
   def validateForm(
-      transaction: List[ExplodeCreateTransaction]
+      transactions: List[ExplodeCreateTransaction]
   ): ValidationResult[List[ValidTransaction]] = {
-    transaction.traverse(transaction =>
+    transactions.traverse(transaction =>
       (
         validateCurrency(transaction.amount, transaction.currency),
         validateMonth(transaction.month)

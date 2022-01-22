@@ -7,7 +7,9 @@ import doobie.ConnectionIO
 import doobie.hikari.HikariTransactor
 import doobie.implicits.*
 import doobie.postgres.*
+import doobie.util.fragments.whereAndOpt
 import networthcalculator.algebras.TransactionsService
+import networthcalculator.domain.assets.*
 import networthcalculator.domain.transactions.*
 import networthcalculator.domain.users.*
 import squants.market.{Money, MoneyContext}
@@ -35,28 +37,49 @@ object TransactionServiceImpl {
               )
           )
 
+      override def delete(userId: UserId, transactionId: TransactionId): F[Unit] =
+        transactor
+          .use(
+            TransactionQueries
+              .delete(userId, transactionId)
+              .transact[F]
+          )
+          .void
+
+      override def findAll(userId: UserId): F[List[Transaction]] =
+        transactor
+          .use(
+            TransactionQueries
+              .select(userId)
+              .transact[F]
+          )
+
       override def totalNetWorthByCurrency(
           userId: UserId,
-          year: Year
-      )(using fxContext: MoneyContext): F[List[Money]] = transactor.use(
+          maybeYear: Option[Year]
+      )(using fxContext: MoneyContext): F[List[TotalNetWorthByCurrency]] = transactor.use(
         TransactionQueries
-          .calculateTotalNetWorthByCurrencyYear(userId, year)
+          .calculateTotalNetWorthByCurrency(userId, maybeYear)
           .transact[F]
       )
 
-      override def netWorthByCurrencyAndAssetType(userId: UserId, year: Year)(using
-          fxContext: MoneyContext
-      ): F[List[Money]] = transactor.use(
+      override def netWorthByCurrencyAndAsset(userId: UserId, assetId: AssetId, year: Option[Year])(
+          using fxContext: MoneyContext
+      ): F[List[TotalNetWorthByCurrency]] = transactor.use(
         TransactionQueries
-          .calculateNetWorthByCurrencyYearAndAssetType(userId, year)
+          .calculateNetWorthByCurrencyAndAsset(userId, assetId, year)
           .transact[F]
       )
 
-      override def netWorthByCurrencyAndAssetName(userId: UserId, year: Year)(using
+      override def netWorthByCurrencyAndAssetType(
+          userId: UserId,
+          assetType: AssetType,
+          year: Option[Year]
+      )(using
           fxContext: MoneyContext
-      ): F[List[Money]] = transactor.use(
+      ): F[List[TotalNetWorthByCurrency]] = transactor.use(
         TransactionQueries
-          .calculateNetWorthByCurrencyYearAndAssetName(userId, year)
+          .calculateNetWorthByCurrencyAndAssetType(userId, assetType, year)
           .transact[F]
       )
 
@@ -64,7 +87,8 @@ object TransactionServiceImpl {
 }
 
 private object TransactionQueries {
-  import MoneyImplicits.given
+
+  import Transaction.given
 
   def insert(userId: UserId, transaction: ValidTransaction): ConnectionIO[Int] = sql"""
        | INSERT INTO transactions (
@@ -85,54 +109,94 @@ private object TransactionQueries {
        | )
          """.stripMargin.update.run
 
-  def calculateTotalNetWorthByCurrencyYear(
-      userId: UserId,
-      year: Year
-  )(using fxContext: MoneyContext): ConnectionIO[List[Money]] = sql"""
-           | WITH relevant_transactions AS (
-           | SELECT amount, currency, month, year, asset_name, asset_type,
-           | ROW_NUMBER() OVER(PARTITION BY asset_name, asset_type, currency ORDER BY month DESC) AS rank
-           | FROM transactions 
-           | INNER JOIN assets ON transactions.asset_id = assets.id
-           | WHERE transactions.user_id = ${userId.toLong} and year = ${year.getValue()}
-           | )
-           | SELECT SUM(CASE asset_type WHEN 'loan' THEN -amount ELSE amount END) as total, currency
-           | FROM relevant_transactions
-           | WHERE rank = 1
-           | GROUP BY currency;
-          """.stripMargin.query[Money].to[List]
+  def delete(userId: UserId, transactionId: TransactionId): ConnectionIO[Int] =
+    sql"""
+      | DELETE FROM transactions
+      | WHERE id = ${transactionId.toLong} AND user_id = ${userId.toLong}
+      """.stripMargin.update.run
 
-  def calculateNetWorthByCurrencyYearAndAssetType(
-      userId: UserId,
-      year: Year
-  )(using fxContext: MoneyContext): ConnectionIO[List[Money]] = sql"""
-           | WITH relevant_transactions AS (
-           | SELECT amount, currency, month, year, asset_name, asset_type,
-           | ROW_NUMBER() OVER(PARTITION BY asset_name, asset_type, currency ORDER BY month DESC) AS rank
-           | FROM transactions 
-           | INNER JOIN assets ON transactions.asset_id = assets.id
-           | WHERE transactions.user_id = ${userId.toLong} and year = ${year.getValue()}
-           | )
-           | SELECT SUM(amount) as total, asset_type, currency
-           | FROM relevant_transactions
-           | WHERE rank = 1
-           | GROUP BY asset_type, currency;
-          """.stripMargin.query[Money].to[List]
+  def select(userId: UserId): ConnectionIO[List[Transaction]] =
+    sql"""
+         | SELECT id, amount, currency, month, year, asset_id, user_id
+         | FROM transactions
+         | WHERE user_id = ${userId.toLong}
+         | ORDER BY year DESC, month DESC;
+      """.stripMargin.query[Transaction].to[List]
 
-  def calculateNetWorthByCurrencyYearAndAssetName(
+  def calculateTotalNetWorthByCurrency(
       userId: UserId,
-      year: Year
-  )(using fxContext: MoneyContext): ConnectionIO[List[Money]] = sql"""
-           | WITH relevant_transactions AS (
-           | SELECT amount, currency, month, year, asset_name, asset_type,
-           | ROW_NUMBER() OVER(PARTITION BY asset_name, asset_type, currency ORDER BY month DESC) AS rank
-           | FROM transactions 
-           | INNER JOIN assets ON transactions.asset_id = assets.id
-           | WHERE transactions.user_id = ${userId.toLong} and year = ${year.getValue()}
-           | )
-           | SELECT SUM(amount) as total, asset_name, asset_type, currency
-           | FROM relevant_transactions
-           | WHERE rank = 1
-           | GROUP BY asset_name, asset_type, currency;
-          """.stripMargin.query[Money].to[List]
+      maybeYear: Option[Year]
+  )(using fxContext: MoneyContext): ConnectionIO[List[TotalNetWorthByCurrency]] = {
+
+    val f1Year = maybeYear.map(year => fr"year = ${year.getValue()}")
+    val f2User = Some(userId).map(userId => fr"transactions.user_id = ${userId.toLong}")
+
+    val queryFragment = fr"""
+      |WITH relevant_transactions AS (
+      |SELECT amount, currency, month, year, asset_name, asset_type 
+      |FROM transactions 
+      |INNER JOIN assets ON transactions.asset_id = assets.id   
+    """.stripMargin ++ whereAndOpt(f2User, f1Year) ++
+      fr""") 
+      |SELECT SUM(CASE asset_type WHEN 'loan' THEN -amount ELSE amount END) as total, currency, month, year 
+      |FROM relevant_transactions  
+      |GROUP BY month, year, currency
+      |ORDER BY year DESC, month DESC;
+    """.stripMargin
+
+    queryFragment.query[TotalNetWorthByCurrency].to[List]
+  }
+
+  def calculateNetWorthByCurrencyAndAsset(
+      userId: UserId,
+      assetId: AssetId,
+      maybeYear: Option[Year]
+  )(using fxContext: MoneyContext): ConnectionIO[List[TotalNetWorthByCurrency]] = {
+
+    val f1Year  = maybeYear.map(year => fr"year = ${year.getValue()}")
+    val f2User  = Some(userId).map(userId => fr"transactions.user_id = ${userId.toLong}")
+    val f3Asset = Some(assetId).map(assetId => fr"transactions.asset_id = ${assetId.toLong}")
+
+    val queryFragment = fr"""
+      |WITH relevant_transactions AS (
+      |SELECT amount, currency, month, year, asset_name, asset_type
+      |FROM transactions 
+      |INNER JOIN assets ON transactions.asset_id = assets.id   
+    """.stripMargin ++ whereAndOpt(f2User, f3Asset, f1Year) ++
+      fr""") 
+      |SELECT SUM(amount), currency, month, year
+      |FROM relevant_transactions  
+      |GROUP BY month, year, currency
+      |ORDER BY year DESC, month DESC;
+    """.stripMargin
+
+    queryFragment.query[TotalNetWorthByCurrency].to[List]
+  }
+
+  def calculateNetWorthByCurrencyAndAssetType(
+      userId: UserId,
+      assetType: AssetType,
+      maybeYear: Option[Year]
+  )(using fxContext: MoneyContext): ConnectionIO[List[TotalNetWorthByCurrency]] = {
+
+    val f1Year = maybeYear.map(year => fr"year = ${year.getValue()}")
+    val f2User = Some(userId).map(userId => fr"transactions.user_id = ${userId.toLong}")
+    val f3Asset =
+      Some(assetType).map(assetType => fr"asset_type = ${assetType.toString.toLowerCase}")
+
+    val queryFragment = fr"""
+      |WITH relevant_transactions AS (
+      |SELECT amount, currency, month, year, asset_name, asset_type
+      |FROM transactions 
+      |INNER JOIN assets ON transactions.asset_id = assets.id   
+    """.stripMargin ++ whereAndOpt(f2User, f3Asset, f1Year) ++
+      fr""") 
+      |SELECT SUM(amount), currency, month, year
+      |FROM relevant_transactions  
+      |GROUP BY month, year, currency
+      |ORDER BY year DESC, month DESC;
+    """.stripMargin
+
+    queryFragment.query[TotalNetWorthByCurrency].to[List]
+  }
 }
