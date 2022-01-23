@@ -33,18 +33,22 @@ object currencyconversion {
     def toBigDecimal: BigDecimal = x
   }
 
-  final case class CurrencyConversionQuery(
-      apiKey: Option[String],
-      base_currency: Option[String],
-      date_from: Option[String],
-      date_to: Option[String],
-      timestamp: Option[Long]
-  )
+  final case class CurrencyConversion(currencies: List[Currency])
 
-  final case class CurrencyConversion(
-      query: Option[CurrencyConversionQuery],
-      data: List[(CurrencyName, CurrencyValue)]
-  )
+  object CurrencyConversion {
+    given Decoder[CurrencyConversion] =
+      Decoder[Map[String, BigDecimal]]
+        .prepare(_.downField("data"))
+        .map(kvs =>
+          CurrencyConversion(
+            kvs.map { case (k, v) =>
+              Currency(CurrencyName(k), CurrencyValue(v))
+            }.toList
+          )
+        )
+  }
+
+  final case class Currency(name: CurrencyName, value: CurrencyValue)
 
   final case class CurrencyConversionError(error: String) extends NoStackTrace
 }
