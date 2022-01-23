@@ -8,6 +8,7 @@ import networthcalculator.domain.users.AdminUser
 import scala.annotation.targetName
 import scala.concurrent.duration._
 import java.util.UUID
+import org.http4s.Uri
 
 object data {
   final case class AppConfig(
@@ -29,7 +30,7 @@ object data {
 
   final case class RedisConfig(uri: RedisURI)
 
-  final case class CurrencyConversionConfig(apiKey: UUID)
+  final case class CurrencyConversionConfig(baseUri: Uri, apiKey: UUID)
 
   final case class HttpServerConfig(
       host: Host,

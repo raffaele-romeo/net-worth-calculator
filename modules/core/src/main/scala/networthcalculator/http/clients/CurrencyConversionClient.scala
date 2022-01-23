@@ -32,21 +32,20 @@ object CurrencyConversionClient {
   def make[F[_]: JsonDecoder: Concurrent: Logger](
       currencyConversionConfig: CurrencyConversionConfig,
       client: Client[F]
-  )(using ME: MonadThrow[F]): CurrencyConversionClient = new CurrencyConversionClient[F]
+  )(using ME: MonadThrow[F]): CurrencyConversionClient[F] = new CurrencyConversionClient[F]
     with Http4sClientDsl[F] {
     override def latestRates(
         baseCurrency: String,
         dateFrom: Option[String]
     ): F[List[CurrencyExchangeRate]] = {
 
-      val baseUri = uri"https://freecurrencyapi.net/api/v2/latest"
-      val withQuery = baseUri
+      val uri = currencyConversionConfig.baseUri
         .withQueryParam("apikey", currencyConversionConfig.apiKey.toString)
         .withQueryParam("base_currency", baseCurrency)
         .withQueryParam("date_from", dateFrom.fold(java.time.LocalDate.now.toString)(identity))
 
       for {
-        currencyConversion <- client.get(withQuery) {
+        currencyConversion <- client.get(uri) {
           case Successful(resp) =>
             resp.decodeJson[CurrencyConversion]
           case resp =>
