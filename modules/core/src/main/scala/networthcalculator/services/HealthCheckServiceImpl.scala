@@ -14,7 +14,7 @@ import scala.concurrent.duration._
 
 object HealthCheckServiceImpl {
   def make[F[_]: Temporal](
-      transactor: Resource[F, HikariTransactor[F]],
+      transactor: HikariTransactor[F],
       redis: RedisCommands[F, String, String]
   ): HealthCheckService[F] = new HealthCheckService[F] {
 
@@ -29,8 +29,7 @@ object HealthCheckServiceImpl {
         .map(RedisStatus.apply)
 
     val postgresHealth: F[PostgresStatus] =
-      transactor
-        .use(q.transact[F])
+      q.transact[F](transactor)
         .map(_.nonEmpty)
         .timeout(1.second)
         .orElse(false.pure[F])

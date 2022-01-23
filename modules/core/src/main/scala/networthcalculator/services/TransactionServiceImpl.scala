@@ -17,59 +17,48 @@ import squants.market.{Money, MoneyContext}
 import java.time.{Month, Year}
 
 object TransactionServiceImpl {
-  def make[F[_]: MonadCancelThrow](transactor: Resource[F, HikariTransactor[F]]) =
+  def make[F[_]: MonadCancelThrow](transactor: HikariTransactor[F]) =
     new TransactionsService[F] {
 
       override def create(userId: UserId, transactions: List[ValidTransaction]): F[Unit] =
         // TODO Update to use Bulk Insert
         transactions
           .traverse_(transaction =>
-            transactor
-              .use(
-                TransactionQueries
-                  .insert(userId, transaction)
-                  .exceptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
-                    TransactionAlreadyCreated(
-                      s"Transaction of ${transaction.month.getValue()}/${transaction.year.getValue()} already inserted in the system"
-                    ).raiseError
-                  }
-                  .transact[F]
-              )
+            TransactionQueries
+              .insert(userId, transaction)
+              .exceptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
+                TransactionAlreadyCreated(
+                  s"Transaction of ${transaction.month.getValue()}/${transaction.year.getValue()} already inserted in the system"
+                ).raiseError
+              }
+              .transact[F](transactor)
           )
 
       override def delete(userId: UserId, transactionId: TransactionId): F[Unit] =
-        transactor
-          .use(
-            TransactionQueries
-              .delete(userId, transactionId)
-              .transact[F]
-          )
+        TransactionQueries
+          .delete(userId, transactionId)
+          .transact[F](transactor)
           .void
 
       override def findAll(userId: UserId): F[List[Transaction]] =
-        transactor
-          .use(
-            TransactionQueries
-              .select(userId)
-              .transact[F]
-          )
+        TransactionQueries
+          .select(userId)
+          .transact[F](transactor)
 
       override def totalNetWorthByCurrency(
           userId: UserId,
           maybeYear: Option[Year]
-      )(using fxContext: MoneyContext): F[List[TotalNetWorthByCurrency]] = transactor.use(
+      )(using fxContext: MoneyContext): F[List[TotalNetWorthByCurrency]] =
         TransactionQueries
           .calculateTotalNetWorthByCurrency(userId, maybeYear)
-          .transact[F]
-      )
+          .transact[F](transactor)
 
       override def netWorthByCurrencyAndAsset(userId: UserId, assetId: AssetId, year: Option[Year])(
           using fxContext: MoneyContext
-      ): F[List[TotalNetWorthByCurrency]] = transactor.use(
+      ): F[List[TotalNetWorthByCurrency]] =
         TransactionQueries
           .calculateNetWorthByCurrencyAndAsset(userId, assetId, year)
-          .transact[F]
-      )
+          .transact[F](transactor)
 
       override def netWorthByCurrencyAndAssetType(
           userId: UserId,
@@ -77,12 +66,10 @@ object TransactionServiceImpl {
           year: Option[Year]
       )(using
           fxContext: MoneyContext
-      ): F[List[TotalNetWorthByCurrency]] = transactor.use(
+      ): F[List[TotalNetWorthByCurrency]] =
         TransactionQueries
           .calculateNetWorthByCurrencyAndAssetType(userId, assetType, year)
-          .transact[F]
-      )
-
+          .transact[F](transactor)
     }
 }
 

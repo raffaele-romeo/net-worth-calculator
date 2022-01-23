@@ -30,11 +30,12 @@ object AppResources {
 
     for {
       redis <- mkRedisResource(cfg.redis)
-    } yield AppResources[F](mkPostgreSqlResource(cfg.postgreSQL), redis)
+      psql  <- mkPostgreSqlResource(cfg.postgreSQL)
+    } yield AppResources[F](psql, redis)
   }
 }
 
 final case class AppResources[F[_]](
-    psql: Resource[F, HikariTransactor[F]],
+    psql: HikariTransactor[F],
     redis: RedisCommands[F, String, String]
 )

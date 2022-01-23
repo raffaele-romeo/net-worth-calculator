@@ -11,25 +11,21 @@ import networthcalculator.domain.users._
 
 object UsersServiceImpl {
   def make[F[_]: MonadCancelThrow](
-      transactor: Resource[F, HikariTransactor[F]]
+      transactor: HikariTransactor[F]
   ): UsersService[F] = new UsersService[F] {
 
     override def create(user: CreateUserForInsert): F[UserWithPassword] =
-      transactor.use(
-        UserQueries
-          .insert(user)
-          .exceptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
-            UserNameInUse(user.username).raiseError[ConnectionIO, UserWithPassword]
-          }
-          .transact[F]
-      )
+      UserQueries
+        .insert(user)
+        .exceptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
+          UserNameInUse(user.username).raiseError[ConnectionIO, UserWithPassword]
+        }
+        .transact[F](transactor)
 
     override def find(userName: UserName): F[Option[UserWithPassword]] =
-      transactor.use(
-        UserQueries
-          .select(userName)
-          .transact[F]
-      )
+      UserQueries
+        .select(userName)
+        .transact[F](transactor)
   }
 }
 private object UserQueries {

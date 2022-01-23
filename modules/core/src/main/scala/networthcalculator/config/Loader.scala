@@ -10,6 +10,7 @@ import networthcalculator.domain.tokens.JwtToken
 import networthcalculator.domain.users.{AdminUser, UserName}
 
 import scala.concurrent.duration._
+import java.util.UUID
 
 object Loader {
 
@@ -46,6 +47,7 @@ object Loader {
       HttpServerConfig(
         host = Host("0.0.0.0"),
         port = Port(9000)
-      )
+      ),
+      CurrencyConversionConfig(apiKey = UUID.fromString("ce51a410-7bbd-11ec-a2fe-b7a0c5b16d51"))
     )
 }

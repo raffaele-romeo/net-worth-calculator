@@ -9,7 +9,7 @@ import org.typelevel.log4cats.Logger
 
 object Services {
   def make[F[_]: Async](
-      transactor: Resource[F, HikariTransactor[F]],
+      transactor: HikariTransactor[F],
       redis: RedisCommands[F, String, String]
   ): Services[F] = {
     val healthCheckService = HealthCheckServiceImpl.make[F](transactor, redis)

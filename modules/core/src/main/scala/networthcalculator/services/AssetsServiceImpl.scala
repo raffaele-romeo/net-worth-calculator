@@ -14,38 +14,29 @@ import networthcalculator.domain.users.UserId
 import org.typelevel.log4cats.Logger
 
 object AssetsServiceImpl {
-  def make[F[_]: MonadCancelThrow](transactor: Resource[F, HikariTransactor[F]]): AssetsService[F] =
+  def make[F[_]: MonadCancelThrow](transactor: HikariTransactor[F]): AssetsService[F] =
     new AssetsService[F] {
 
       override def findAll(userId: UserId): F[List[Asset]] =
-        transactor
-          .use(
-            AssetsQueries
-              .select(userId)
-              .transact[F]
-          )
+        AssetsQueries
+          .select(userId)
+          .transact[F](transactor)
 
       override def create(asseType: AssetType, assetName: AssetName, userId: UserId): F[Unit] =
-        transactor
-          .use(
-            AssetsQueries
-              .insert(asseType, assetName, userId)
-              .exceptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
-                AssetAlreadyInUse(
-                  s"Asset ${assetName.toString} - ${asseType.toString} already in use"
-                ).raiseError
-              }
-              .transact[F]
-          )
+        AssetsQueries
+          .insert(asseType, assetName, userId)
+          .exceptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
+            AssetAlreadyInUse(
+              s"Asset ${assetName.toString} - ${asseType.toString} already in use"
+            ).raiseError
+          }
+          .transact[F](transactor)
           .void
 
       override def delete(assetId: AssetId, userId: UserId): F[Unit] =
-        transactor
-          .use(
-            AssetsQueries
-              .delete(assetId, userId)
-              .transact[F]
-          )
+        AssetsQueries
+          .delete(assetId, userId)
+          .transact[F](transactor)
           .void
     }
 }

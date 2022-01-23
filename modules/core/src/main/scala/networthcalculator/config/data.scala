@@ -7,13 +7,15 @@ import networthcalculator.domain.users.AdminUser
 
 import scala.annotation.targetName
 import scala.concurrent.duration._
+import java.util.UUID
 
 object data {
   final case class AppConfig(
       tokenExpiration: TokenExpiration,
       postgreSQL: PostgreSQLConfig,
       redis: RedisConfig,
-      httpServerConfig: HttpServerConfig
+      httpServerConfig: HttpServerConfig,
+      currencyConversionConfig: CurrencyConversionConfig
   )
 
   final case class PostgreSQLConfig(
@@ -26,6 +28,8 @@ object data {
   )
 
   final case class RedisConfig(uri: RedisURI)
+
+  final case class CurrencyConversionConfig(apiKey: UUID)
 
   final case class HttpServerConfig(
       host: Host,
