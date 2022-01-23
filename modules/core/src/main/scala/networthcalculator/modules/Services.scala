@@ -1,6 +1,6 @@
 package networthcalculator.modules
 
-import cats.effect.{Async, Resource}
+import cats.effect.Async
 import dev.profunktor.redis4cats.RedisCommands
 import doobie.hikari.HikariTransactor
 import networthcalculator.algebras._

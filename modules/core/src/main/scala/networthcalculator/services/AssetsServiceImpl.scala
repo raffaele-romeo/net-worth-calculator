@@ -1,6 +1,6 @@
 package networthcalculator.services
 
-import cats.effect.{MonadCancelThrow, Resource}
+import cats.effect.MonadCancelThrow
 import cats.implicits.*
 import cats.syntax.all.*
 import doobie.ConnectionIO

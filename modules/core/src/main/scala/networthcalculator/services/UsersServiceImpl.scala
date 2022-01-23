@@ -1,6 +1,6 @@
 package networthcalculator.services
 
-import cats.effect.{MonadCancelThrow, Resource}
+import cats.effect.MonadCancelThrow
 import cats.syntax.all.*
 import doobie.ConnectionIO
 import doobie.hikari.HikariTransactor
