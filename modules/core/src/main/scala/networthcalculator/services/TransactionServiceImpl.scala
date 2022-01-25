@@ -48,28 +48,41 @@ object TransactionServiceImpl {
       override def totalNetWorthByCurrency(
           userId: UserId,
           maybeYear: Option[Year]
-      )(using fxContext: MoneyContext): F[List[TotalNetWorthByCurrency]] =
+      ): F[List[TotalNetWorthByCurrency]] =
         TransactionQueries
           .calculateTotalNetWorthByCurrency(userId, maybeYear)
           .transact[F](transactor)
+          .map(groupByCurrency)
 
-      override def netWorthByCurrencyAndAsset(userId: UserId, assetId: AssetId, year: Option[Year])(
-          using fxContext: MoneyContext
+      override def netWorthByCurrencyAndAsset(
+          userId: UserId,
+          assetId: AssetId,
+          year: Option[Year]
       ): F[List[TotalNetWorthByCurrency]] =
         TransactionQueries
           .calculateNetWorthByCurrencyAndAsset(userId, assetId, year)
           .transact[F](transactor)
+          .map(groupByCurrency)
 
       override def netWorthByCurrencyAndAssetType(
           userId: UserId,
           assetType: AssetType,
           year: Option[Year]
-      )(using
-          fxContext: MoneyContext
       ): F[List[TotalNetWorthByCurrency]] =
         TransactionQueries
           .calculateNetWorthByCurrencyAndAssetType(userId, assetType, year)
           .transact[F](transactor)
+          .map(groupByCurrency)
+
+      private def groupByCurrency(
+          totalNetWorth: List[TotalNetWorth]
+      ): List[TotalNetWorthByCurrency] =
+        totalNetWorth
+          .groupBy(transaction => (transaction.year, transaction.month))
+          .map { case ((year, month), list) =>
+            TotalNetWorthByCurrency(list.map(_.total), month, year)
+          }
+          .toList
     }
 }
 
@@ -113,7 +126,7 @@ private object TransactionQueries {
   def calculateTotalNetWorthByCurrency(
       userId: UserId,
       maybeYear: Option[Year]
-  )(using fxContext: MoneyContext): ConnectionIO[List[TotalNetWorthByCurrency]] = {
+  ): ConnectionIO[List[TotalNetWorth]] = {
 
     val f1Year = maybeYear.map(year => fr"year = ${year.getValue()}")
     val f2User = Some(userId).map(userId => fr"transactions.user_id = ${userId.toLong}")
@@ -131,14 +144,14 @@ private object TransactionQueries {
       |ORDER BY year DESC, month DESC;
     """.stripMargin
 
-    queryFragment.query[TotalNetWorthByCurrency].to[List]
+    queryFragment.query[TotalNetWorth].to[List]
   }
 
   def calculateNetWorthByCurrencyAndAsset(
       userId: UserId,
       assetId: AssetId,
       maybeYear: Option[Year]
-  )(using fxContext: MoneyContext): ConnectionIO[List[TotalNetWorthByCurrency]] = {
+  ): ConnectionIO[List[TotalNetWorth]] = {
 
     val f1Year  = maybeYear.map(year => fr"year = ${year.getValue()}")
     val f2User  = Some(userId).map(userId => fr"transactions.user_id = ${userId.toLong}")
@@ -151,20 +164,19 @@ private object TransactionQueries {
       |INNER JOIN assets ON transactions.asset_id = assets.id   
     """.stripMargin ++ whereAndOpt(f2User, f3Asset, f1Year) ++
       fr""") 
-      |SELECT SUM(amount), currency, month, year
-      |FROM relevant_transactions  
-      |GROUP BY month, year, currency
+      |SELECT amount, currency, month, year
+      |FROM relevant_transactions
       |ORDER BY year DESC, month DESC;
     """.stripMargin
 
-    queryFragment.query[TotalNetWorthByCurrency].to[List]
+    queryFragment.query[TotalNetWorth].to[List]
   }
 
   def calculateNetWorthByCurrencyAndAssetType(
       userId: UserId,
       assetType: AssetType,
       maybeYear: Option[Year]
-  )(using fxContext: MoneyContext): ConnectionIO[List[TotalNetWorthByCurrency]] = {
+  ): ConnectionIO[List[TotalNetWorth]] = {
 
     val f1Year = maybeYear.map(year => fr"year = ${year.getValue()}")
     val f2User = Some(userId).map(userId => fr"transactions.user_id = ${userId.toLong}")
@@ -184,6 +196,6 @@ private object TransactionQueries {
       |ORDER BY year DESC, month DESC;
     """.stripMargin
 
-    queryFragment.query[TotalNetWorthByCurrency].to[List]
+    queryFragment.query[TotalNetWorth].to[List]
   }
 }

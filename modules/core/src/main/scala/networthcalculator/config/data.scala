@@ -4,11 +4,11 @@ import cats.Show
 import ciris._
 import networthcalculator.domain.tokens.JwtToken
 import networthcalculator.domain.users.AdminUser
+import org.http4s.Uri
 
+import java.util.UUID
 import scala.annotation.targetName
 import scala.concurrent.duration._
-import java.util.UUID
-import org.http4s.Uri
 
 object data {
   final case class AppConfig(

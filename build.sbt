@@ -70,7 +70,7 @@ val commonSettings = Def.settings(
   ),
   ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.6.0",
   resolvers += Resolver.sonatypeRepo("snapshots"),
-  scalafmtOnCompile := true,
+  scalafmtOnCompile := false,
   addCommandAlias(
     "validate",
     List(

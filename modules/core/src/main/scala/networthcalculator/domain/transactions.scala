@@ -48,18 +48,6 @@ object transactions {
             UserId(userId)
           )
       }
-
-    given Encoder[Transaction] = new Encoder[Transaction] {
-      final def apply(transaction: Transaction): Json = Json.obj(
-        ("id", Json.fromLong(transaction.transactionId.toLong)),
-        ("amount", Json.fromBigDecimal(transaction.money.amount)),
-        ("currency", Json.fromString(transaction.money.currency.code)),
-        ("month", Json.fromInt(transaction.month.getValue)),
-        ("year", Json.fromInt(transaction.year.getValue)),
-        ("assetId", Json.fromLong(transaction.assetId.toLong)),
-        ("userId", Json.fromLong(transaction.userId.toLong))
-      )
-    }
   }
 
   final case class CreateTransaction(
@@ -71,6 +59,12 @@ object transactions {
   final case class TransactionValue(amount: BigDecimal, currency: String, assetId: AssetId)
 
   final case class TotalNetWorthByCurrency(
+      total: List[Money],
+      month: Month,
+      year: Year
+  )
+
+  final case class TotalNetWorth(
       total: Money,
       month: Month,
       year: Year
@@ -90,29 +84,24 @@ object transactions {
       assetId: AssetId
   )
 
-  object TotalNetWorthByCurrency {
-    given totalNetWorthByCurrencyRead(using
-        fxContext: MoneyContext
-    ): Read[TotalNetWorthByCurrency] =
+  object TotalNetWorth {
+    given Read[TotalNetWorth] =
       Read[(BigDecimal, String, Int, Int)].map { case (total, currency, month, year) =>
-        TotalNetWorthByCurrency(
+        TotalNetWorth(
           Money(
             total,
             currency
-          ).get,
+          )(defaultMoneyContext).get,
           Month.of(month),
           Year.of(year)
         )
       }
+  }
 
-    given Encoder[TotalNetWorthByCurrency] = new Encoder[TotalNetWorthByCurrency] {
-      final def apply(totalNetWorthByCurrency: TotalNetWorthByCurrency): Json = Json.obj(
-        ("amount", Json.fromBigDecimal(totalNetWorthByCurrency.total.amount)),
-        ("currency", Json.fromString(totalNetWorthByCurrency.total.currency.code)),
-        ("month", Json.fromInt(totalNetWorthByCurrency.month.getValue)),
-        ("year", Json.fromInt(totalNetWorthByCurrency.year.getValue))
-      )
-    }
+  object codecs {
+    given Encoder[Money] = Encoder[String].contramap(_.toString)
+    given Encoder[Year]  = Encoder[Int].contramap(_.getValue)
+    given Encoder[Month] = Encoder[Int].contramap(_.getValue)
   }
 
   final case class TransactionAlreadyCreated(error: String) extends NoStackTrace

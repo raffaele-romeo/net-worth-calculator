@@ -3,6 +3,7 @@ package networthcalculator.domain
 import io.circe._
 import io.circe.generic.semiauto._
 import io.circe.syntax._
+
 import java.util.UUID
 import scala.util.control.NoStackTrace
 
@@ -50,5 +51,5 @@ object currencyconversion {
 
   final case class Currency(name: CurrencyName, value: CurrencyValue)
 
-  final case class CurrencyConversionError(error: String) extends NoStackTrace
+  final case class CurrencyConversionError(code: Int, error: String) extends NoStackTrace
 }

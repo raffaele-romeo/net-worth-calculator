@@ -11,8 +11,8 @@ import networthcalculator.domain.users.{AdminUser, UserName}
 import org.http4s.Uri
 import org.http4s.implicits.uri
 
-import scala.concurrent.duration._
 import java.util.UUID
+import scala.concurrent.duration._
 
 object Loader {
 

@@ -1,29 +1,28 @@
 package networthcalculator.http.clients
 
-import networthcalculator.domain.currencyconversion.*
-
-import java.util.UUID
-import org.http4s.circe.CirceEntityDecoder.circeEntityDecoder
-import org.http4s.client.dsl.Http4sClientDsl
-import networthcalculator.config.data.CurrencyConversionConfig
-import org.typelevel.log4cats.Logger
+import cats.*
 import cats.effect.*
 import cats.implicits.*
+import io.circe.Json
 import io.circe.generic.auto.*
-import org.http4s.Status.NotFound
-import org.http4s.Status.Successful
+import io.circe.parser.parse
+import networthcalculator.config.data.CurrencyConversionConfig
+import networthcalculator.domain.currencyconversion.{CurrencyConversion, CurrencyConversionError}
+import org.http4s.Status.{NotFound, Successful}
+import org.http4s.circe.CirceEntityDecoder.circeEntityDecoder
 import org.http4s.circe.*
 import org.http4s.client.Client
+import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.syntax.all.*
-import cats.*
-import io.circe.Json
-import io.circe.parser.parse
-import org.http4s.Uri
-import squants.market.{Currency, CurrencyExchangeRate, MoneyContext, defaultMoneyContext}
+import org.http4s.{Status, Uri}
+import org.typelevel.log4cats.Logger
+import squants.market._
+
+import java.util.UUID
 
 trait CurrencyConversionClient[F[_]] {
   def latestRates(
-      baseCurrency: String,
+      baseCurrency: Currency,
       dateFrom: Option[String]
   ): F[List[CurrencyExchangeRate]]
 }
@@ -35,13 +34,13 @@ object CurrencyConversionClient {
   )(using ME: MonadThrow[F]): CurrencyConversionClient[F] = new CurrencyConversionClient[F]
     with Http4sClientDsl[F] {
     override def latestRates(
-        baseCurrency: String,
+        baseCurrency: Currency,
         dateFrom: Option[String]
     ): F[List[CurrencyExchangeRate]] = {
 
       val uri = currencyConversionConfig.baseUri
         .withQueryParam("apikey", currencyConversionConfig.apiKey.toString)
-        .withQueryParam("base_currency", baseCurrency)
+        .withQueryParam("base_currency", baseCurrency.code)
         .withQueryParam("date_from", dateFrom.fold(java.time.LocalDate.now.toString)(identity))
 
       for {
@@ -50,26 +49,26 @@ object CurrencyConversionClient {
             resp.decodeJson[CurrencyConversion]
           case resp =>
             CurrencyConversionError(
-              resp.status.toString
+              resp.status.code,
+              resp.status.reason
             ).raiseError[F, CurrencyConversion]
         }
       } yield createExchangeRates(baseCurrency, currencyConversion)
     }
 
     private def createExchangeRates(
-        baseCurrency: String,
+        baseCurrency: Currency,
         currencyConversion: CurrencyConversion
     ): List[CurrencyExchangeRate] = {
-      given MoneyContext    = defaultMoneyContext
-      val baseCurrencyMoney = Currency(baseCurrency)
+      given MoneyContext = MoneyContext(baseCurrency, defaultCurrencySet, Nil)
 
       val availableCurrency =
         currencyConversion.currencies.filter(currency =>
-          Currency(currency.name.toString).isSuccess & currency.name.toString != baseCurrency
+          Currency(currency.name.toString).isSuccess & currency.name.toString != baseCurrency.code
         )
 
       availableCurrency.map { currency =>
-        baseCurrencyMoney.get / (Currency(currency.name.toString).get)(currency.value.toBigDecimal)
+        baseCurrency / (Currency(currency.name.toString).get)(currency.value.toBigDecimal)
       }
     }
   }

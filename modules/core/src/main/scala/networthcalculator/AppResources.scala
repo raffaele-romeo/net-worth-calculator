@@ -6,6 +6,8 @@ import dev.profunktor.redis4cats.{Redis, RedisCommands}
 import doobie._
 import doobie.hikari.HikariTransactor
 import networthcalculator.config.data._
+import org.http4s.blaze.client.BlazeClientBuilder
+import org.http4s.client.Client
 
 object AppResources {
   def make[F[_]: Async](
@@ -29,13 +31,15 @@ object AppResources {
       Redis[F].utf8(c.uri.toString)
 
     for {
-      redis <- mkRedisResource(cfg.redis)
-      psql  <- mkPostgreSqlResource(cfg.postgreSQL)
-    } yield AppResources[F](psql, redis)
+      redis  <- mkRedisResource(cfg.redis)
+      psql   <- mkPostgreSqlResource(cfg.postgreSQL)
+      client <- BlazeClientBuilder[F].resource
+    } yield AppResources[F](psql, redis, client)
   }
 }
 
 final case class AppResources[F[_]](
     psql: HikariTransactor[F],
-    redis: RedisCommands[F, String, String]
+    redis: RedisCommands[F, String, String],
+    client: Client[F]
 )

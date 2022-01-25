@@ -31,10 +31,10 @@ object Dependencies {
     val catsEffect = "org.typelevel"    %% "cats-effect" % Versions.catsEffect
     val catsRetry  = "com.github.cb372" %% "cats-retry"  % Versions.catsRetry
 
-    val circeCore    = circe("circe-core")
-    val circeGeneric = circe("circe-generic")
+    val circeCore         = circe("circe-core")
+    val circeGeneric      = circe("circe-generic")
     val circeGenericExtra = circe("circe-generic-extras")
-    val circeParser  = circe("circe-parser")
+    val circeParser       = circe("circe-parser")
 
     val cirisCore = ciris("ciris")
 

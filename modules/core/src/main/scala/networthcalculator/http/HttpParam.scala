@@ -7,6 +7,7 @@ import org.http4s.dsl.impl._
 
 import java.time.Year
 import scala.util.Try
+import scala.util.control.NoStackTrace
 
 object httpParam {
 
@@ -21,4 +22,8 @@ object httpParam {
   object OptionalYearQueryParamMatcher
       extends OptionalValidatingQueryParamDecoderMatcher[Year]("year")
   object AssetQueryParamMatcher extends ValidatingQueryParamDecoderMatcher[AssetType]("assetType")
+
+  final case class UnableParseQueryParam(name: String) extends NoStackTrace {
+    val message = s"Unable to parse argument $name"
+  }
 }

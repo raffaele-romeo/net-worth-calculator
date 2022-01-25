@@ -1,7 +1,8 @@
 package networthcalculator.http.routes.secured
 
 import cats.MonadThrow
-import cats.effect.Concurrent
+import cats.data.{NonEmptyList, ValidatedNel}
+import cats.effect.{Concurrent, Sync}
 import cats.implicits.*
 import cats.syntax.all.*
 import io.circe.generic.auto.*
@@ -11,6 +12,7 @@ import networthcalculator.domain.assets.*
 import networthcalculator.domain.errors.TransactionValidation.*
 import networthcalculator.domain.errors.TransactionValidationErrors
 import networthcalculator.domain.transactions._
+import networthcalculator.domain.transactions.codecs.given
 import networthcalculator.domain.users.CommonUser
 import networthcalculator.http.decoder.*
 import networthcalculator.http.httpParam._
@@ -20,7 +22,7 @@ import org.http4s.dsl.Http4sDsl
 import org.http4s.dsl.impl.LongVar
 import org.http4s.server.{AuthMiddleware, Router}
 import org.typelevel.log4cats.Logger
-import squants.market.{MoneyContext, defaultMoneyContext}
+import squants.market.MoneyContext
 
 import java.time.{Month, Year}
 
@@ -69,16 +71,9 @@ final class TransactionRoutes[F[_]: Concurrent: Logger](
     case req @ GET -> Root / "net-worth" / "total" :? OptionalYearQueryParamMatcher(
           maybeYear
         ) as user => {
-      given MoneyContext = defaultMoneyContext
 
-      val validatedMaybeYear: cats.data.ValidatedNel[org.http4s.ParseFailure, Option[Year]] =
-        maybeYear.sequence
-
-      validatedMaybeYear.fold(
-        parseFailures =>
-          Logger[F].error(
-            s"Failed to to parse argument 'year' with error: ${parseFailures.head.details}"
-          ) *> BadRequest("Unable to parse argument 'year'"),
+      maybeYear.sequence.fold(
+        parseFailures => BadRequest("Unable to parse argument 'year'"),
         maybeYear =>
           transactionService
             .totalNetWorthByCurrency(user.userId, maybeYear)
@@ -89,16 +84,9 @@ final class TransactionRoutes[F[_]: Concurrent: Logger](
     case req @ GET -> Root / "net-worth" / LongVar(assetId) :? OptionalYearQueryParamMatcher(
           maybeYear
         ) as user => {
-      given MoneyContext = defaultMoneyContext
 
-      val validatedMaybeYear: cats.data.ValidatedNel[org.http4s.ParseFailure, Option[Year]] =
-        maybeYear.sequence
-
-      validatedMaybeYear.fold(
-        parseFailures =>
-          Logger[F].error(
-            s"Failed to to parse argument 'year' with error: ${parseFailures.head.details}"
-          ) *> BadRequest("Unable to parse argument 'year'"),
+      maybeYear.sequence.fold(
+        parseFailures => BadRequest("Unable to parse argument 'year'"),
         maybeYear =>
           transactionService
             .netWorthByCurrencyAndAsset(user.userId, AssetId(assetId), maybeYear)
@@ -110,27 +98,19 @@ final class TransactionRoutes[F[_]: Concurrent: Logger](
     case req @ GET -> Root / "net-worth" :? OptionalYearQueryParamMatcher(
           maybeYear
         ) :? AssetQueryParamMatcher(assetTypeValidated) as user => {
-      given MoneyContext = defaultMoneyContext
 
-      val validatedMaybeYear: cats.data.ValidatedNel[org.http4s.ParseFailure, Option[Year]] =
-        maybeYear.sequence
+      val validatedQueryParams =
+        (
+          maybeYear.sequence.leftMap(_ => NonEmptyList.one(UnableParseQueryParam("year"))),
+          assetTypeValidated.leftMap(_ => NonEmptyList.one(UnableParseQueryParam("assetType")))
+        ).mapN((year, assetType) => (year, assetType))
 
-      validatedMaybeYear.fold(
-        parseFailures =>
-          Logger[F].error(
-            s"Failed to to parse argument 'year' with error: ${parseFailures.head.details}"
-          ) *> BadRequest("Unable to parse argument 'year'"),
-        maybeYear =>
-          assetTypeValidated.fold(
-            parseFailures =>
-              Logger[F].error(
-                s"Failed to to parse argument 'assetType' with error: ${parseFailures.head.details}"
-              ) *> BadRequest("Unable to parse argument 'assetType'"),
-            assetType =>
-              transactionService
-                .netWorthByCurrencyAndAssetType(user.userId, assetType, maybeYear)
-                .flatMap(total => Ok(total.asJson))
-          )
+      validatedQueryParams.fold(
+        parseFailures => BadRequest(parseFailures.map(_.message).asJson),
+        params =>
+          transactionService
+            .netWorthByCurrencyAndAssetType(user.userId, params._2, params._1)
+            .flatMap(total => Ok(total.asJson))
       )
     }
   }

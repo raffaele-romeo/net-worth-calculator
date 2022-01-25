@@ -1,10 +1,11 @@
 package networthcalculator.services
 
 import cats.MonadThrow
-import cats.data.Validated.{Invalid, Valid}
+import cats.data.Validated._
 import cats.data.ValidatedNec
 import cats.effect.Sync
 import cats.implicits.*
+import cats.kernel.Semigroup
 import cats.syntax.all.*
 import networthcalculator.algebras.ValidationService
 import networthcalculator.domain.assets.{AssetType, AssetTypeNotAllowed}
@@ -92,6 +93,12 @@ object TransactionValidatorNec {
 
   type ValidationResult[A] = ValidatedNec[TransactionValidation, A]
 
+  def validateForm(
+      transactions: List[ExplodeCreateTransaction]
+  ): ValidationResult[List[ValidTransaction]] = {
+    transactions.map(validateTransaction).reduce(_ combine _)
+  }
+
   private def validateCurrency(amount: BigDecimal, currency: String): ValidationResult[Money] =
     Money(amount, currency)(defaultMoneyContext) match {
       case Failure(e) => CurrencyIsNotSupported(e.getMessage).invalidNec
@@ -106,16 +113,14 @@ object TransactionValidatorNec {
     value => value.valid
   )
 
-  def validateForm(
-      transactions: List[ExplodeCreateTransaction]
+  private def validateTransaction(
+      transaction: ExplodeCreateTransaction
   ): ValidationResult[List[ValidTransaction]] = {
-    transactions.traverse(transaction =>
-      (
-        validateCurrency(transaction.amount, transaction.currency),
-        validateMonth(transaction.month)
-      ).mapN((money, month) =>
-        ValidTransaction(money, month, transaction.year, transaction.assetId)
-      )
+    (
+      validateCurrency(transaction.amount, transaction.currency),
+      validateMonth(transaction.month)
+    ).mapN((money, month) =>
+      List(ValidTransaction(money, month, transaction.year, transaction.assetId))
     )
   }
 }
