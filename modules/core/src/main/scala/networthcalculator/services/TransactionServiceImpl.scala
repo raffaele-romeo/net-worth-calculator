@@ -1,6 +1,7 @@
 package networthcalculator.services
 
-import cats.effect.MonadCancelThrow
+import cats.effect.implicits.parallelForGenSpawn
+import cats.effect.{Concurrent, MonadCancelThrow}
 import cats.implicits.*
 import cats.syntax.all.*
 import doobie.ConnectionIO
@@ -17,13 +18,13 @@ import squants.market.{Money, MoneyContext}
 import java.time.{Month, Year}
 
 object TransactionServiceImpl {
-  def make[F[_]: MonadCancelThrow](transactor: HikariTransactor[F]) =
+  def make[F[_]: Concurrent: MonadCancelThrow](transactor: HikariTransactor[F]) =
     new TransactionsService[F] {
 
       override def create(userId: UserId, transactions: List[ValidTransaction]): F[Unit] =
         // TODO Update to use Bulk Insert
         transactions
-          .traverse_(transaction =>
+          .parTraverse_(transaction =>
             TransactionQueries
               .insert(userId, transaction)
               .exceptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
@@ -83,6 +84,16 @@ object TransactionServiceImpl {
             TotalNetWorthByCurrency(list.map(_.total), month, year)
           }
           .toList
+          .sorted(
+            Ordering
+              .by(
+                (
+                    (totalNetWorth: TotalNetWorthByCurrency) =>
+                      (totalNetWorth.year, totalNetWorth.month)
+                )
+              )
+              .reverse
+          )
     }
 }
 
@@ -140,8 +151,7 @@ private object TransactionQueries {
       fr""") 
       |SELECT SUM(CASE asset_type WHEN 'loan' THEN -amount ELSE amount END) as total, currency, month, year 
       |FROM relevant_transactions  
-      |GROUP BY month, year, currency
-      |ORDER BY year DESC, month DESC;
+      |GROUP BY month, year, currency;
     """.stripMargin
 
     queryFragment.query[TotalNetWorth].to[List]
@@ -165,8 +175,7 @@ private object TransactionQueries {
     """.stripMargin ++ whereAndOpt(f2User, f3Asset, f1Year) ++
       fr""") 
       |SELECT amount, currency, month, year
-      |FROM relevant_transactions
-      |ORDER BY year DESC, month DESC;
+      |FROM relevant_transactions;
     """.stripMargin
 
     queryFragment.query[TotalNetWorth].to[List]
@@ -192,8 +201,7 @@ private object TransactionQueries {
       fr""") 
       |SELECT SUM(amount), currency, month, year
       |FROM relevant_transactions  
-      |GROUP BY month, year, currency
-      |ORDER BY year DESC, month DESC;
+      |GROUP BY month, year, currency;
     """.stripMargin
 
     queryFragment.query[TotalNetWorth].to[List]

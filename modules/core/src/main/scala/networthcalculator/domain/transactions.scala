@@ -7,6 +7,7 @@ import networthcalculator.domain.assets._
 import networthcalculator.domain.users.UserId
 import squants.market._
 
+import java.text.DecimalFormat
 import java.time.{Month, Year}
 import scala.util.control.NoStackTrace
 
@@ -99,7 +100,9 @@ object transactions {
   }
 
   object codecs {
-    given Encoder[Money] = Encoder[String].contramap(_.toString)
+    private val df = new DecimalFormat("#,###.00")
+    given Encoder[Money] =
+      Encoder[String].contramap(money => s"${money.currency.code} ${df.format(money.amount)}")
     given Encoder[Year]  = Encoder[Int].contramap(_.getValue)
     given Encoder[Month] = Encoder[Int].contramap(_.getValue)
   }
