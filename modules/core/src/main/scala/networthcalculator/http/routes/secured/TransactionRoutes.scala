@@ -1,8 +1,7 @@
 package networthcalculator.http.routes.secured
 
-import cats.MonadThrow
 import cats.data.{NonEmptyList, ValidatedNel}
-import cats.effect.kernel.Async
+import cats.effect.Concurrent
 import cats.implicits.*
 import cats.syntax.all.*
 import io.circe.generic.auto.*
@@ -26,11 +25,10 @@ import squants.market.MoneyContext
 
 import java.time.{Month, Year}
 
-final class TransactionRoutes[F[_]: Async: Logger](
+final class TransactionRoutes[F[_]: Concurrent: Logger](
     transactionService: TransactionsService[F],
     validationService: ValidationService[F]
-)(using ME: MonadThrow[F])
-    extends Http4sDsl[F] {
+) extends Http4sDsl[F] {
 
   import org.http4s.circe.CirceEntityDecoder.circeEntityDecoder
   private[routes] val prefixPath = "/transactions"
@@ -81,9 +79,10 @@ final class TransactionRoutes[F[_]: Async: Logger](
         totalNetWorth <- transactionService
           .totalNetWorthByCurrency(user.userId, maybeYear)
         response <- Ok(totalNetWorth.asJson)
-      } yield response).recoverWith { case QueryParamValidationErrors(errors) =>
-        BadRequest(errors.asJson)
-      }
+      } yield response)
+        .recoverWith { case QueryParamValidationErrors(errors) =>
+         BadRequest(errors.asJson)
+        }
     }
 
     case req @ GET -> Root / "net-worth" / LongVar(assetId) :? OptionalYearQueryParamMatcher(
@@ -95,9 +94,10 @@ final class TransactionRoutes[F[_]: Async: Logger](
         totalNetWorth <- transactionService
           .netWorthByCurrencyAndAsset(user.userId, AssetId(assetId), maybeYear)
         response <- Ok(totalNetWorth.asJson)
-      } yield response).recoverWith { case QueryParamValidationErrors(errors) =>
-        BadRequest(errors.asJson)
-      }
+      } yield response)
+        .recoverWith { case QueryParamValidationErrors(errors) =>
+          BadRequest(errors.asJson)
+        }
 
     }
 

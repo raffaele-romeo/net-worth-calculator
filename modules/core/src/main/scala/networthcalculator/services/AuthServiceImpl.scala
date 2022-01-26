@@ -5,7 +5,7 @@ import cats.data.ValidatedNec
 import cats.effect.Sync
 import cats.implicits.*
 import cats.syntax.all.*
-import cats.{Applicative, Monad, MonadThrow}
+import cats.Applicative
 import com.nimbusds.jose.JWSAlgorithm
 import networthcalculator.algebras._
 import networthcalculator.config.data.TokenExpiration
@@ -20,7 +20,7 @@ object AuthServiceImpl {
       encryptionService: EncryptionService[F],
       tokensService: TokensService[F],
       expiresIn: TokenExpiration
-  )(using S: Sync[F], ME: MonadThrow[F]): AuthService[F] =
+  )(using S: Sync[F]): AuthService[F] =
     new AuthService[F] {
 
       override def newUser(validUser: ValidUser): F[JwtToken] = {
@@ -46,7 +46,7 @@ object AuthServiceImpl {
           .flatMap {
             case None => UserNotFound(validUser.username).raiseError[F, JwtToken]
             case Some(user) =>
-              ME.ifM(
+              S.ifM(
                 encryptionService.checkPassword(user.password, validUser.password, user.salt)
               )(
                 tokensService.findTokenBy(validUser.username).flatMap {

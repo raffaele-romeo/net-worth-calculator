@@ -1,6 +1,5 @@
 package networthcalculator.http.routes.secured
 
-import cats.MonadThrow
 import cats.effect.Concurrent
 import cats.implicits.*
 import cats.syntax.all.*
@@ -19,7 +18,7 @@ import org.typelevel.log4cats.Logger
 final class AssetRoutes[F[_]: Concurrent: Logger](
     assets: AssetsService[F],
     validationService: ValidationService[F]
-)(using ME: MonadThrow[F])
+)
     extends Http4sDsl[F] {
 
   import org.http4s.circe.CirceEntityDecoder.circeEntityDecoder

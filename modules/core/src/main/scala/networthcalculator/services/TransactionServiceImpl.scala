@@ -1,7 +1,7 @@
 package networthcalculator.services
 
 import cats.effect.implicits.parallelForGenSpawn
-import cats.effect.{Concurrent, MonadCancelThrow}
+import cats.effect.Concurrent
 import cats.implicits.*
 import cats.syntax.all.*
 import doobie.ConnectionIO
@@ -18,7 +18,7 @@ import squants.market.{Money, MoneyContext}
 import java.time.{Month, Year}
 
 object TransactionServiceImpl {
-  def make[F[_]: Concurrent: MonadCancelThrow](transactor: HikariTransactor[F]) =
+  def make[F[_]: Concurrent](transactor: HikariTransactor[F]) =
     new TransactionsService[F] {
 
       override def create(userId: UserId, transactions: List[ValidTransaction]): F[Unit] =

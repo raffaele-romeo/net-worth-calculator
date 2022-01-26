@@ -26,7 +26,7 @@ import java.time.Month
 import scala.util.{Failure, Success, Try}
 
 object ValidationServiceImpl {
-  def make[F[_]](using S: Sync[F], ME: MonadThrow[F]): ValidationService[F] =
+  def make[F[_]](using ME: MonadThrow[F]): ValidationService[F] =
     new ValidationService[F] {
       override def validate(
           transactions: List[ExplodeCreateTransaction]

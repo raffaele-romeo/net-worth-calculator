@@ -1,6 +1,6 @@
 package networthcalculator.modules
 
-import cats.effect._
+import cats.effect.Async
 import cats.syntax.all.*
 import networthcalculator.domain.users.{AdminUser, CommonUser}
 import networthcalculator.http.routes.auth.{LoginRoutes, LogoutRoutes, UserRoutes}

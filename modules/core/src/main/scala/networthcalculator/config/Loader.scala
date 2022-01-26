@@ -1,6 +1,6 @@
 package networthcalculator.config
 
-import cats.effect._
+import cats.effect.Async
 import cats.implicits._
 import ciris._
 import networthcalculator.config.data._

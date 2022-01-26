@@ -1,9 +1,7 @@
 package networthcalculator.http
 
-import cats.MonadThrow
 import cats.data.Validated.{Invalid, Valid}
 import cats.data.{NonEmptyList, ValidatedNel}
-import cats.effect.kernel.Async
 import cats.implicits.{catsSyntaxApplicativeId, catsSyntaxEither}
 import networthcalculator.domain.assets._
 import org.http4s._
@@ -12,6 +10,7 @@ import org.http4s.dsl.impl._
 import java.time.Year
 import scala.util.Try
 import scala.util.control.NoStackTrace
+import cats.MonadThrow
 
 object httpParam {
 
@@ -31,7 +30,7 @@ object httpParam {
     val message = s"Unable parsing argument $name"
   }
 
-  def liftQueryParams[F[_]: Async, A](
+  def liftQueryParams[F[_], A](
       queryParam: ValidatedNel[UnableParsingQueryParams, A]
   )(using ME: MonadThrow[F]): F[A] = {
     queryParam match {

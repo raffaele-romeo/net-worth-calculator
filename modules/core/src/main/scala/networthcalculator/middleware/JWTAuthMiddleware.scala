@@ -4,7 +4,7 @@ import cats.data.{Kleisli, OptionT}
 import cats.effect.Sync
 import cats.instances.either
 import cats.syntax.all._
-import cats.{MonadThrow, Show}
+import cats.Show
 import com.nimbusds.jwt.SignedJWT
 import networthcalculator.domain.tokens.JwtToken
 import org.http4s.Credentials.Token
@@ -19,7 +19,7 @@ object JWTAuthMiddleware {
 
   def apply[F[_], A: Show](
       authenticate: JwtToken => F[Option[A]]
-  )(using S: Sync[F], ME: MonadThrow[F]): AuthMiddleware[F, A] = {
+  )(using S: Sync[F]): AuthMiddleware[F, A] = {
 
     val dsl = new Http4sDsl[F] {}
     import dsl._

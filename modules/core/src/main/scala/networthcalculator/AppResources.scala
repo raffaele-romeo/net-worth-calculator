@@ -1,6 +1,6 @@
 package networthcalculator
 
-import cats.effect._
+import cats.effect.{Async, Resource}
 import dev.profunktor.redis4cats.effect.Log.Stdout._
 import dev.profunktor.redis4cats.{Redis, RedisCommands}
 import doobie._
