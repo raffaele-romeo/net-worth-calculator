@@ -13,7 +13,7 @@ import networthcalculator.algebras.TransactionsService
 import networthcalculator.domain.assets.*
 import networthcalculator.domain.transactions.*
 import networthcalculator.domain.users.*
-import squants.market.{Money, MoneyContext}
+import squants.market.Money
 
 import java.time.{Month, Year}
 
@@ -49,7 +49,7 @@ object TransactionServiceImpl {
       override def totalNetWorthByCurrency(
           userId: UserId,
           maybeYear: Option[Year]
-      ): F[List[TotalNetWorthByCurrency]] =
+      ): F[List[AggregatedTransactions]] =
         TransactionQueries
           .calculateTotalNetWorthByCurrency(userId, maybeYear)
           .transact[F](transactor)
@@ -59,7 +59,7 @@ object TransactionServiceImpl {
           userId: UserId,
           assetId: AssetId,
           year: Option[Year]
-      ): F[List[TotalNetWorthByCurrency]] =
+      ): F[List[AggregatedTransactions]] =
         TransactionQueries
           .calculateNetWorthByCurrencyAndAsset(userId, assetId, year)
           .transact[F](transactor)
@@ -69,26 +69,26 @@ object TransactionServiceImpl {
           userId: UserId,
           assetType: AssetType,
           year: Option[Year]
-      ): F[List[TotalNetWorthByCurrency]] =
+      ): F[List[AggregatedTransactions]] =
         TransactionQueries
           .calculateNetWorthByCurrencyAndAssetType(userId, assetType, year)
           .transact[F](transactor)
           .map(groupByCurrency)
 
       private def groupByCurrency(
-          totalNetWorth: List[TotalNetWorth]
-      ): List[TotalNetWorthByCurrency] =
+          totalNetWorth: List[AggregatedTransactions]
+      ): List[AggregatedTransactions] =
         totalNetWorth
           .groupBy(transaction => (transaction.year, transaction.month))
           .map { case ((year, month), list) =>
-            TotalNetWorthByCurrency(list.map(_.total), month, year)
+            AggregatedTransactions(list.flatMap(_.total), month, year)
           }
           .toList
           .sorted(
             Ordering
               .by(
                 (
-                    (totalNetWorth: TotalNetWorthByCurrency) =>
+                    (totalNetWorth: AggregatedTransactions) =>
                       (totalNetWorth.year, totalNetWorth.month)
                 )
               )
@@ -137,7 +137,7 @@ private object TransactionQueries {
   def calculateTotalNetWorthByCurrency(
       userId: UserId,
       maybeYear: Option[Year]
-  ): ConnectionIO[List[TotalNetWorth]] = {
+  ): ConnectionIO[List[AggregatedTransactions]] = {
 
     val f1Year = maybeYear.map(year => fr"year = ${year.getValue()}")
     val f2User = Some(userId).map(userId => fr"transactions.user_id = ${userId.toLong}")
@@ -154,14 +154,14 @@ private object TransactionQueries {
       |GROUP BY month, year, currency;
     """.stripMargin
 
-    queryFragment.query[TotalNetWorth].to[List]
+    queryFragment.query[AggregatedTransactions].to[List]
   }
 
   def calculateNetWorthByCurrencyAndAsset(
       userId: UserId,
       assetId: AssetId,
       maybeYear: Option[Year]
-  ): ConnectionIO[List[TotalNetWorth]] = {
+  ): ConnectionIO[List[AggregatedTransactions]] = {
 
     val f1Year  = maybeYear.map(year => fr"year = ${year.getValue()}")
     val f2User  = Some(userId).map(userId => fr"transactions.user_id = ${userId.toLong}")
@@ -178,14 +178,14 @@ private object TransactionQueries {
       |FROM relevant_transactions;
     """.stripMargin
 
-    queryFragment.query[TotalNetWorth].to[List]
+    queryFragment.query[AggregatedTransactions].to[List]
   }
 
   def calculateNetWorthByCurrencyAndAssetType(
       userId: UserId,
       assetType: AssetType,
       maybeYear: Option[Year]
-  ): ConnectionIO[List[TotalNetWorth]] = {
+  ): ConnectionIO[List[AggregatedTransactions]] = {
 
     val f1Year = maybeYear.map(year => fr"year = ${year.getValue()}")
     val f2User = Some(userId).map(userId => fr"transactions.user_id = ${userId.toLong}")
@@ -199,11 +199,11 @@ private object TransactionQueries {
       |INNER JOIN assets ON transactions.asset_id = assets.id   
     """.stripMargin ++ whereAndOpt(f2User, f3Asset, f1Year) ++
       fr""") 
-      |SELECT SUM(amount), currency, month, year
+      |SELECT SUM(amount) as total, currency, month, year
       |FROM relevant_transactions  
       |GROUP BY month, year, currency;
     """.stripMargin
 
-    queryFragment.query[TotalNetWorth].to[List]
+    queryFragment.query[AggregatedTransactions].to[List]
   }
 }

@@ -12,6 +12,7 @@ import networthcalculator.domain.errors.TransactionValidation.*
 import networthcalculator.domain.errors.TransactionValidationErrors
 import networthcalculator.domain.transactions._
 import networthcalculator.domain.transactions.codecs.given
+import org.http4s.circe.CirceEntityCodec.circeEntityEncoder 
 import networthcalculator.domain.users.CommonUser
 import networthcalculator.http.decoder.*
 import networthcalculator.http.httpParam._
@@ -24,10 +25,12 @@ import org.typelevel.log4cats.Logger
 import squants.market.MoneyContext
 
 import java.time.{Month, Year}
+import networthcalculator.programs.CurrencyConverter
 
 final class TransactionRoutes[F[_]: Concurrent: Logger](
     transactionService: TransactionsService[F],
-    validationService: ValidationService[F]
+    validationService: ValidationService[F],
+    currencyConverter: CurrencyConverter[F]
 ) extends Http4sDsl[F] {
 
   import org.http4s.circe.CirceEntityDecoder.circeEntityDecoder
@@ -72,13 +75,21 @@ final class TransactionRoutes[F[_]: Concurrent: Logger](
 
     case req @ GET -> Root / "net-worth" / "total" :? OptionalYearQueryParamMatcher(
           maybeYear
-        ) as user => {
+        ) :? OptionalCurrencyQueryParamMatcher(maybeCurrency) as user => {
+
+      val validatedQueryParams =
+        (
+          toUnableParsingQueryParam("year", maybeYear.sequence),
+          toUnableParsingQueryParam("currency", maybeCurrency.sequence)
+        ).mapN((year, currency) => (year, currency))
 
       (for {
-        maybeYear <- liftQueryParams(toUnableParsingQueryParam("year", maybeYear.sequence))
-        totalNetWorth <- transactionService
-          .totalNetWorthByCurrency(user.userId, maybeYear)
-        response <- Ok(totalNetWorth.asJson)
+        params <- liftQueryParams(validatedQueryParams)
+        totalNetWorth = transactionService
+          .totalNetWorthByCurrency(user.userId, params._1)
+        maybeConverted <- params._2
+          .fold(totalNetWorth)(currencyConverter.convertTotalNetWorthToTargetCurrency(_, totalNetWorth))
+        response <- Ok(maybeConverted)
       } yield response)
         .recoverWith { case QueryParamValidationErrors(errors) =>
           BadRequest(errors.asJson)

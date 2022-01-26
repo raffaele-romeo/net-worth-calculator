@@ -18,12 +18,13 @@ import org.http4s.{Status, Uri}
 import org.typelevel.log4cats.Logger
 import squants.market._
 
+import java.time.LocalDate
 import java.util.UUID
 
 trait CurrencyConversionClient[F[_]] {
   def latestRates(
       baseCurrency: Currency,
-      dateFrom: Option[String]
+      dateFrom: LocalDate
   ): F[List[CurrencyExchangeRate]]
 }
 
@@ -34,13 +35,13 @@ object CurrencyConversionClient {
   ): CurrencyConversionClient[F] = new CurrencyConversionClient[F] with Http4sClientDsl[F] {
     override def latestRates(
         baseCurrency: Currency,
-        dateFrom: Option[String]
+        dateFrom: LocalDate
     ): F[List[CurrencyExchangeRate]] = {
 
       val uri = currencyConversionConfig.baseUri
         .withQueryParam("apikey", currencyConversionConfig.apiKey.toString)
         .withQueryParam("base_currency", baseCurrency.code)
-        .withQueryParam("date_from", dateFrom.fold(java.time.LocalDate.now.toString)(identity))
+        .withQueryParam("date_from", dateFrom.toString)
 
       for {
         currencyConversion <- client.get(uri) {
@@ -52,6 +53,7 @@ object CurrencyConversionClient {
               resp.status.reason
             ).raiseError[F, CurrencyConversion]
         }
+        _ <- Logger[F].info(s"Currencies list for base currency ${baseCurrency.code} and date ${dateFrom.toString}: ${currencyConversion.currencies.mkString(", ")}")
       } yield createExchangeRates(baseCurrency, currencyConversion)
     }
 

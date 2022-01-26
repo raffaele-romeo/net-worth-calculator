@@ -13,19 +13,19 @@ trait TransactionsService[F[_]] {
   def delete(userId: UserId, transactionId: TransactionId): F[Unit]
 
   // TODO Add pagination logic to all the methods that retrieve a list
-  def totalNetWorthByCurrency(userId: UserId, year: Option[Year]): F[List[TotalNetWorthByCurrency]]
+  def totalNetWorthByCurrency(userId: UserId, year: Option[Year]): F[List[AggregatedTransactions]]
 
   def netWorthByCurrencyAndAsset(
       userId: UserId,
       assetId: AssetId,
       year: Option[Year]
-  ): F[List[TotalNetWorthByCurrency]]
+  ): F[List[AggregatedTransactions]]
 
   def netWorthByCurrencyAndAssetType(
       userId: UserId,
       assetType: AssetType,
       year: Option[Year]
-  ): F[List[TotalNetWorthByCurrency]]
+  ): F[List[AggregatedTransactions]]
 
   def findAll(userId: UserId): F[List[Transaction]]
 }

@@ -59,17 +59,12 @@ object transactions {
 
   final case class TransactionValue(amount: BigDecimal, currency: String, assetId: AssetId)
 
-  final case class TotalNetWorthByCurrency(
+  final case class AggregatedTransactions(
       total: List[Money],
       month: Month,
       year: Year
   )
 
-  final case class TotalNetWorth(
-      total: Money,
-      month: Month,
-      year: Year
-  )
   final case class ExplodeCreateTransaction(
       amount: BigDecimal,
       currency: String,
@@ -85,14 +80,16 @@ object transactions {
       assetId: AssetId
   )
 
-  object TotalNetWorth {
-    given Read[TotalNetWorth] =
+  object AggregatedTransactions {
+    given Read[AggregatedTransactions] =
       Read[(BigDecimal, String, Int, Int)].map { case (total, currency, month, year) =>
-        TotalNetWorth(
-          Money(
-            total,
-            currency
-          )(defaultMoneyContext).get,
+        AggregatedTransactions(
+          List(
+            Money(
+              total,
+              currency
+            )(defaultMoneyContext).get
+          ),
           Month.of(month),
           Year.of(year)
         )

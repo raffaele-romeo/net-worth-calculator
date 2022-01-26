@@ -11,6 +11,7 @@ import org.http4s.dsl.impl._
 import java.time.Year
 import scala.util.Try
 import scala.util.control.NoStackTrace
+import squants.market.{Currency, defaultMoneyContext}
 
 object httpParam {
 
@@ -22,8 +23,15 @@ object httpParam {
   given QueryParamDecoder[Year] = QueryParamDecoder[Int]
     .emap(i => Try(Year.of(i)).toEither.leftMap(t => ParseFailure(t.getMessage, t.getMessage)))
 
+  given QueryParamDecoder[Currency] = QueryParamDecoder[String]
+    .emap(str => Currency(str.toUpperCase)(defaultMoneyContext).toEither.leftMap(t => ParseFailure(t.getMessage, t.getMessage)))
+
   object OptionalYearQueryParamMatcher
       extends OptionalValidatingQueryParamDecoderMatcher[Year]("year")
+
+  object OptionalCurrencyQueryParamMatcher
+      extends OptionalValidatingQueryParamDecoderMatcher[Currency]("currency")
+
   object AssetQueryParamMatcher extends ValidatingQueryParamDecoderMatcher[AssetType]("assetType")
 
   final case class UnableParsingQueryParams(name: String) {
