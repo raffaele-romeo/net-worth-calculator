@@ -18,8 +18,7 @@ import org.typelevel.log4cats.Logger
 final class AssetRoutes[F[_]: Concurrent: Logger](
     assets: AssetsService[F],
     validationService: ValidationService[F]
-)
-    extends Http4sDsl[F] {
+) extends Http4sDsl[F] {
 
   import org.http4s.circe.CirceEntityDecoder.circeEntityDecoder
   private[routes] val prefixPath = "/assets"

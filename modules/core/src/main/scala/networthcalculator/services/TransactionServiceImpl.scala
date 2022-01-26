@@ -1,7 +1,7 @@
 package networthcalculator.services
 
-import cats.effect.implicits.parallelForGenSpawn
 import cats.effect.Concurrent
+import cats.effect.implicits.parallelForGenSpawn
 import cats.implicits.*
 import cats.syntax.all.*
 import doobie.ConnectionIO

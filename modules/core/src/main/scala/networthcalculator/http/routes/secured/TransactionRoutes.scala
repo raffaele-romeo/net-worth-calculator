@@ -81,7 +81,7 @@ final class TransactionRoutes[F[_]: Concurrent: Logger](
         response <- Ok(totalNetWorth.asJson)
       } yield response)
         .recoverWith { case QueryParamValidationErrors(errors) =>
-         BadRequest(errors.asJson)
+          BadRequest(errors.asJson)
         }
     }
 

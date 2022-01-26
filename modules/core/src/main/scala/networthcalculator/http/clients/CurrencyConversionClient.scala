@@ -31,8 +31,7 @@ object CurrencyConversionClient {
   def make[F[_]: JsonDecoder: Concurrent: Logger](
       currencyConversionConfig: CurrencyConversionConfig,
       client: Client[F]
-  ): CurrencyConversionClient[F] = new CurrencyConversionClient[F]
-    with Http4sClientDsl[F] {
+  ): CurrencyConversionClient[F] = new CurrencyConversionClient[F] with Http4sClientDsl[F] {
     override def latestRates(
         baseCurrency: Currency,
         dateFrom: Option[String]

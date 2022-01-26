@@ -1,10 +1,10 @@
 package networthcalculator.middleware
 
+import cats.Show
 import cats.data.{Kleisli, OptionT}
 import cats.effect.Sync
 import cats.instances.either
 import cats.syntax.all._
-import cats.Show
 import com.nimbusds.jwt.SignedJWT
 import networthcalculator.domain.tokens.JwtToken
 import org.http4s.Credentials.Token

@@ -1,5 +1,6 @@
 package networthcalculator.http
 
+import cats.MonadThrow
 import cats.data.Validated.{Invalid, Valid}
 import cats.data.{NonEmptyList, ValidatedNel}
 import cats.implicits.{catsSyntaxApplicativeId, catsSyntaxEither}
@@ -10,7 +11,6 @@ import org.http4s.dsl.impl._
 import java.time.Year
 import scala.util.Try
 import scala.util.control.NoStackTrace
-import cats.MonadThrow
 
 object httpParam {
 

@@ -1,11 +1,11 @@
 package networthcalculator.services
 
+import cats.Applicative
 import cats.data.Validated.{Invalid, Valid}
 import cats.data.ValidatedNec
 import cats.effect.Sync
 import cats.implicits.*
 import cats.syntax.all.*
-import cats.Applicative
 import com.nimbusds.jose.JWSAlgorithm
 import networthcalculator.algebras._
 import networthcalculator.config.data.TokenExpiration
