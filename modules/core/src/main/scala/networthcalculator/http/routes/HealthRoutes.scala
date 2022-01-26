@@ -17,7 +17,10 @@ final class HealthRoutes[F[_]: Monad](
   private[routes] val prefixPath = "/healthcheck"
 
   private val httpRoutes: HttpRoutes[F] = HttpRoutes.of[F] { case GET -> Root =>
-    healthCheck.status.flatMap(status => Ok(status.asJson))
+    for {
+      status   <- healthCheck.status
+      response <- Ok(status.asJson)
+    } yield response
   }
 
   val routes: HttpRoutes[F] = Router(

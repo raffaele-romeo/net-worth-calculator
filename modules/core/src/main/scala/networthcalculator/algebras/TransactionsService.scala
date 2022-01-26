@@ -28,7 +28,4 @@ trait TransactionsService[F[_]] {
   ): F[List[TotalNetWorthByCurrency]]
 
   def findAll(userId: UserId): F[List[Transaction]]
-
-  // def totalNetWorth(userId: UserId, year: Option[Year], currency: Currency)(using fxContext: MoneyContext): F[List[Money]]
-
 }

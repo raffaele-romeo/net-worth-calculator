@@ -27,10 +27,10 @@ final class UserRoutes[F[_]: Concurrent: Logger](
       .decodeR[CreateUser] { user =>
         for {
           validUser <- validationService.validate(user.username, user.password)
-          result <- authService
+          jwtToken <- authService
             .newUser(validUser)
-            .flatMap(jwtToken => Created(jwtToken.toString.asJson))
-        } yield result
+          response <- Created(jwtToken.toString.asJson)
+        } yield response
       }
       .recoverWith {
         case AuthValidationErrors(errors) =>

@@ -1,6 +1,10 @@
 package networthcalculator.http
 
-import cats.implicits.catsSyntaxEither
+import cats.MonadThrow
+import cats.data.Validated.{Invalid, Valid}
+import cats.data.{NonEmptyList, ValidatedNel}
+import cats.effect.kernel.Async
+import cats.implicits.{catsSyntaxApplicativeId, catsSyntaxEither}
 import networthcalculator.domain.assets._
 import org.http4s._
 import org.http4s.dsl.impl._
@@ -23,7 +27,21 @@ object httpParam {
       extends OptionalValidatingQueryParamDecoderMatcher[Year]("year")
   object AssetQueryParamMatcher extends ValidatingQueryParamDecoderMatcher[AssetType]("assetType")
 
-  final case class UnableParseQueryParam(name: String) extends NoStackTrace {
-    val message = s"Unable to parse argument $name"
+  final case class UnableParsingQueryParams(name: String) {
+    val message = s"Unable parsing argument $name"
   }
+
+  def liftQueryParams[F[_]: Async, A](
+      queryParam: ValidatedNel[UnableParsingQueryParams, A]
+  )(using ME: MonadThrow[F]): F[A] = {
+    queryParam match {
+      case Valid(param) =>
+        param.pure[F]
+      case Invalid(failures) =>
+        ME.raiseError(QueryParamValidationErrors(failures.map(_.message).toList))
+    }
+  }
+
+  final case class QueryParamValidationErrors(errors: List[String]) extends NoStackTrace
+
 }

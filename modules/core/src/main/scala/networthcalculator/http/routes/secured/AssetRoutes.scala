@@ -27,19 +27,23 @@ final class AssetRoutes[F[_]: Concurrent: Logger](
 
   private val httpRoutes: AuthedRoutes[CommonUser, F] = AuthedRoutes.of {
     case _ @GET -> Root as user =>
-      assets.findAll(user.userId).flatMap(assets => Ok(assets.asJson))
+      for {
+        assets   <- assets.findAll(user.userId)
+        response <- Ok(assets.asJson)
+      } yield response
 
     case req @ POST -> Root as user =>
       req.req
         .decodeR[CreateAsset] { asset =>
           for {
             assetType <- validationService.validate(asset.assetType)
-            result <- assets.create(
+            _ <- assets.create(
               assetType,
               asset.assetName,
               user.userId
-            ) *> Created()
-          } yield result
+            )
+            response <- Created()
+          } yield response
         }
         .recoverWith {
           case AssetTypeNotAllowed(error) => BadRequest(error.asJson)

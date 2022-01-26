@@ -2,7 +2,7 @@ package networthcalculator.http.routes.secured
 
 import cats.MonadThrow
 import cats.data.{NonEmptyList, ValidatedNel}
-import cats.effect.{Concurrent, Sync}
+import cats.effect.kernel.Async
 import cats.implicits.*
 import cats.syntax.all.*
 import io.circe.generic.auto.*
@@ -26,7 +26,7 @@ import squants.market.MoneyContext
 
 import java.time.{Month, Year}
 
-final class TransactionRoutes[F[_]: Concurrent: Logger](
+final class TransactionRoutes[F[_]: Async: Logger](
     transactionService: TransactionsService[F],
     validationService: ValidationService[F]
 )(using ME: MonadThrow[F])
@@ -51,11 +51,12 @@ final class TransactionRoutes[F[_]: Concurrent: Logger](
 
           for {
             validTransaction <- validationService.validate(explodedTransactions)
-            result <- transactionService.create(
+            _ <- transactionService.create(
               user.userId,
               validTransaction
-            ) *> Created()
-          } yield result
+            )
+            response <- Created()
+          } yield response
         }
         .recoverWith {
           case TransactionValidationErrors(error) => BadRequest(error.asJson)
@@ -66,32 +67,37 @@ final class TransactionRoutes[F[_]: Concurrent: Logger](
       transactionService.delete(user.userId, TransactionId(id)) *> NoContent()
 
     case _ @GET -> Root as user =>
-      transactionService.findAll(user.userId).flatMap(transactions => Ok(transactions.asJson))
+      for {
+        transactions <- transactionService.findAll(user.userId)
+        response     <- Ok(transactions.asJson)
+      } yield response
 
     case req @ GET -> Root / "net-worth" / "total" :? OptionalYearQueryParamMatcher(
           maybeYear
         ) as user => {
 
-      maybeYear.sequence.fold(
-        parseFailures => BadRequest("Unable to parse argument 'year'"),
-        maybeYear =>
-          transactionService
-            .totalNetWorthByCurrency(user.userId, maybeYear)
-            .flatMap(total => Ok(total.asJson))
-      )
+      (for {
+        maybeYear <- liftQueryParams(toUnableParsingQueryParam("year", maybeYear.sequence))
+        totalNetWorth <- transactionService
+          .totalNetWorthByCurrency(user.userId, maybeYear)
+        response <- Ok(totalNetWorth.asJson)
+      } yield response).recoverWith { case QueryParamValidationErrors(errors) =>
+        BadRequest(errors.asJson)
+      }
     }
 
     case req @ GET -> Root / "net-worth" / LongVar(assetId) :? OptionalYearQueryParamMatcher(
           maybeYear
         ) as user => {
 
-      maybeYear.sequence.fold(
-        parseFailures => BadRequest("Unable to parse argument 'year'"),
-        maybeYear =>
-          transactionService
-            .netWorthByCurrencyAndAsset(user.userId, AssetId(assetId), maybeYear)
-            .flatMap(total => Ok(total.asJson))
-      )
+      (for {
+        maybeYear <- liftQueryParams(toUnableParsingQueryParam("year", maybeYear.sequence))
+        totalNetWorth <- transactionService
+          .netWorthByCurrencyAndAsset(user.userId, AssetId(assetId), maybeYear)
+        response <- Ok(totalNetWorth.asJson)
+      } yield response).recoverWith { case QueryParamValidationErrors(errors) =>
+        BadRequest(errors.asJson)
+      }
 
     }
 
@@ -101,19 +107,27 @@ final class TransactionRoutes[F[_]: Concurrent: Logger](
 
       val validatedQueryParams =
         (
-          maybeYear.sequence.leftMap(_ => NonEmptyList.one(UnableParseQueryParam("year"))),
-          assetTypeValidated.leftMap(_ => NonEmptyList.one(UnableParseQueryParam("assetType")))
+          toUnableParsingQueryParam("year", maybeYear.sequence),
+          toUnableParsingQueryParam("assetType", assetTypeValidated)
         ).mapN((year, assetType) => (year, assetType))
 
-      validatedQueryParams.fold(
-        parseFailures => BadRequest(parseFailures.map(_.message).asJson),
-        params =>
-          transactionService
-            .netWorthByCurrencyAndAssetType(user.userId, params._2, params._1)
-            .flatMap(total => Ok(total.asJson))
-      )
+      (for {
+        params <- liftQueryParams(validatedQueryParams)
+        totalNetWorth <- transactionService
+          .netWorthByCurrencyAndAssetType(user.userId, params._2, params._1)
+        response <- Ok(totalNetWorth.asJson)
+      } yield response)
+        .recoverWith { case QueryParamValidationErrors(errors) =>
+          BadRequest(errors.asJson)
+        }
     }
   }
+
+  private def toUnableParsingQueryParam[A](
+      name: String,
+      queryParam: ValidatedNel[ParseFailure, A]
+  ) =
+    queryParam.leftMap(_ => NonEmptyList.one(UnableParsingQueryParams(name)))
 
   def routes(authMiddleware: AuthMiddleware[F, CommonUser]): HttpRoutes[F] = Router(
     prefixPath -> authMiddleware(httpRoutes)
