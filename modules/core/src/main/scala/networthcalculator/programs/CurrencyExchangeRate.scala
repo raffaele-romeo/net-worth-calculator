@@ -2,48 +2,49 @@ package networthcalculator.programs
 
 import cats.effect.Concurrent
 import cats.effect.implicits.parallelForGenSpawn
-import cats.implicits._
+import cats.implicits.*
 import networthcalculator.domain.transactions.AggregatedTransactions
 import networthcalculator.http.clients.CurrencyExchangeRateClient
-import squants.market.{Currency, MoneyContext, defaultCurrencySet}
+import squants.market.{ Currency, MoneyContext, defaultCurrencySet }
 
-import java.time.{LocalDate, Month, Year}
+import java.time.{ LocalDate, Month, Year }
 
 final class CurrencyExchangeRate[F[_]: Concurrent](
-    currencyExchangeRateClient: CurrencyExchangeRateClient[F]
-) {
+  currencyExchangeRateClient: CurrencyExchangeRateClient[F]
+):
   def convertToTargetCurrency(
-      targetCurrency: Currency,
-      totalNetWorthByCurrency: List[AggregatedTransactions]
-  ): F[List[AggregatedTransactions]] = {
-    
-    val (transactionsToBeConverted, transactionAlreadyInTargetCurrency) = totalNetWorthByCurrency
+    targetCurrency: Currency,
+    totalNetWorthByCurrency: List[AggregatedTransactions]
+  ): F[List[AggregatedTransactions]] =
+
+    val (transactionsToBeConverted, transactionAlreadyInTargetCurrency) =
+      totalNetWorthByCurrency
         .partition(_.totals.exists(_.currency != targetCurrency))
 
-    for {
+    for
       transactionsConverted <- transactionsToBeConverted.parTraverse(
         convertToTargetCurrencySingleTransactions(targetCurrency, _)
       )
-      result = (transactionAlreadyInTargetCurrency ++ transactionsConverted).sorted(
-        Ordering
-          .by(
-            (
-                (totalNetWorth: AggregatedTransactions) => (totalNetWorth.year, totalNetWorth.month)
+      result = (transactionAlreadyInTargetCurrency ++ transactionsConverted)
+        .sorted(
+          Ordering
+            .by(
+              (
+                (totalNetWorth: AggregatedTransactions) =>
+                  (totalNetWorth.year, totalNetWorth.month)
+              )
             )
-          )
-          .reverse
-      )
-    } yield result
-  }
+            .reverse
+        )
+    yield result
 
   private def convertToTargetCurrencySingleTransactions(
-      targetCurrency: Currency,
-      totalNetWorthByCurrency: AggregatedTransactions
-  ): F[AggregatedTransactions] = {
+    targetCurrency: Currency,
+    totalNetWorthByCurrency: AggregatedTransactions
+  ): F[AggregatedTransactions] =
     val dateFrom: LocalDate =
-      if (
-        totalNetWorthByCurrency.month == LocalDate.now.getMonth && totalNetWorthByCurrency.year.getValue == LocalDate.now.getYear
-      ) LocalDate.now
+      if totalNetWorthByCurrency.month == LocalDate.now.getMonth && totalNetWorthByCurrency.year.getValue == LocalDate.now.getYear
+      then LocalDate.now
       else
         LocalDate.of(
           totalNetWorthByCurrency.year.getValue,
@@ -51,17 +52,27 @@ final class CurrencyExchangeRate[F[_]: Concurrent](
           totalNetWorthByCurrency.month.length(false)
         )
 
-    for {
-      exchangeRates <- currencyExchangeRateClient.latestRates(targetCurrency, dateFrom)
+    for
+      //TODO Use Redis as an LRU cache to avoiding calling the API too many times
+      //TODO Add retry policy in case of failure with cats-retry
+      exchangeRates <- currencyExchangeRateClient.latestRates(
+        targetCurrency,
+        dateFrom
+      )
 
-      moneyContext = MoneyContext(targetCurrency, defaultCurrencySet, exchangeRates)
+      moneyContext = MoneyContext(
+        targetCurrency,
+        defaultCurrencySet,
+        exchangeRates
+      )
 
       result = AggregatedTransactions(
-        List(totalNetWorthByCurrency.totals
-          .reduce((moneyL, moneyR) => (moneyL + moneyR)(moneyContext)).in(targetCurrency)(moneyContext)),
+        List(
+          totalNetWorthByCurrency.totals
+            .reduce((moneyL, moneyR) => (moneyL + moneyR)(moneyContext))
+            .in(targetCurrency)(moneyContext)
+        ),
         totalNetWorthByCurrency.month,
         totalNetWorthByCurrency.year
       )
-    } yield result
-  }
-}
+    yield result

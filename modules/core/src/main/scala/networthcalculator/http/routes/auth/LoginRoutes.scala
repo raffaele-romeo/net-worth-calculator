@@ -4,7 +4,7 @@ import cats.effect.Concurrent
 import cats.implicits.*
 import io.circe.generic.auto.*
 import io.circe.syntax.*
-import networthcalculator.algebras.{AuthService, ValidationService}
+import networthcalculator.algebras.{ AuthService, ValidationService }
 import networthcalculator.domain.errors.AuthValidationErrors
 import networthcalculator.domain.tokens.UserNotFound
 import networthcalculator.domain.users.*
@@ -16,33 +16,35 @@ import org.http4s.server.Router
 import org.typelevel.log4cats.Logger
 
 final class LoginRoutes[F[_]: Concurrent: Logger](
-    authService: AuthService[F],
-    validationService: ValidationService[F]
-) extends Http4sDsl[F] {
+  authService: AuthService[F],
+  validationService: ValidationService[F]
+) extends Http4sDsl[F]:
   import org.http4s.circe.CirceEntityDecoder.circeEntityDecoder
 
   private[routes] val prefixPath = "/auth"
 
-  private val httpRoutes: HttpRoutes[F] = HttpRoutes.of[F] { case req @ POST -> Root / "login" =>
-    req
-      .decodeR[LoginUser] { user =>
-        for {
-          validUser <- validationService.validate(user.username, user.password)
-          jwtToken <- authService
-            .login(validUser)
-          response <- Ok(jwtToken.toString.asJson)
-        } yield response
-      }
-      .recoverWith {
-        case AuthValidationErrors(errors) =>
-          BadRequest(errors.asJson)
-        case UserNotFound(_) | InvalidPassword(_) =>
-          Forbidden()
-      }
+  private val httpRoutes: HttpRoutes[F] = HttpRoutes.of[F] {
+    case req @ POST -> Root / "login" =>
+      req
+        .decodeR[LoginUser] { user =>
+          for
+            validUser <- validationService.validate(
+              user.username,
+              user.password
+            )
+            jwtToken <- authService
+              .login(validUser)
+            response <- Ok(jwtToken.toString.asJson)
+          yield response
+        }
+        .recoverWith {
+          case AuthValidationErrors(errors) =>
+            BadRequest(errors.asJson)
+          case UserNotFound(_) | InvalidPassword(_) =>
+            Forbidden()
+        }
   }
 
   val routes: HttpRoutes[F] = Router(
     prefixPath -> httpRoutes
   )
-
-}

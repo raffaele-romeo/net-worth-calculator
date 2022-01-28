@@ -13,16 +13,22 @@ import networthcalculator.domain.assets.*
 import networthcalculator.domain.users.UserId
 import org.typelevel.log4cats.Logger
 
-object AssetsServiceImpl {
-  def make[F[_]: MonadCancelThrow](transactor: HikariTransactor[F]): AssetsService[F] =
-    new AssetsService[F] {
+object AssetsServiceImpl:
+  def make[F[_]: MonadCancelThrow](
+    transactor: HikariTransactor[F]
+  ): AssetsService[F] =
+    new AssetsService[F]:
 
       override def findAll(userId: UserId): F[List[Asset]] =
         AssetsQueries
           .select(userId)
           .transact[F](transactor)
 
-      override def create(asseType: AssetType, assetName: AssetName, userId: UserId): F[Unit] =
+      override def create(
+        asseType: AssetType,
+        assetName: AssetName,
+        userId: UserId
+      ): F[Unit] =
         AssetsQueries
           .insert(asseType, assetName, userId)
           .exceptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
@@ -38,12 +44,14 @@ object AssetsServiceImpl {
           .delete(assetId, userId)
           .transact[F](transactor)
           .void
-    }
-}
 
-private object AssetsQueries {
+private object AssetsQueries:
 
-  def insert(assetType: AssetType, assetName: AssetName, userId: UserId): ConnectionIO[Int] =
+  def insert(
+    assetType: AssetType,
+    assetName: AssetName,
+    userId: UserId
+  ): ConnectionIO[Int] =
     sql"""
          | INSERT INTO assets (
          | asset_type,
@@ -69,4 +77,3 @@ private object AssetsQueries {
          | DELETE FROM assets
          | WHERE id = ${assetId.toLong} AND user_id = ${userId.toLong}
          """.stripMargin.update.run
-}

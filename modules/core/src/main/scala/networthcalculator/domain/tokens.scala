@@ -4,16 +4,13 @@ import networthcalculator.domain.users.UserName
 
 import scala.util.control.NoStackTrace
 
-object tokens {
+object tokens:
   opaque type JwtToken = String
 
-  object JwtToken {
+  object JwtToken:
     def apply(d: String): JwtToken = d
-  }
 
-  extension (x: JwtToken) {
+  extension (x: JwtToken)
     def toString: String = x
-  }
 
   final case class UserNotFound(username: UserName) extends NoStackTrace
-}

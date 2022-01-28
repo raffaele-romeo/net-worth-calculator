@@ -1,31 +1,31 @@
 package networthcalculator.config
 
 import cats.Show
-import ciris._
+import ciris.*
 import networthcalculator.domain.tokens.JwtToken
 import networthcalculator.domain.users.AdminUser
 import org.http4s.Uri
 
 import java.util.UUID
 import scala.annotation.targetName
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
-object data {
+object data:
   final case class AppConfig(
-      tokenExpiration: TokenExpiration,
-      postgreSQL: PostgreSQLConfig,
-      redis: RedisConfig,
-      httpServerConfig: HttpServerConfig,
-      currencyConversionConfig: CurrencyConversionConfig
+    tokenExpiration: TokenExpiration,
+    postgreSQL: PostgreSQLConfig,
+    redis: RedisConfig,
+    httpServerConfig: HttpServerConfig,
+    currencyConversionConfig: CurrencyConversionConfig
   )
 
   final case class PostgreSQLConfig(
-      host: Host,
-      port: Port,
-      user: User,
-      password: Password,
-      database: DatabaseName,
-      max: MaxConnections
+    host: Host,
+    port: Port,
+    user: User,
+    password: Password,
+    database: DatabaseName,
+    max: MaxConnections
   )
 
   final case class RedisConfig(uri: RedisURI)
@@ -33,94 +33,77 @@ object data {
   final case class CurrencyConversionConfig(baseUri: Uri, apiKey: UUID)
 
   final case class HttpServerConfig(
-      host: Host,
-      port: Port
+    host: Host,
+    port: Port
   )
 
   opaque type TokenExpiration = FiniteDuration
-  object TokenExpiration {
+  object TokenExpiration:
     def apply(d: FiniteDuration): TokenExpiration = d
-  }
 
-  extension (x: TokenExpiration) {
+  extension (x: TokenExpiration)
     @targetName("TokenExpiration")
     def toFiniteDuration: FiniteDuration = x
-  }
 
   opaque type RedisURI = String
 
-  object RedisURI {
+  object RedisURI:
     def apply(d: String): RedisURI = d
-  }
 
-  extension (x: RedisURI) {
+  extension (x: RedisURI)
     @targetName("RedisURI")
     def toString: String = x
-  }
 
   opaque type Host = String
-  object Host {
+  object Host:
     def apply(d: String): Host = d
-  }
 
-  extension (x: Host) {
+  extension (x: Host)
     @targetName("Host")
     def toString: String = x
-  }
 
   opaque type Port = Int
-  object Port {
+  object Port:
     def apply(d: Int): Port = d
-  }
 
-  extension (x: Port) {
+  extension (x: Port)
     @targetName("Port")
     def toInt: Int = x
-  }
 
   opaque type User = String
-  object User {
+  object User:
     def apply(d: String): User = d
-  }
 
-  extension (x: User) {
+  extension (x: User)
     @targetName("User")
     def toString: String = x
-  }
 
   opaque type Password = String
 
-  object Password {
+  object Password:
     def apply(d: String): Password = d
-  }
 
-  extension (x: Password) {
+  extension (x: Password)
     @targetName("Password")
     def toString: String = x
-  }
 
   opaque type DatabaseName = String
-  object DatabaseName {
+  object DatabaseName:
     def apply(d: String): DatabaseName = d
-  }
 
-  extension (x: DatabaseName) {
+  extension (x: DatabaseName)
     @targetName("DatabaseName")
     def toString: String = x
-  }
 
   opaque type MaxConnections = Int
-  object MaxConnections {
+  object MaxConnections:
     def apply(d: Int): MaxConnections = d
-  }
 
-  extension (x: MaxConnections) {
+  extension (x: MaxConnections)
     @targetName("MaxConnections")
     def toInt: Int = x
-  }
 
   final case class JWTAdmin(
-      adminToken: JwtToken,
-      adminUser: AdminUser
+    adminToken: JwtToken,
+    adminUser: AdminUser
   )
-}

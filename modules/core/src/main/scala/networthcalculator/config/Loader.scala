@@ -1,20 +1,20 @@
 package networthcalculator.config
 
 import cats.effect.Async
-import cats.implicits._
-import ciris._
-import networthcalculator.config.data._
-import networthcalculator.config.environments.AppEnvironment._
-import networthcalculator.config.environments._
+import cats.implicits.*
+import ciris.*
+import networthcalculator.config.data.*
+import networthcalculator.config.environments.AppEnvironment.*
+import networthcalculator.config.environments.*
 import networthcalculator.domain.tokens.JwtToken
-import networthcalculator.domain.users.{AdminUser, UserName}
+import networthcalculator.domain.users.{ AdminUser, UserName }
 import org.http4s.Uri
 import org.http4s.implicits.uri
 
 import java.util.UUID
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
-object Loader {
+object Loader:
 
   def apply[F[_]: Async]: F[AppConfig] =
     env("NWC_APP_ENV")
@@ -57,4 +57,3 @@ object Loader {
         ) // TODO This should be hidden
       )
     )
-}

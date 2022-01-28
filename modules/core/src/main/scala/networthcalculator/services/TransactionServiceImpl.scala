@@ -15,13 +15,16 @@ import networthcalculator.domain.transactions.*
 import networthcalculator.domain.users.*
 import squants.market.Money
 
-import java.time.{Month, Year}
+import java.time.{ Month, Year }
 
-object TransactionServiceImpl {
+object TransactionServiceImpl:
   def make[F[_]: Concurrent](transactor: HikariTransactor[F]) =
-    new TransactionsService[F] {
+    new TransactionsService[F]:
 
-      override def create(userId: UserId, transactions: List[ValidTransaction]): F[Unit] =
+      override def create(
+        userId: UserId,
+        transactions: List[ValidTransaction]
+      ): F[Unit] =
         // TODO Update to use Bulk Insert
         transactions
           .parTraverse_(transaction =>
@@ -35,7 +38,10 @@ object TransactionServiceImpl {
               .transact[F](transactor)
           )
 
-      override def delete(userId: UserId, transactionId: TransactionId): F[Unit] =
+      override def delete(
+        userId: UserId,
+        transactionId: TransactionId
+      ): F[Unit] =
         TransactionQueries
           .delete(userId, transactionId)
           .transact[F](transactor)
@@ -47,8 +53,8 @@ object TransactionServiceImpl {
           .transact[F](transactor)
 
       override def totalNetWorthByCurrency(
-          userId: UserId,
-          maybeYear: Option[Year]
+        userId: UserId,
+        maybeYear: Option[Year]
       ): F[List[AggregatedTransactions]] =
         TransactionQueries
           .calculateTotalNetWorthByCurrency(userId, maybeYear)
@@ -56,9 +62,9 @@ object TransactionServiceImpl {
           .map(groupByCurrency)
 
       override def findTransactionsByAssetId(
-          userId: UserId,
-          assetId: AssetId,
-          year: Option[Year]
+        userId: UserId,
+        assetId: AssetId,
+        year: Option[Year]
       ): F[List[AggregatedTransactions]] =
         TransactionQueries
           .calculateNetWorthByCurrencyAndAsset(userId, assetId, year)
@@ -66,9 +72,9 @@ object TransactionServiceImpl {
           .map(groupByCurrency)
 
       override def findTransactionsByAssetType(
-          userId: UserId,
-          assetType: AssetType,
-          year: Option[Year]
+        userId: UserId,
+        assetType: AssetType,
+        year: Option[Year]
       ): F[List[AggregatedTransactions]] =
         TransactionQueries
           .calculateNetWorthByCurrencyAndAssetType(userId, assetType, year)
@@ -76,7 +82,7 @@ object TransactionServiceImpl {
           .map(groupByCurrency)
 
       private def groupByCurrency(
-          totalNetWorth: List[AggregatedTransactions]
+        totalNetWorth: List[AggregatedTransactions]
       ): List[AggregatedTransactions] =
         totalNetWorth
           .groupBy(transaction => (transaction.year, transaction.month))
@@ -88,20 +94,19 @@ object TransactionServiceImpl {
             Ordering
               .by(
                 (
-                    (totalNetWorth: AggregatedTransactions) =>
-                      (totalNetWorth.year, totalNetWorth.month)
+                  (totalNetWorth: AggregatedTransactions) =>
+                    (totalNetWorth.year, totalNetWorth.month)
                 )
               )
               .reverse
           )
-    }
-}
 
-private object TransactionQueries {
+private object TransactionQueries:
 
   import Transaction.given
 
-  def insert(userId: UserId, transaction: ValidTransaction): ConnectionIO[Int] = sql"""
+  def insert(userId: UserId, transaction: ValidTransaction): ConnectionIO[Int] =
+    sql"""
        | INSERT INTO transactions (
        | amount,
        | currency,
@@ -135,12 +140,13 @@ private object TransactionQueries {
       """.stripMargin.query[Transaction].to[List]
 
   def calculateTotalNetWorthByCurrency(
-      userId: UserId,
-      maybeYear: Option[Year]
-  ): ConnectionIO[List[AggregatedTransactions]] = {
+    userId: UserId,
+    maybeYear: Option[Year]
+  ): ConnectionIO[List[AggregatedTransactions]] =
 
     val f1Year = maybeYear.map(year => fr"year = ${year.getValue()}")
-    val f2User = Some(userId).map(userId => fr"transactions.user_id = ${userId.toLong}")
+    val f2User =
+      Some(userId).map(userId => fr"transactions.user_id = ${userId.toLong}")
 
     val queryFragment = fr"""
       |WITH relevant_transactions AS (
@@ -155,17 +161,19 @@ private object TransactionQueries {
     """.stripMargin
 
     queryFragment.query[AggregatedTransactions].to[List]
-  }
 
   def calculateNetWorthByCurrencyAndAsset(
-      userId: UserId,
-      assetId: AssetId,
-      maybeYear: Option[Year]
-  ): ConnectionIO[List[AggregatedTransactions]] = {
+    userId: UserId,
+    assetId: AssetId,
+    maybeYear: Option[Year]
+  ): ConnectionIO[List[AggregatedTransactions]] =
 
-    val f1Year  = maybeYear.map(year => fr"year = ${year.getValue()}")
-    val f2User  = Some(userId).map(userId => fr"transactions.user_id = ${userId.toLong}")
-    val f3Asset = Some(assetId).map(assetId => fr"transactions.asset_id = ${assetId.toLong}")
+    val f1Year = maybeYear.map(year => fr"year = ${year.getValue()}")
+    val f2User =
+      Some(userId).map(userId => fr"transactions.user_id = ${userId.toLong}")
+    val f3Asset = Some(assetId).map(assetId =>
+      fr"transactions.asset_id = ${assetId.toLong}"
+    )
 
     val queryFragment = fr"""
       |WITH relevant_transactions AS (
@@ -179,18 +187,20 @@ private object TransactionQueries {
     """.stripMargin
 
     queryFragment.query[AggregatedTransactions].to[List]
-  }
 
   def calculateNetWorthByCurrencyAndAssetType(
-      userId: UserId,
-      assetType: AssetType,
-      maybeYear: Option[Year]
-  ): ConnectionIO[List[AggregatedTransactions]] = {
+    userId: UserId,
+    assetType: AssetType,
+    maybeYear: Option[Year]
+  ): ConnectionIO[List[AggregatedTransactions]] =
 
     val f1Year = maybeYear.map(year => fr"year = ${year.getValue()}")
-    val f2User = Some(userId).map(userId => fr"transactions.user_id = ${userId.toLong}")
+    val f2User =
+      Some(userId).map(userId => fr"transactions.user_id = ${userId.toLong}")
     val f3Asset =
-      Some(assetType).map(assetType => fr"asset_type = ${assetType.toString.toLowerCase}")
+      Some(assetType).map(assetType =>
+        fr"asset_type = ${assetType.toString.toLowerCase}"
+      )
 
     val queryFragment = fr"""
       |WITH relevant_transactions AS (
@@ -205,5 +215,3 @@ private object TransactionQueries {
     """.stripMargin
 
     queryFragment.query[AggregatedTransactions].to[List]
-  }
-}

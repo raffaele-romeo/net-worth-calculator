@@ -2,21 +2,17 @@ package networthcalculator.config
 
 import ciris.ConfigDecoder
 
-object environments {
+object environments:
 
-  enum AppEnvironment {
+  enum AppEnvironment:
     case Local, Test
-  }
-  object AppEnvironment {
+  object AppEnvironment:
 
     given appEnvConfigDecoder: ConfigDecoder[String, AppEnvironment] =
       ConfigDecoder[String, String].mapOption("AppEnv")(apply)
 
     private def apply(value: String): Option[AppEnvironment] =
-      value.toLowerCase match {
+      value.toLowerCase match
         case "test"  => Some(AppEnvironment.Test)
         case "local" => Some(AppEnvironment.Local)
         case _       => None
-      }
-  }
-}

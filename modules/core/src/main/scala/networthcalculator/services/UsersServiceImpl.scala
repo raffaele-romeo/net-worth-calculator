@@ -7,18 +7,19 @@ import doobie.hikari.HikariTransactor
 import doobie.implicits.*
 import doobie.postgres.*
 import networthcalculator.algebras.UsersService
-import networthcalculator.domain.users._
+import networthcalculator.domain.users.*
 
-object UsersServiceImpl {
+object UsersServiceImpl:
   def make[F[_]: MonadCancelThrow](
-      transactor: HikariTransactor[F]
-  ): UsersService[F] = new UsersService[F] {
+    transactor: HikariTransactor[F]
+  ): UsersService[F] = new UsersService[F]:
 
     override def create(user: CreateUserForInsert): F[UserWithPassword] =
       UserQueries
         .insert(user)
         .exceptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
-          UserNameInUse(user.username).raiseError[ConnectionIO, UserWithPassword]
+          UserNameInUse(user.username)
+            .raiseError[ConnectionIO, UserWithPassword]
         }
         .transact[F](transactor)
 
@@ -26,9 +27,7 @@ object UsersServiceImpl {
       UserQueries
         .select(userName)
         .transact[F](transactor)
-  }
-}
-private object UserQueries {
+private object UserQueries:
 
   def insert(user: CreateUserForInsert): ConnectionIO[UserWithPassword] =
     sql"""
@@ -45,7 +44,13 @@ private object UserQueries {
          |  ${user.role.toString}
          |)
         """.stripMargin.update
-      .withUniqueGeneratedKeys[UserWithPassword]("id", "username", "password", "salt", "role")
+      .withUniqueGeneratedKeys[UserWithPassword](
+        "id",
+        "username",
+        "password",
+        "salt",
+        "role"
+      )
 
   def update(user: UserWithPassword): ConnectionIO[UserWithPassword] =
     sql"""
@@ -56,7 +61,13 @@ private object UserQueries {
          | role = ${user.role.toString}
          | where id = ${user.userId.toLong}
     """.stripMargin.update
-      .withUniqueGeneratedKeys[UserWithPassword]("id", "username", "password", "salt", "role")
+      .withUniqueGeneratedKeys[UserWithPassword](
+        "id",
+        "username",
+        "password",
+        "salt",
+        "role"
+      )
 
   def select(userName: UserName): ConnectionIO[Option[UserWithPassword]] =
     sql"""
@@ -70,4 +81,3 @@ private object UserQueries {
          | DELETE FROM users
          | WHERE username = ${userName.toString}
     """.stripMargin.update.run
-}

@@ -1,32 +1,35 @@
 package networthcalculator.services
 
 import cats.Applicative
-import cats.data.Validated.{Invalid, Valid}
+import cats.data.Validated.{ Invalid, Valid }
 import cats.data.ValidatedNec
 import cats.effect.Sync
 import cats.implicits.*
 import cats.syntax.all.*
 import com.nimbusds.jose.JWSAlgorithm
-import networthcalculator.algebras._
+import networthcalculator.algebras.*
 import networthcalculator.config.data.TokenExpiration
-import networthcalculator.domain.errors.AuthValidation._
-import networthcalculator.domain.errors.{AuthValidation, AuthValidationErrors}
+import networthcalculator.domain.errors.AuthValidation.*
+import networthcalculator.domain.errors.{ AuthValidation, AuthValidationErrors }
 import networthcalculator.domain.tokens.*
 import networthcalculator.domain.users.*
 
-object AuthServiceImpl {
+object AuthServiceImpl:
   def make[F[_]](
-      usersService: UsersService[F],
-      encryptionService: EncryptionService[F],
-      tokensService: TokensService[F],
-      expiresIn: TokenExpiration
+    usersService: UsersService[F],
+    encryptionService: EncryptionService[F],
+    tokensService: TokensService[F],
+    expiresIn: TokenExpiration
   )(using S: Sync[F]): AuthService[F] =
-    new AuthService[F] {
+    new AuthService[F]:
 
-      override def newUser(validUser: ValidUser): F[JwtToken] = {
-        for {
-          salt              <- encryptionService.generateRandomSalt()
-          encryptedPassword <- encryptionService.encrypt(validUser.password, salt)
+      override def newUser(validUser: ValidUser): F[JwtToken] =
+        for
+          salt <- encryptionService.generateRandomSalt()
+          encryptedPassword <- encryptionService.encrypt(
+            validUser.password,
+            salt
+          )
           user <- usersService
             .create(
               CreateUserForInsert(
@@ -35,42 +38,56 @@ object AuthServiceImpl {
                 salt = salt
               )
             )
-          token <- tokensService.generateToken(user.username, expiresIn, JWSAlgorithm.HS256)
-          _ <- tokensService.storeToken(CommonUser(user.userId, user.username), token, expiresIn)
-        } yield token
-      }
+          token <- tokensService.generateToken(
+            user.username,
+            expiresIn,
+            JWSAlgorithm.HS256
+          )
+          _ <- tokensService.storeToken(
+            CommonUser(user.userId, user.username),
+            token,
+            expiresIn
+          )
+        yield token
 
-      override def login(validUser: ValidUser): F[JwtToken] = {
+      override def login(validUser: ValidUser): F[JwtToken] =
         usersService
           .find(validUser.username)
           .flatMap {
-            case None => UserNotFound(validUser.username).raiseError[F, JwtToken]
+            case None =>
+              UserNotFound(validUser.username).raiseError[F, JwtToken]
             case Some(user) =>
               S.ifM(
-                encryptionService.checkPassword(user.password, validUser.password, user.salt)
+                encryptionService
+                  .checkPassword(user.password, validUser.password, user.salt)
               )(
                 tokensService.findTokenBy(validUser.username).flatMap {
                   case Some(token) => token.pure[F]
                   case None =>
-                    for {
+                    for
                       token <- tokensService
-                        .generateToken(user.username, expiresIn, JWSAlgorithm.HS256)
+                        .generateToken(
+                          user.username,
+                          expiresIn,
+                          JWSAlgorithm.HS256
+                        )
                       _ <- tokensService
-                        .storeToken(CommonUser(user.userId, user.username), token, expiresIn)
-                    } yield token
+                        .storeToken(
+                          CommonUser(user.userId, user.username),
+                          token,
+                          expiresIn
+                        )
+                    yield token
                 },
                 InvalidPassword(user.username).raiseError[F, JwtToken]
               )
           }
-      }
-    }
-}
 
-object UsersAuthServiceImpl {
+object UsersAuthServiceImpl:
 
   def admin[F[_]: Applicative](
-      adminToken: JwtToken,
-      adminUser: AdminUser
+    adminToken: JwtToken,
+    adminUser: AdminUser
   ): UsersAuthService[F, AdminUser] =
     (token: JwtToken) =>
       (token == adminToken)
@@ -79,10 +96,8 @@ object UsersAuthServiceImpl {
         .pure[F]
 
   def common[F[_]](
-      tokensService: TokensService[F]
+    tokensService: TokensService[F]
   ): UsersAuthService[F, CommonUser] =
     (token: JwtToken) =>
       tokensService
         .findUserBy(token)
-
-}

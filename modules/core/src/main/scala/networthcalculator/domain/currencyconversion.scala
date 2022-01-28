@@ -1,42 +1,38 @@
 package networthcalculator.domain
 
-import io.circe._
-import io.circe.generic.semiauto._
-import io.circe.syntax._
+import io.circe.*
+import io.circe.generic.semiauto.*
+import io.circe.syntax.*
 
 import java.util.UUID
 import scala.util.control.NoStackTrace
 
-object currencyconversion {
+object currencyconversion:
   opaque type CurrencyName = String
 
-  object CurrencyName {
+  object CurrencyName:
     def apply(d: String): CurrencyName = d
 
     given Decoder[CurrencyName] = Decoder.decodeString
     given Encoder[CurrencyName] = Encoder.encodeString
-  }
 
-  extension (x: CurrencyName) {
+  extension (x: CurrencyName)
     def toString: String = x
-  }
 
   opaque type CurrencyValue = BigDecimal
 
-  object CurrencyValue {
+  object CurrencyValue:
     def apply(d: BigDecimal): CurrencyValue = d
 
     given Decoder[CurrencyValue] = Decoder.decodeBigDecimal
     given Encoder[CurrencyValue] = Encoder.encodeBigDecimal
-  }
 
-  extension (x: CurrencyValue) {
+  extension (x: CurrencyValue)
     def toBigDecimal: BigDecimal = x
-  }
 
   final case class CurrencyConversion(currencies: List[Currency])
 
-  object CurrencyConversion {
+  object CurrencyConversion:
     given Decoder[CurrencyConversion] =
       Decoder[Map[String, BigDecimal]]
         .prepare(_.downField("data"))
@@ -47,9 +43,8 @@ object currencyconversion {
             }.toList
           )
         )
-  }
 
   final case class Currency(name: CurrencyName, value: CurrencyValue)
 
-  final case class CurrencyConversionError(code: Int, error: String) extends NoStackTrace
-}
+  final case class CurrencyConversionError(code: Int, error: String)
+      extends NoStackTrace

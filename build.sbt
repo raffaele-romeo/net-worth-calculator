@@ -1,4 +1,4 @@
-import Dependencies._
+import Dependencies.*
 
 lazy val root = (project in file("."))
   .settings(
@@ -23,7 +23,7 @@ lazy val core = (project in file("modules/core"))
     DockerPlugin,
     AshScriptPlugin
   )
-  .settings(commonSettings: _*)
+  .settings(commonSettings*)
   .settings(
     name := "net-worth-calculator"
   )
@@ -83,5 +83,8 @@ val commonSettings = Def.settings(
     ).mkString(";", "; ", "")
   ),
   addCommandAlias("run", "modules/core/run"),
-  addCommandAlias("fix", List("scalafixAll", "scalafmtAll", "scalafmtSbt").mkString(";", "; ", ""))
+  addCommandAlias(
+    "fix",
+    List("scalafixAll", "scalafmtAll", "scalafmtSbt").mkString(";", "; ", "")
+  )
 )

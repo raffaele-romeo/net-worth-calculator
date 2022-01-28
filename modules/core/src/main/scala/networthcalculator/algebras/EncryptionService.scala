@@ -1,13 +1,12 @@
 package networthcalculator.algebras
 
-import networthcalculator.domain.users._
+import networthcalculator.domain.users.*
 
-trait EncryptionService[F[_]] {
+trait EncryptionService[F[_]]:
   def encrypt(password: Password, salt: Salt): F[EncryptedPassword]
   def generateRandomSalt(): F[Salt]
   def checkPassword(
-      encryptedPassword: EncryptedPassword,
-      password: Password,
-      salt: Salt
+    encryptedPassword: EncryptedPassword,
+    password: Password,
+    salt: Salt
   ): F[Boolean]
-}

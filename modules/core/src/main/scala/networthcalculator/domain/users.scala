@@ -1,104 +1,94 @@
 package networthcalculator.domain
 
 import cats.Show
-import doobie.util.{Read, Write}
-import io.circe._
-import io.circe.generic.auto._
-import io.circe.syntax._
+import doobie.util.{ Read, Write }
+import io.circe.*
+import io.circe.generic.auto.*
+import io.circe.syntax.*
 import networthcalculator.domain.auth.Role
 
 import scala.annotation.targetName
 import scala.util.control.NoStackTrace
 
-object users {
+object users:
 
   opaque type UserId = Long
 
-  object UserId {
+  object UserId:
     def apply(d: Long): UserId = d
 
     given Decoder[UserId] = Decoder.decodeLong
     given Encoder[UserId] = Encoder.encodeLong
-  }
 
-  extension (x: UserId) {
+  extension (x: UserId)
     def toLong: Long = x
-  }
 
   opaque type UserName = String
 
-  object UserName {
+  object UserName:
     def apply(d: String): UserName = d
 
     given Decoder[UserName] = Decoder.decodeString
     given Encoder[UserName] = Encoder.encodeString
-  }
 
-  extension (x: UserName) {
+  extension (x: UserName)
     @targetName("UserName")
     def toString: String = x
-  }
 
   opaque type Password = String
 
-  object Password {
+  object Password:
     def apply(d: String): Password = d
     given Decoder[Password]        = Decoder.decodeString
     given Encoder[Password]        = Encoder.encodeString
-  }
 
-  extension (x: Password) {
+  extension (x: Password)
     @targetName("Password")
     def toString: String = x
-  }
 
   opaque type Salt = String
 
-  object Salt {
+  object Salt:
     def apply(d: String): Salt = d
-  }
 
-  extension (x: Salt) {
+  extension (x: Salt)
     @targetName("Salt")
     def toString: String = x
-  }
 
   opaque type EncryptedPassword = String
 
-  object EncryptedPassword {
+  object EncryptedPassword:
     def apply(d: String): EncryptedPassword = d
-  }
 
-  extension (x: EncryptedPassword) {
+  extension (x: EncryptedPassword)
     @targetName("EncryptedPassword")
     def toString: String = x
-  }
 
   final case class CreateUser(username: UserName, password: Password)
 
   final case class LoginUser(username: UserName, password: Password)
 
   final case class ValidUser(
-      username: UserName,
-      password: Password
+    username: UserName,
+    password: Password
   )
 
   final case class CreateUserForInsert(
-      username: UserName,
-      password: EncryptedPassword,
-      salt: Salt,
-      role: Role = Role.User
+    username: UserName,
+    password: EncryptedPassword,
+    salt: Salt,
+    role: Role = Role.User
   )
 
   final case class UserWithPassword(
-      userId: UserId,
-      username: UserName,
-      password: EncryptedPassword,
-      salt: Salt,
-      role: Role = Role.User
+    userId: UserId,
+    username: UserName,
+    password: EncryptedPassword,
+    salt: Salt,
+    role: Role = Role.User
   )
 
-  object UserWithPassword {
+  object UserWithPassword:
     given userWithPasswordRead: Read[UserWithPassword] =
       Read[(Long, String, String, String, String)].map {
         case (id, username, password, salt, role) =>
@@ -111,27 +101,25 @@ object users {
           )
       }
     given userWithPasswordWrite: Write[UserWithPassword] =
-      Write[(Long, String, String, String, String)].contramap { userWithPassword =>
-        (
-          userWithPassword.userId.toLong,
-          userWithPassword.username.toString,
-          userWithPassword.password.toString,
-          userWithPassword.salt.toString,
-          userWithPassword.role.toString
-        )
+      Write[(Long, String, String, String, String)].contramap {
+        userWithPassword =>
+          (
+            userWithPassword.userId.toLong,
+            userWithPassword.username.toString,
+            userWithPassword.password.toString,
+            userWithPassword.salt.toString,
+            userWithPassword.role.toString
+          )
       }
-  }
 
   final case class AdminUser(userName: UserName)
-  object AdminUser {
+  object AdminUser:
     given showAdminUser: Show[AdminUser] = Show.show(_.userName)
-  }
 
-  final case class CommonUser(userId: UserId, userName: UserName) derives Encoder.AsObject
-  object CommonUser {
+  final case class CommonUser(userId: UserId, userName: UserName)
+      derives Encoder.AsObject
+  object CommonUser:
     given showCommonUser: Show[CommonUser] = Show.show(_.asJson.toString)
-  }
 
   final case class UserNameInUse(username: UserName)   extends NoStackTrace
   final case class InvalidPassword(username: UserName) extends NoStackTrace
-}

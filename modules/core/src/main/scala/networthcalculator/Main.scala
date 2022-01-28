@@ -1,16 +1,17 @@
 package networthcalculator
 
 import cats.effect.*
-import networthcalculator.modules._
+import networthcalculator.modules.*
 import org.http4s.HttpApp
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.typelevel.log4cats
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
-object Main extends IOApp {
+object Main extends IOApp:
 
-  given unsafeLogger: log4cats.SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
+  given unsafeLogger: log4cats.SelfAwareStructuredLogger[IO] =
+    Slf4jLogger.getLogger[IO]
 
   override def run(args: List[String]): IO[ExitCode] =
     config.Loader[IO].flatMap { cfg =>
@@ -23,9 +24,10 @@ object Main extends IOApp {
               res.redis,
               cfg.tokenExpiration
             )
-          val httpClients = HttpClients.make[IO](cfg.currencyConversionConfig, res.client)
-          val programs    = Programs.make[IO](httpClients)
-          val httpApp     = HttpApi.make[IO](services, security, programs)
+          val httpClients =
+            HttpClients.make[IO](cfg.currencyConversionConfig, res.client)
+          val programs = Programs.make[IO](httpClients)
+          val httpApp  = HttpApi.make[IO](services, security, programs)
 
           BlazeServerBuilder[IO]
             .bindHttp(
@@ -39,5 +41,3 @@ object Main extends IOApp {
             .as(ExitCode.Success)
         }
     }
-
-}
