@@ -19,7 +19,8 @@ import scala.concurrent.duration._
 object HttpApi {
   def make[F[_]: Async: Logger](
       services: Services[F],
-      security: Security[F]
+      security: Security[F],
+      programs: Programs[F]
   ): HttpApp[F] = {
 
     val usersMiddleware =
@@ -39,7 +40,11 @@ object HttpApi {
     val assetsRoutes =
       new AssetRoutes[F](services.assetService, services.validationService).routes(usersMiddleware)
     val transactionRoutes =
-      new TransactionRoutes[F](services.transactionsService, services.validationService)
+      new TransactionRoutes[F](
+        services.transactionsService,
+        services.validationService,
+        programs.currencyExchangeRate
+      )
         .routes(usersMiddleware)
 
     val nonAdminRoutes: HttpRoutes[F] =

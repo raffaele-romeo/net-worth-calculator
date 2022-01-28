@@ -60,7 +60,7 @@ object transactions {
   final case class TransactionValue(amount: BigDecimal, currency: String, assetId: AssetId)
 
   final case class AggregatedTransactions(
-      total: List[Money],
+      totals: List[Money],
       month: Month,
       year: Year
   )

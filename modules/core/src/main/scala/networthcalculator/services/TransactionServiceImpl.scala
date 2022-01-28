@@ -55,7 +55,7 @@ object TransactionServiceImpl {
           .transact[F](transactor)
           .map(groupByCurrency)
 
-      override def netWorthByCurrencyAndAsset(
+      override def findTransactionsByAssetId(
           userId: UserId,
           assetId: AssetId,
           year: Option[Year]
@@ -65,7 +65,7 @@ object TransactionServiceImpl {
           .transact[F](transactor)
           .map(groupByCurrency)
 
-      override def netWorthByCurrencyAndAssetType(
+      override def findTransactionsByAssetType(
           userId: UserId,
           assetType: AssetType,
           year: Option[Year]
@@ -81,7 +81,7 @@ object TransactionServiceImpl {
         totalNetWorth
           .groupBy(transaction => (transaction.year, transaction.month))
           .map { case ((year, month), list) =>
-            AggregatedTransactions(list.flatMap(_.total), month, year)
+            AggregatedTransactions(list.flatMap(_.totals), month, year)
           }
           .toList
           .sorted(

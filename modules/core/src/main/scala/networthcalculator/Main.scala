@@ -1,7 +1,7 @@
 package networthcalculator
 
 import cats.effect.*
-import networthcalculator.modules.{HttpApi, Security, Services}
+import networthcalculator.modules._
 import org.http4s.HttpApp
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.typelevel.log4cats
@@ -23,7 +23,9 @@ object Main extends IOApp {
               res.redis,
               cfg.tokenExpiration
             )
-          val httpApp = HttpApi.make[IO](services, security)
+          val httpClients = HttpClients.make[IO](cfg.currencyConversionConfig, res.client)
+          val programs    = Programs.make[IO](httpClients)
+          val httpApp     = HttpApi.make[IO](services, security, programs)
 
           BlazeServerBuilder[IO]
             .bindHttp(

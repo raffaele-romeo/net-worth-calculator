@@ -21,29 +21,31 @@ import squants.market._
 import java.time.LocalDate
 import java.util.UUID
 
-trait CurrencyConversionClient[F[_]] {
+trait CurrencyExchangeRateClient[F[_]] {
   def latestRates(
       baseCurrency: Currency,
       dateFrom: LocalDate
   ): F[List[CurrencyExchangeRate]]
 }
 
-object CurrencyConversionClient {
+object CurrencyExchangeRateClient {
   def make[F[_]: JsonDecoder: Concurrent: Logger](
       currencyConversionConfig: CurrencyConversionConfig,
       client: Client[F]
-  ): CurrencyConversionClient[F] = new CurrencyConversionClient[F] with Http4sClientDsl[F] {
+  ): CurrencyExchangeRateClient[F] = new CurrencyExchangeRateClient[F] with Http4sClientDsl[F] {
     override def latestRates(
         baseCurrency: Currency,
-        dateFrom: LocalDate
+        date: LocalDate
     ): F[List[CurrencyExchangeRate]] = {
 
       val uri = currencyConversionConfig.baseUri
         .withQueryParam("apikey", currencyConversionConfig.apiKey.toString)
         .withQueryParam("base_currency", baseCurrency.code)
-        .withQueryParam("date_from", dateFrom.toString)
+        .withQueryParam("date_from", date.toString)
+        .withQueryParam("date_to", date.toString)
 
       for {
+        _ <- Logger[F].info(s"Retrieving latest rates for ${date.toString}")
         currencyConversion <- client.get(uri) {
           case Successful(resp) =>
             resp.decodeJson[CurrencyConversion]
@@ -53,7 +55,6 @@ object CurrencyConversionClient {
               resp.status.reason
             ).raiseError[F, CurrencyConversion]
         }
-        _ <- Logger[F].info(s"Currencies list for base currency ${baseCurrency.code} and date ${dateFrom.toString}: ${currencyConversion.currencies.mkString(", ")}")
       } yield createExchangeRates(baseCurrency, currencyConversion)
     }
 

@@ -25,7 +25,7 @@ CREATE TABLE transactions (
   year SMALLINT NOT NULL,
   asset_id INTEGER NOT NULL,
   user_id INTEGER NOT NULL,
-  UNIQUE (month, year, asset_id, user_id)
+  UNIQUE (month, year, currency, asset_id, user_id)
 );
 
 ALTER TABLE assets

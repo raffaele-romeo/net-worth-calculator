@@ -15,13 +15,13 @@ trait TransactionsService[F[_]] {
   // TODO Add pagination logic to all the methods that retrieve a list
   def totalNetWorthByCurrency(userId: UserId, year: Option[Year]): F[List[AggregatedTransactions]]
 
-  def netWorthByCurrencyAndAsset(
+  def findTransactionsByAssetId(
       userId: UserId,
       assetId: AssetId,
       year: Option[Year]
   ): F[List[AggregatedTransactions]]
 
-  def netWorthByCurrencyAndAssetType(
+  def findTransactionsByAssetType(
       userId: UserId,
       assetType: AssetType,
       year: Option[Year]
