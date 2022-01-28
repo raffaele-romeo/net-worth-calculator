@@ -16,8 +16,7 @@ object currencyconversion:
     given Decoder[CurrencyName] = Decoder.decodeString
     given Encoder[CurrencyName] = Encoder.encodeString
 
-  extension (x: CurrencyName)
-    def toString: String = x
+  extension (x: CurrencyName) def toString: String = x
 
   opaque type CurrencyValue = BigDecimal
 
@@ -27,8 +26,7 @@ object currencyconversion:
     given Decoder[CurrencyValue] = Decoder.decodeBigDecimal
     given Encoder[CurrencyValue] = Encoder.encodeBigDecimal
 
-  extension (x: CurrencyValue)
-    def toBigDecimal: BigDecimal = x
+  extension (x: CurrencyValue) def toBigDecimal: BigDecimal = x
 
   final case class CurrencyConversion(currencies: List[Currency])
 

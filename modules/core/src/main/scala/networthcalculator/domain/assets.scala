@@ -15,8 +15,7 @@ object assets:
 
     given Decoder[AssetId] = Decoder.decodeLong
     given Encoder[AssetId] = Encoder.encodeLong
-  extension (x: AssetId)
-    def toLong: Long = x
+  extension (x: AssetId) def toLong: Long = x
 
   opaque type AssetName = String
   object AssetName:

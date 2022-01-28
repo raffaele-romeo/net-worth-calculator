@@ -20,8 +20,7 @@ object users:
     given Decoder[UserId] = Decoder.decodeLong
     given Encoder[UserId] = Encoder.encodeLong
 
-  extension (x: UserId)
-    def toLong: Long = x
+  extension (x: UserId) def toLong: Long = x
 
   opaque type UserName = String
 

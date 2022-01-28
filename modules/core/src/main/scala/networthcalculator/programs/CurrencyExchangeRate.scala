@@ -53,8 +53,8 @@ final class CurrencyExchangeRate[F[_]: Concurrent](
         )
 
     for
-      //TODO Use Redis as an LRU cache to avoiding calling the API too many times
-      //TODO Add retry policy in case of failure with cats-retry
+      // TODO Use Redis as an LRU cache to avoiding calling the API too many times
+      // TODO Add retry policy in case of failure with cats-retry
       exchangeRates <- currencyExchangeRateClient.latestRates(
         targetCurrency,
         dateFrom

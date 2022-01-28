@@ -1,4 +1,4 @@
-import sbt._
+import sbt.*
 
 object Dependencies {
 
@@ -21,11 +21,16 @@ object Dependencies {
   }
 
   object Libraries {
-    def http4s(artifact: String): ModuleID   = "org.http4s"    %% artifact % Versions.http4s
-    def ciris(artifact: String): ModuleID    = "is.cir"        %% artifact % Versions.ciris
-    def circe(artifact: String): ModuleID    = "io.circe"      %% artifact % Versions.circe
-    def doobie(artifact: String): ModuleID   = "org.tpolecat"  %% artifact % Versions.doobie
-    def log4Cats(artifact: String): ModuleID = "org.typelevel" %% artifact % Versions.log4cats
+    def http4s(artifact: String): ModuleID =
+      "org.http4s" %% artifact % Versions.http4s
+    def ciris(artifact: String): ModuleID =
+      "is.cir" %% artifact % Versions.ciris
+    def circe(artifact: String): ModuleID =
+      "io.circe" %% artifact % Versions.circe
+    def doobie(artifact: String): ModuleID =
+      "org.tpolecat" %% artifact % Versions.doobie
+    def log4Cats(artifact: String): ModuleID =
+      "org.typelevel" %% artifact % Versions.log4cats
 
     val cats       = "org.typelevel"    %% "cats-core"   % Versions.cats
     val catsEffect = "org.typelevel"    %% "cats-effect" % Versions.catsEffect
@@ -49,8 +54,10 @@ object Dependencies {
 
     val nimbus = "com.nimbusds" % "nimbus-jose-jwt" % Versions.nimbus
 
-    val redis4catsEffects  = "dev.profunktor" %% "redis4cats-effects"  % Versions.redis4cats
-    val redis4catsLog4cats = "dev.profunktor" %% "redis4cats-log4cats" % Versions.redis4cats
+    val redis4catsEffects =
+      "dev.profunktor" %% "redis4cats-effects" % Versions.redis4cats
+    val redis4catsLog4cats =
+      "dev.profunktor" %% "redis4cats-log4cats" % Versions.redis4cats
 
     val http4sDsl    = http4s("http4s-dsl")
     val http4sServer = http4s("http4s-blaze-server")

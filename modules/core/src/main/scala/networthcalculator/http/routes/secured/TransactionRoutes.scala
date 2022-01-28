@@ -92,7 +92,7 @@ final class TransactionRoutes[F[_]](
         result <- maybeCurrency.fold(C.pure(totalNetWorth))(
           currencyExchangeRate.convertToTargetCurrency(_, totalNetWorth)
         )
-        response <- Ok(result)
+        response <- Ok(result.asJson)
       yield response)
         .recoverWith {
           case QueryParamValidationErrors(errors) =>

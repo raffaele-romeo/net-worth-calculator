@@ -19,8 +19,7 @@ object transactions:
     given Decoder[TransactionId] = Decoder.decodeLong
     given Encoder[TransactionId] = Encoder.encodeLong
 
-  extension (x: TransactionId)
-    def toLong: Long = x
+  extension (x: TransactionId) def toLong: Long = x
 
   final case class Transaction(
     transactionId: TransactionId,

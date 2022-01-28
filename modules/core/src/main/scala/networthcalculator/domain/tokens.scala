@@ -10,7 +10,6 @@ object tokens:
   object JwtToken:
     def apply(d: String): JwtToken = d
 
-  extension (x: JwtToken)
-    def toString: String = x
+  extension (x: JwtToken) def toString: String = x
 
   final case class UserNotFound(username: UserName) extends NoStackTrace
