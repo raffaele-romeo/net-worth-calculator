@@ -97,8 +97,8 @@ final class TransactionRoutes[F[_]](
         .recoverWith {
           case QueryParamValidationErrors(errors) =>
             BadRequest(errors.asJson)
-          case CurrencyConversionError(_, reason) =>
-            BadRequest(reason.asJson)
+          case error @ CurrencyConversionError(_, _) =>
+            ServiceUnavailable(error.message.asJson)
         }
     }
   }
@@ -128,8 +128,8 @@ final class TransactionRoutes[F[_]](
         .recoverWith { 
           case QueryParamValidationErrors(errors) =>
             BadRequest(errors.asJson)
-          case CurrencyConversionError(_, reason) =>
-            BadRequest(reason.asJson)
+          case error @ CurrencyConversionError(_, _) =>
+            ServiceUnavailable(error.message.asJson)
         }
 
     }
@@ -158,8 +158,8 @@ final class TransactionRoutes[F[_]](
         .recoverWith { 
           case QueryParamValidationErrors(errors) =>
             BadRequest(errors.asJson)
-          case CurrencyConversionError(_, reason) =>
-            BadRequest(reason.asJson)
+          case error @ CurrencyConversionError(_, _) =>
+            ServiceUnavailable(error.message.asJson)
         }
     }
   }
