@@ -1,29 +1,31 @@
 package networthcalculator.programs
 
+import cats.Applicative
 import cats.effect.Concurrent
 import cats.effect.implicits.parallelForGenSpawn
 import cats.implicits.*
+import networthcalculator.domain.currencyconversion.{
+  CurrencyConversion,
+  CurrencyConversionError
+}
 import networthcalculator.domain.transactions.AggregatedTransactions
 import networthcalculator.http.clients.CurrencyExchangeRateClient
-import squants.market.{ Currency, MoneyContext, defaultCurrencySet }
-import squants.market.{ CurrencyExchangeRate => CurrencyExchangeRateS }
 import networthcalculator.utils.Utils
-import networthcalculator.domain.currencyconversion.CurrencyConversion
-import retry.syntax.all._
-import retry.RetryPolicy
-import retry.RetryPolicies._
-import scala.concurrent.duration._
+import org.http4s.Status
+import org.typelevel.log4cats.Logger
+import retry.RetryDetails.{ GivingUp, WillDelayAndRetry }
+import retry.RetryPolicies.*
+import retry.syntax.all.*
+import retry.{ RetryDetails, RetryPolicy, Sleep }
+import squants.market.{ CurrencyExchangeRate as CurrencyExchangeRateS, * }
 
 import java.time.{ LocalDate, Month, Year }
-import cats.Applicative
-import networthcalculator.domain.currencyconversion.CurrencyConversionError
-import org.http4s.Status
-import retry.Sleep
+import scala.concurrent.duration.*
 
-final class CurrencyExchangeRate[F[_]: Concurrent: Sleep](
+final class CurrencyExchangeRate[F[_]: Concurrent: Sleep: Logger](
   currencyExchangeRateClient: CurrencyExchangeRateClient[F]
 ):
-  import CurrencyExchangeRate._
+  import CurrencyExchangeRate.*
   def convertToTargetCurrency(
     targetCurrency: Currency,
     aggregatedTransactions: List[AggregatedTransactions]
@@ -37,7 +39,9 @@ final class CurrencyExchangeRate[F[_]: Concurrent: Sleep](
       transactionsConverted <- transactionsToBeConverted.parTraverse(
         convertToTargetCurrencyInternal(targetCurrency, _)
       )
-      result = Utils.sort(transactionAlreadyInTargetCurrency ++ transactionsConverted)
+      result = Utils.sort(
+        transactionAlreadyInTargetCurrency ++ transactionsConverted
+      )
     yield result
 
   private def convertToTargetCurrencyInternal(
@@ -56,14 +60,16 @@ final class CurrencyExchangeRate[F[_]: Concurrent: Sleep](
 
     for
       // TODO Use Redis as an LRU cache to redue the number of API's call
-      currencyConversion <- currencyExchangeRateClient.latestRates(
-        targetCurrency,
-        dateFrom
-      ).retryingOnSomeErrors(
-        isWorthRetrying = isCurrencyConversionError[F],
-        policy = retryPolicy,
-        onError = retry.noop[F, Throwable]
-      )
+      currencyConversion <- currencyExchangeRateClient
+        .latestRates(
+          targetCurrency,
+          dateFrom
+        )
+        .retryingOnSomeErrors(
+          isWorthRetrying = isCurrencyConversionError[F],
+          policy = retryPolicy,
+          onError = onError[F]
+        )
 
       exchangeRates = createExchangeRates(targetCurrency, currencyConversion)
 
@@ -85,30 +91,49 @@ final class CurrencyExchangeRate[F[_]: Concurrent: Sleep](
     yield result
 
   private def createExchangeRates(
-      baseCurrency: Currency,
-      currencyConversion: CurrencyConversion
-    ): List[CurrencyExchangeRateS] =
-      given MoneyContext = MoneyContext(baseCurrency, defaultCurrencySet, Nil)
+    baseCurrency: Currency,
+    currencyConversion: CurrencyConversion
+  ): List[CurrencyExchangeRateS] =
+    given MoneyContext = MoneyContext(baseCurrency, defaultCurrencySet, Nil)
 
-      val availableCurrency =
-        currencyConversion.currencies.filter(currency =>
-          Currency(
-            currency.name.toString
-          ).isSuccess & currency.name.toString != baseCurrency.code
-        )
+    val availableCurrency =
+      currencyConversion.currencies.filter(currency =>
+        Currency(
+          currency.name.toString
+        ).isSuccess & currency.name.toString != baseCurrency.code
+      )
 
-      availableCurrency.map { currency =>
-        baseCurrency / (Currency(currency.name.toString).get)(
-          currency.value.toBigDecimal
-        )
-      }
+    availableCurrency.map { currency =>
+      baseCurrency / (Currency(currency.name.toString).get)(
+        currency.value.toBigDecimal
+      )
+    }
 
 object CurrencyExchangeRate:
-  val NumberOfRetries = 4
+  val NumberOfRetries     = 4
   val DelayBetweenRetries = 10.milliseconds
-    
-  def retryPolicy[F[_]: Applicative] = limitRetries[F](NumberOfRetries) join exponentialBackoff[F](DelayBetweenRetries)
-  def isCurrencyConversionError[F[_]](e: Throwable)(using A: Applicative[F]): F[Boolean] = e match {
-    case CurrencyConversionError(code, _) if code != Status.TooManyRequests.code => A.pure(true)
+
+  def retryPolicy[F[_]: Applicative] = limitRetries[F](
+    NumberOfRetries
+  ) join exponentialBackoff[F](DelayBetweenRetries)
+
+  def isCurrencyConversionError[F[_]](
+    e: Throwable
+  )(using A: Applicative[F]): F[Boolean] = e match {
+    case CurrencyConversionError(code, _)
+        if code != Status.TooManyRequests.code =>
+      A.pure(true)
     case _ => A.pure(false)
-}
+  }
+
+  def onError[F[_]: Logger](e: Throwable, details: RetryDetails): F[Unit] =
+    details match {
+      case WillDelayAndRetry(_, retriesSoFar, _) =>
+        Logger[F].error(
+          s"Failed to process exchange rate with ${e.getMessage}. So far we have retried $retriesSoFar times."
+        )
+      case GivingUp(totalRetries, _) =>
+        Logger[F].error(
+          s"Giving up on exchange rate after $totalRetries retries."
+        )
+    }

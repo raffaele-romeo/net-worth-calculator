@@ -46,5 +46,5 @@ object currencyconversion:
 
   final case class CurrencyConversionError(code: Int, error: String)
       extends NoStackTrace {
-        def message = s"Exchange rate service failed with error: $error"
-      }
+    def message = s"Exchange rate service failed with error: $error"
+  }
