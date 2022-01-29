@@ -100,7 +100,7 @@ object transactions:
     private val df = new DecimalFormat("#,###.00")
     given Encoder[Money] =
       Encoder[String].contramap(money =>
-        s"${money.currency.code} ${df.format(money.amount)}"
+        s"${money.currency.symbol} ${df.format(money.amount)}"
       )
     given Encoder[Year]  = Encoder[Int].contramap(_.getValue)
     given Encoder[Month] = Encoder[Int].contramap(_.getValue)

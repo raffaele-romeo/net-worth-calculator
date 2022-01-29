@@ -27,8 +27,8 @@ import java.util.UUID
 trait CurrencyExchangeRateClient[F[_]]:
   def latestRates(
     baseCurrency: Currency,
-    dateFrom: LocalDate
-  ): F[List[CurrencyExchangeRate]]
+    date: LocalDate
+  ): F[CurrencyConversion]
 
 object CurrencyExchangeRateClient:
   def make[F[_]: JsonDecoder: Concurrent: Logger](
@@ -39,7 +39,7 @@ object CurrencyExchangeRateClient:
     override def latestRates(
       baseCurrency: Currency,
       date: LocalDate
-    ): F[List[CurrencyExchangeRate]] =
+    ): F[CurrencyConversion] =
 
       val uri = currencyConversionConfig.baseUri
         .withQueryParam("apikey", currencyConversionConfig.apiKey.toString)
@@ -58,23 +58,4 @@ object CurrencyExchangeRateClient:
               resp.status.reason
             ).raiseError[F, CurrencyConversion]
         }
-      yield createExchangeRates(baseCurrency, currencyConversion)
-
-    private def createExchangeRates(
-      baseCurrency: Currency,
-      currencyConversion: CurrencyConversion
-    ): List[CurrencyExchangeRate] =
-      given MoneyContext = MoneyContext(baseCurrency, defaultCurrencySet, Nil)
-
-      val availableCurrency =
-        currencyConversion.currencies.filter(currency =>
-          Currency(
-            currency.name.toString
-          ).isSuccess & currency.name.toString != baseCurrency.code
-        )
-
-      availableCurrency.map { currency =>
-        baseCurrency / (Currency(currency.name.toString).get)(
-          currency.value.toBigDecimal
-        )
-      }
+      yield currencyConversion

@@ -125,8 +125,11 @@ final class TransactionRoutes[F[_]](
         )
         response <- Ok(result.asJson)
       yield response)
-        .recoverWith { case QueryParamValidationErrors(errors) =>
-          BadRequest(errors.asJson)
+        .recoverWith { 
+          case QueryParamValidationErrors(errors) =>
+            BadRequest(errors.asJson)
+          case CurrencyConversionError(_, reason) =>
+            BadRequest(reason.asJson)
         }
 
     }
@@ -152,8 +155,11 @@ final class TransactionRoutes[F[_]](
         )
         response <- Ok(result.asJson)
       yield response)
-        .recoverWith { case QueryParamValidationErrors(errors) =>
-          BadRequest(errors.asJson)
+        .recoverWith { 
+          case QueryParamValidationErrors(errors) =>
+            BadRequest(errors.asJson)
+          case CurrencyConversionError(_, reason) =>
+            BadRequest(reason.asJson)
         }
     }
   }

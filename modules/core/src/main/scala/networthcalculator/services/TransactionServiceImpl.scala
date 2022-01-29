@@ -13,6 +13,7 @@ import networthcalculator.algebras.TransactionsService
 import networthcalculator.domain.assets.*
 import networthcalculator.domain.transactions.*
 import networthcalculator.domain.users.*
+import networthcalculator.utils.Utils
 import squants.market.Money
 
 import java.time.{ Month, Year }
@@ -60,6 +61,7 @@ object TransactionServiceImpl:
           .calculateTotalNetWorthByCurrency(userId, maybeYear)
           .transact[F](transactor)
           .map(groupByCurrency)
+          .map(Utils.sort)
 
       override def findTransactionsByAssetId(
         userId: UserId,
@@ -70,6 +72,7 @@ object TransactionServiceImpl:
           .calculateNetWorthByCurrencyAndAsset(userId, assetId, year)
           .transact[F](transactor)
           .map(groupByCurrency)
+          .map(Utils.sort)
 
       override def findTransactionsByAssetType(
         userId: UserId,
@@ -80,6 +83,7 @@ object TransactionServiceImpl:
           .calculateNetWorthByCurrencyAndAssetType(userId, assetType, year)
           .transact[F](transactor)
           .map(groupByCurrency)
+          .map(Utils.sort)
 
       private def groupByCurrency(
         totalNetWorth: List[AggregatedTransactions]
@@ -90,16 +94,6 @@ object TransactionServiceImpl:
             AggregatedTransactions(list.flatMap(_.totals), month, year)
           }
           .toList
-          .sorted(
-            Ordering
-              .by(
-                (
-                  (totalNetWorth: AggregatedTransactions) =>
-                    (totalNetWorth.year, totalNetWorth.month)
-                )
-              )
-              .reverse
-          )
 
 private object TransactionQueries:
 
