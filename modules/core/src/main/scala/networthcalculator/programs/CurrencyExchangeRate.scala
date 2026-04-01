@@ -16,10 +16,10 @@ import org.typelevel.log4cats.Logger
 import retry.RetryDetails.{ GivingUp, WillDelayAndRetry }
 import retry.RetryPolicies.*
 import retry.syntax.all.*
-import retry.{ RetryDetails, RetryPolicy, Sleep }
+import retry.{ RetryDetails, Sleep }
 import squants.market.{ CurrencyExchangeRate as CurrencyExchangeRateS, * }
 
-import java.time.{ LocalDate, Month, Year }
+import java.time.LocalDate
 import scala.concurrent.duration.*
 
 final class CurrencyExchangeRate[F[_]: Concurrent: Sleep: Logger](

@@ -1,16 +1,11 @@
 package networthcalculator.services
 
 import cats.Applicative
-import cats.data.Validated.{ Invalid, Valid }
-import cats.data.ValidatedNec
 import cats.effect.Sync
 import cats.implicits.*
-import cats.syntax.all.*
 import com.nimbusds.jose.JWSAlgorithm
 import networthcalculator.algebras.*
 import networthcalculator.config.data.TokenExpiration
-import networthcalculator.domain.errors.AuthValidation.*
-import networthcalculator.domain.errors.{ AuthValidation, AuthValidationErrors }
 import networthcalculator.domain.tokens.*
 import networthcalculator.domain.users.*
 

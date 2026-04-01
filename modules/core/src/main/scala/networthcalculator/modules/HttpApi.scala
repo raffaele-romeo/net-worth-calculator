@@ -2,7 +2,8 @@ package networthcalculator.modules
 
 import cats.effect.Async
 import cats.syntax.all.*
-import networthcalculator.domain.users.{ AdminUser, CommonUser }
+import networthcalculator.domain.users.CommonUser
+
 import networthcalculator.http.routes.auth.{
   LoginRoutes,
   LogoutRoutes,
@@ -11,7 +12,6 @@ import networthcalculator.http.routes.auth.{
 import networthcalculator.http.routes.secured.{ AssetRoutes, TransactionRoutes }
 import networthcalculator.http.routes.{ HealthRoutes, version }
 import networthcalculator.middleware.JWTAuthMiddleware
-import networthcalculator.modules.Services
 import org.http4s.*
 import org.http4s.implicits.*
 import org.http4s.server.Router
@@ -64,6 +64,13 @@ object HttpApi:
       version.v1 -> nonAdminRoutes
     )
 
+    val corsPolicy = CORS.policy
+      .withAllowOriginAll
+      .withAllowMethodsAll
+      .withAllowHeadersAll
+      .withAllowCredentials(false)
+      .withMaxAge(1.day)
+
     val middleware: HttpRoutes[F] => HttpRoutes[F] = { (http: HttpRoutes[F]) =>
       AutoSlash(http)
     } andThen { (http: HttpRoutes[F]) =>
@@ -76,4 +83,4 @@ object HttpApi:
       ResponseLogger.httpApp(logHeaders = true, logBody = false)(http)
     }
 
-    loggers(middleware(routes).orNotFound)
+    loggers(corsPolicy(middleware(routes).orNotFound))

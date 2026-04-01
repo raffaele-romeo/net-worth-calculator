@@ -2,16 +2,13 @@ package networthcalculator.services
 
 import cats.effect.MonadCancelThrow
 import cats.implicits.*
-import cats.syntax.all.*
 import doobie.ConnectionIO
 import doobie.hikari.HikariTransactor
 import doobie.implicits.*
 import doobie.postgres.*
-import doobie.util.log.LogHandler
 import networthcalculator.algebras.AssetsService
 import networthcalculator.domain.assets.*
 import networthcalculator.domain.users.UserId
-import org.typelevel.log4cats.Logger
 
 object AssetsServiceImpl:
   def make[F[_]: MonadCancelThrow](

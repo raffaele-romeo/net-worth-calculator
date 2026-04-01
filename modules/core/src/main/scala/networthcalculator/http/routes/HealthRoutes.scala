@@ -2,7 +2,6 @@ package networthcalculator.http.routes
 
 import cats.Monad
 import cats.implicits.*
-import io.circe.generic.auto.*
 import io.circe.syntax.*
 import networthcalculator.algebras.HealthCheckService
 import org.http4s.HttpRoutes

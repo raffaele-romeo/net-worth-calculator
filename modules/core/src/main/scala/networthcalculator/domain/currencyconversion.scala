@@ -1,10 +1,7 @@
 package networthcalculator.domain
 
 import io.circe.*
-import io.circe.generic.semiauto.*
-import io.circe.syntax.*
 
-import java.util.UUID
 import scala.util.control.NoStackTrace
 
 object currencyconversion:

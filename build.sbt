@@ -29,7 +29,7 @@ lazy val core = (project in file("modules/core"))
   )
   .settings(
     Docker / packageName := "net-worth-calculator",
-    dockerBaseImage      := "openjdk:11-jdk-slim",
+    dockerBaseImage      := "eclipse-temurin:21-jre",
     dockerExposedPorts ++= Seq(9000),
     makeBatScripts     := Seq(),
     dockerUpdateLatest := true,
@@ -62,14 +62,14 @@ lazy val core = (project in file("modules/core"))
 val commonSettings = Def.settings(
   inThisBuild(
     List(
-      scalaVersion      := "3.1.0",
+      scalaVersion      := "3.3.6",
       version           := "0.1.0-SNAPSHOT",
       semanticdbEnabled := true,
       semanticdbVersion := scalafixSemanticdb.revision
     )
   ),
   ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.6.0",
-  resolvers += Resolver.sonatypeRepo("snapshots"),
+  resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
   scalafmtOnCompile := false,
   addCommandAlias(
     "validate",

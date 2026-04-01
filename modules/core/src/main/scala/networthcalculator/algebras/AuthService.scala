@@ -1,7 +1,7 @@
 package networthcalculator.algebras
 
 import networthcalculator.domain.tokens.JwtToken
-import networthcalculator.domain.users.{ Password, UserName, ValidUser }
+import networthcalculator.domain.users.ValidUser
 
 trait AuthService[F[_]]:
   def newUser(validUser: ValidUser): F[JwtToken]

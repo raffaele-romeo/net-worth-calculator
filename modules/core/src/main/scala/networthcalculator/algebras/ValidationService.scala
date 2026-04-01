@@ -2,7 +2,6 @@ package networthcalculator.algebras
 
 import networthcalculator.domain.assets.AssetType
 import networthcalculator.domain.transactions.{
-  CreateTransaction,
   ExplodeCreateTransaction,
   ValidTransaction
 }

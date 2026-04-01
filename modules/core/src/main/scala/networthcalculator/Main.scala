@@ -1,9 +1,9 @@
 package networthcalculator
 
 import cats.effect.*
+import com.comcast.ip4s.*
 import networthcalculator.modules.*
-import org.http4s.HttpApp
-import org.http4s.blaze.server.BlazeServerBuilder
+import org.http4s.ember.server.EmberServerBuilder
 import org.typelevel.log4cats
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
@@ -29,15 +29,21 @@ object Main extends IOApp:
           val programs = Programs.make[IO](httpClients)
           val httpApp  = HttpApi.make[IO](services, security, programs)
 
-          BlazeServerBuilder[IO]
-            .bindHttp(
-              cfg.httpServerConfig.port.toInt,
-              cfg.httpServerConfig.host.toString
+          EmberServerBuilder
+            .default[IO]
+            .withHost(
+              Ipv4Address
+                .fromString(cfg.httpServerConfig.host.toString)
+                .getOrElse(ipv4"0.0.0.0")
+            )
+            .withPort(
+              Port
+                .fromInt(cfg.httpServerConfig.port.toInt)
+                .getOrElse(port"9000")
             )
             .withHttpApp(httpApp)
-            .serve
-            .compile
-            .drain
+            .build
+            .useForever
             .as(ExitCode.Success)
         }
     }

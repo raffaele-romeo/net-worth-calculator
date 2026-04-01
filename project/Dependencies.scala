@@ -3,21 +3,21 @@ import sbt.*
 object Dependencies {
 
   object Versions {
-    val cats         = "2.7.0"
-    val catsEffect   = "3.3.0"
-    val catsRetry    = "3.1.0"
-    val circe        = "0.14.1"
-    val ciris        = "2.3.1"
-    val commonsCodec = "1.15"
-    val doobie       = "1.0.0-RC1"
-    val http4s       = "0.23.7"
-    val log4cats     = "2.1.1"
-    val logback      = "1.2.8"
-    val nimbus       = "9.15.2"
-    val redis4cats   = "1.0.0"
+    val cats         = "2.12.0"
+    val catsEffect   = "3.5.7"
+    val catsRetry    = "3.1.3"
+    val circe        = "0.14.10"
+    val ciris        = "3.7.0"
+    val commonsCodec = "1.17.1"
+    val doobie       = "1.0.0-RC6"
+    val http4s       = "0.23.30"
+    val log4cats     = "2.7.0"
+    val logback      = "1.5.16"
+    val nimbus       = "9.47"
+    val redis4cats   = "1.7.2"
     val squants      = "1.8.3"
 
-    val scalaTest = "3.2.9"
+    val scalaTest = "3.2.19"
   }
 
   object Libraries {
@@ -60,8 +60,8 @@ object Dependencies {
       "dev.profunktor" %% "redis4cats-log4cats" % Versions.redis4cats
 
     val http4sDsl    = http4s("http4s-dsl")
-    val http4sServer = http4s("http4s-blaze-server")
-    val http4sClient = http4s("http4s-blaze-client")
+    val http4sServer = http4s("http4s-ember-server")
+    val http4sClient = http4s("http4s-ember-client")
     val http4sCirce  = http4s("http4s-circe")
 
     val squants = "org.typelevel" %% "squants" % Versions.squants

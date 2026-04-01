@@ -17,6 +17,41 @@ Run the application
 sbt run
 ```
 
+## Run the frontend
+
+The frontend is a React 19 application built with Vite and Tailwind CSS.
+
+Install dependencies:
+
+```
+cd frontend
+npm install
+```
+
+Run the development server:
+
+```
+npm run dev
+```
+
+Build for production:
+
+```
+npm run build
+```
+
+Preview the production build:
+
+```
+npm run preview
+```
+
+Lint the code:
+
+```
+npm run lint
+```
+
 ## Build Docker image
 
 ```

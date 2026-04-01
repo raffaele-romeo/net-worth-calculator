@@ -2,7 +2,6 @@ package networthcalculator.http.routes.secured
 
 import cats.effect.Concurrent
 import cats.implicits.*
-import cats.syntax.all.*
 import io.circe.generic.auto.*
 import io.circe.syntax.*
 import networthcalculator.algebras.{ AssetsService, ValidationService }

@@ -1,16 +1,17 @@
 package networthcalculator
 
 import cats.effect.{ Async, Resource }
+import fs2.io.net.Network
 import dev.profunktor.redis4cats.effect.Log.Stdout.*
 import dev.profunktor.redis4cats.{ Redis, RedisCommands }
 import doobie.*
 import doobie.hikari.HikariTransactor
 import networthcalculator.config.data.*
-import org.http4s.blaze.client.BlazeClientBuilder
 import org.http4s.client.Client
+import org.http4s.ember.client.EmberClientBuilder
 
 object AppResources:
-  def make[F[_]: Async](
+  def make[F[_]: Async: Network](
     cfg: AppConfig
   ): Resource[F, AppResources[F]] =
 
@@ -36,7 +37,7 @@ object AppResources:
     for
       redis  <- mkRedisResource(cfg.redis)
       psql   <- mkPostgreSqlResource(cfg.postgreSQL)
-      client <- BlazeClientBuilder[F].resource
+      client <- EmberClientBuilder.default[F].build
     yield AppResources[F](psql, redis, client)
 
 final case class AppResources[F[_]](

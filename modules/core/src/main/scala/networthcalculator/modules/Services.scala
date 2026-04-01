@@ -5,7 +5,6 @@ import dev.profunktor.redis4cats.RedisCommands
 import doobie.hikari.HikariTransactor
 import networthcalculator.algebras.*
 import networthcalculator.services.*
-import org.typelevel.log4cats.Logger
 
 object Services:
   def make[F[_]: Temporal](

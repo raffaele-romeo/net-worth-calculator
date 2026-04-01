@@ -1,28 +1,20 @@
 package networthcalculator.http.clients
 
-import cats.*
 import cats.effect.*
 import cats.implicits.*
-import io.circe.Json
-import io.circe.generic.auto.*
-import io.circe.parser.parse
 import networthcalculator.config.data.CurrencyConversionConfig
 import networthcalculator.domain.currencyconversion.{
   CurrencyConversion,
   CurrencyConversionError
 }
-import org.http4s.Status.{ NotFound, Successful }
-import org.http4s.circe.CirceEntityDecoder.circeEntityDecoder
+import org.http4s.Status.Successful
 import org.http4s.circe.*
 import org.http4s.client.Client
 import org.http4s.client.dsl.Http4sClientDsl
-import org.http4s.syntax.all.*
-import org.http4s.{ Status, Uri }
 import org.typelevel.log4cats.Logger
-import squants.market.*
+import squants.market.Currency
 
 import java.time.LocalDate
-import java.util.UUID
 
 trait CurrencyExchangeRateClient[F[_]]:
   def latestRates(

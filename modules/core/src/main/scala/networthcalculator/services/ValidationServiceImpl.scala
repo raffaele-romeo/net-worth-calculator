@@ -3,10 +3,7 @@ package networthcalculator.services
 import cats.MonadThrow
 import cats.data.Validated.*
 import cats.data.ValidatedNec
-import cats.effect.Sync
 import cats.implicits.*
-import cats.kernel.Semigroup
-import cats.syntax.all.*
 import networthcalculator.algebras.ValidationService
 import networthcalculator.domain.assets.{ AssetType, AssetTypeNotAllowed }
 import networthcalculator.domain.errors.AuthValidation.{

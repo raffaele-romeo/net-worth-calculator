@@ -1,7 +1,5 @@
 package networthcalculator.config
 
-import cats.Show
-import ciris.*
 import networthcalculator.domain.tokens.JwtToken
 import networthcalculator.domain.users.AdminUser
 import org.http4s.Uri

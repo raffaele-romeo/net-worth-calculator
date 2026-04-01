@@ -3,7 +3,6 @@ package networthcalculator.services
 import cats.effect.Concurrent
 import cats.effect.implicits.parallelForGenSpawn
 import cats.implicits.*
-import cats.syntax.all.*
 import doobie.ConnectionIO
 import doobie.hikari.HikariTransactor
 import doobie.implicits.*
@@ -14,9 +13,8 @@ import networthcalculator.domain.assets.*
 import networthcalculator.domain.transactions.*
 import networthcalculator.domain.users.*
 import networthcalculator.utils.Utils
-import squants.market.Money
 
-import java.time.{ Month, Year }
+import java.time.Year
 
 object TransactionServiceImpl:
   def make[F[_]: Concurrent](transactor: HikariTransactor[F]) =

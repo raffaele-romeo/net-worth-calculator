@@ -3,9 +3,7 @@ package networthcalculator.algebras
 import networthcalculator.domain.assets.*
 import networthcalculator.domain.transactions.*
 import networthcalculator.domain.users.UserId
-import squants.market.{ Money, MoneyContext }
-
-import java.time.{ Month, Year }
+import java.time.Year
 
 trait TransactionsService[F[_]]:
   def create(userId: UserId, transaction: List[ValidTransaction]): F[Unit]

@@ -5,8 +5,7 @@ import dev.profunktor.redis4cats.RedisCommands
 import doobie.hikari.HikariTransactor
 import networthcalculator.algebras.*
 import networthcalculator.config.data.TokenExpiration
-import networthcalculator.domain.tokens.JwtToken
-import networthcalculator.domain.users.{ AdminUser, CommonUser }
+import networthcalculator.domain.users.CommonUser
 import networthcalculator.services.*
 
 object Security:

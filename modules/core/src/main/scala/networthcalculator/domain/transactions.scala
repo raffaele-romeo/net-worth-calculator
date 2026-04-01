@@ -1,6 +1,6 @@
 package networthcalculator.domain
 
-import doobie.util.{ Read, Write }
+import doobie.util.Read
 import io.circe.*
 import io.circe.generic.semiauto.*
 import networthcalculator.domain.assets.*

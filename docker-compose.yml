@@ -12,6 +12,7 @@ services:
       - DEBUG=false
       - POSTGRES_PASSWORD=secret
       - POSTGRES_USER=postgres
+      - POSTGRES_DB=networth
     volumes:
       - db-data:/var/lib/postgresql/data
       - ./init/:/docker-entrypoint-initdb.d/

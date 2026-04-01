@@ -3,13 +3,11 @@ package networthcalculator.http.routes.secured
 import cats.data.{ NonEmptyList, ValidatedNel }
 import cats.effect.Concurrent
 import cats.implicits.*
-import cats.syntax.all.*
 import io.circe.generic.auto.*
 import io.circe.syntax.*
 import networthcalculator.algebras.{ TransactionsService, ValidationService }
 import networthcalculator.domain.assets.*
 import networthcalculator.domain.currencyconversion.CurrencyConversionError
-import networthcalculator.domain.errors.TransactionValidation.*
 import networthcalculator.domain.errors.TransactionValidationErrors
 import networthcalculator.domain.transactions.*
 import networthcalculator.domain.transactions.codecs.given
@@ -18,15 +16,13 @@ import networthcalculator.http.decoder.*
 import networthcalculator.http.httpParam.*
 import networthcalculator.programs.CurrencyExchangeRate
 import org.http4s.*
-import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
 import org.http4s.circe.*
 import org.http4s.dsl.Http4sDsl
-import org.http4s.dsl.impl.LongVar
 import org.http4s.server.{ AuthMiddleware, Router }
 import org.typelevel.log4cats.Logger
-import squants.market.{ Currency, MoneyContext }
+import squants.market.Currency
 
-import java.time.{ Month, Year }
+import java.time.Year
 
 final class TransactionRoutes[F[_]](
   transactionService: TransactionsService[F],

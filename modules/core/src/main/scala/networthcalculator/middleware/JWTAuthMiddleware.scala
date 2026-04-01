@@ -3,7 +3,6 @@ package networthcalculator.middleware
 import cats.Show
 import cats.data.{ Kleisli, OptionT }
 import cats.effect.Sync
-import cats.instances.either
 import cats.syntax.all.*
 import com.nimbusds.jwt.SignedJWT
 import networthcalculator.domain.tokens.JwtToken
@@ -12,8 +11,6 @@ import org.http4s.*
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.Authorization
 import org.http4s.server.AuthMiddleware
-
-import java.text.ParseException
 
 object JWTAuthMiddleware:
 
