@@ -27,7 +27,9 @@ object AppResources:
           c.password.toString,
           ce
         )
-      yield xa
+      yield
+        xa.kernel.setConnectionTimeout(2000)
+        xa
 
     def mkRedisResource(
       c: RedisConfig
