@@ -1,6 +1,6 @@
 import { createUser, loginUser, logoutUser } from "@/api/auth";
-import { getToken, setToken } from "@/api/client";
-import { createContext, ReactNode, useState } from "react";
+import { getToken } from "@/api/client";
+import { createContext, ReactNode, useContext, useState } from "react";
 
 
 type AuthContextValue = {
@@ -33,4 +33,12 @@ export function AuthProvider({ children }: { children: ReactNode}) {
     const value: AuthContextValue = {isAuthenticated, login, register, logout};
 
     return <AuthContext value={value}>{children}</AuthContext>;
+}
+
+export function useAuth(): AuthContextValue {
+    const context = useContext(AuthContext);
+    if (context === undefined) {
+        throw new Error("useAuth must be used within an AuthProvider");
+    }
+    return context;
 }

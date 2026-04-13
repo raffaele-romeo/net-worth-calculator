@@ -1,23 +1,28 @@
-import { Counter } from "./components/Counter";
-import StatusBadge from "./components/StatusBadge";
+import { BrowserRouter, Route, Routes } from "react-router";
 import { get } from "./api/client";
 import { AppStatus } from "./api/types";
 import { useState } from "react";
+import LoginPage from "./pages/LoginPage";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import DashboardPage from "./pages/DashboardPage";
+import AssetsPage from "./pages/AssetsPage";
+import TransactionsPage from "./pages/TransactionsPage";
 
 export default function App() {
-  const [appStatus, setAppStatus] = useState<AppStatus | null>(null);
-  
   return (
-    <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <button onClick={ healthcheck }>HealthCheck</button>
-      {appStatus && <p>Postgres: {appStatus.postgres ? "up" : "down"}</p>}
-    </div>
-  );
-
-  async function healthcheck() {
-    const status = await get<AppStatus>("/healthcheck");
-    setAppStatus(status);
-  }
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route element={<ProtectedRoute />}>
+          <Route element={<Layout />}>
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/assets" element={<AssetsPage />} />
+            <Route path="/transactions" element={<TransactionsPage />} />
+          </Route>
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  )
 }
 
 
