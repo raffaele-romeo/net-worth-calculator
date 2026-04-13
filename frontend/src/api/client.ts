@@ -29,14 +29,14 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
    return response.json() as Promise<T>;
 }
 
-export async function get<T>(path: string): Promise<T> {
+export function get<T>(path: string): Promise<T> {
     return request(path);
 }
 
-export async function post<TBody, TResponse>(path: string, body: TBody): Promise<TResponse> {
-    return request(path, {method: 'POST', body: JSON.stringify(body)});
+export function post<TBody, TResponse>(path: string, body?: TBody): Promise<TResponse> {
+    return request(path, {method: 'POST', body: body ? JSON.stringify(body) : undefined});
 }
 
-export async function remove<T>(path: string): Promise<T> {
+export function remove<T>(path: string): Promise<T> {
     return request(path, {method: 'DELETE'});
 }

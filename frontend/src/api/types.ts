@@ -28,6 +28,11 @@ export type Transaction = {
     userId: number;
 }
 
+export type User = {
+    username: string;
+    password: string;
+}
+
 export type TransactionValue = {
     amount: number;
     currency: string;
