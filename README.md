@@ -52,6 +52,22 @@ Lint the code:
 npm run lint
 ```
 
+## API Collection (Bruno)
+
+A ready-to-use [Bruno](https://www.usebruno.com/) collection is included at `bruno/`. It covers all endpoints (auth, assets, transactions, health) and wires the JWT automatically.
+
+How to use it:
+
+1. Install Bruno if needed: `brew install bruno` (or download from the website).
+2. Open Bruno → **Open Collection** → select the `bruno/` folder.
+3. In the top-right dropdown, select the **Local** environment (points to `http://localhost:9000/v1`).
+4. Run `Auth/Login` (or `Auth/Register`) first — the post-response script stores the returned JWT in the `token` environment variable automatically.
+5. All other requests reference `{{token}}` for authorization and will work without further setup.
+
+Some requests (e.g. `Delete Asset`, `Transactions by Asset Id`, `Transactions by Asset Type`) define pre-request variables (`assetId`, `transactionId`, `assetType`) you can edit inline to target different records.
+
+See `API_REFERENCE.md` for a full description of each endpoint, request bodies, and response shapes.
+
 ## Build Docker image
 
 ```
