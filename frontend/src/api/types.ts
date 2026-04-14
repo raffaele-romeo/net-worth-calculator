@@ -1,64 +1,65 @@
-
-
-export type AssetType = "Loan" | "Cash" | "Investment" | "Property";
+export type AssetType = 'Loan' | 'Cash' | 'Investment' | 'Property';
 
 export type Asset = {
-    assetId: number;
-    assetType: AssetType;
-    assetName: string;
-    userId: number;
+  assetId: number;
+  assetType: AssetType;
+  assetName: string;
+  userId: number;
 };
 
 export type CreateAssetRequest = {
-    assetType: string;
-    assetName: string;
-}
+  assetType: string;
+  assetName: string;
+};
 
 export type AppStatus = {
-    redis: boolean;
-    postgres: boolean;
+  redis: boolean;
+  postgres: boolean;
 };
 
 export type Transaction = {
-    transactionId: number;
-    money: string;
-    month: number;
-    year: number;
-    assetId: number;
-    userId: number;
-}
+  transactionId: number;
+  money: string;
+  month: number;
+  year: number;
+  assetId: number;
+  userId: number;
+};
 
 export type User = {
-    username: string;
-    password: string;
-}
+  username: string;
+  password: string;
+};
 
 export type TransactionValue = {
-    amount: number;
-    currency: string;
-    assetId: number;
-}
+  amount: number;
+  currency: string;
+  assetId: number;
+};
 
 export type CreateTransaction = {
-    month: number;
-    year: number;
-    transactions: TransactionValue[];
-}
+  month: number;
+  year: number;
+  transactions: TransactionValue[];
+};
 
 export type AggregatedTransactions = {
-    totals: string[];
-    month: number;
-    year: number;
-}
+  totals: string[];
+  month: number;
+  year: number;
+};
 
 export type NetWorthFilters = {
-    year?: number;
-    currency?: string;
-}
+  year?: number;
+  currency?: string;
+};
 
 export class ApiError extends Error {
-    constructor(public status: number, message: string) {
-        super(message);
-        this.name = "ApiError";
-    }
+  constructor(
+    public status: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
 }

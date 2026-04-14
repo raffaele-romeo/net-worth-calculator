@@ -1,7 +1,6 @@
-import { get } from "./client";
-import { AppStatus } from "./types";
-
+import { get } from './client';
+import { AppStatus } from './types';
 
 export function fetchHealth(): Promise<AppStatus> {
-    return get<AppStatus>("/healthcheck");
+  return get<AppStatus>('/healthcheck');
 }
