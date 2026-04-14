@@ -1,0 +1,25 @@
+meta {
+  name: Net Worth
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/transactions/net-worth?year=2026&currency=USD
+  body: none
+  auth: bearer
+}
+
+params:query {
+  year: 2026
+  currency: USD
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  Both `year` and `currency` query parameters are optional.
+  If `currency` is provided, all totals are converted to that currency.
+}

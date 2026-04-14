@@ -1,0 +1,28 @@
+meta {
+  name: Transactions by Asset Type
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/assets/{{assetType}}/transactions?year=2026&currency=USD
+  body: none
+  auth: bearer
+}
+
+params:query {
+  year: 2026
+  currency: USD
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+vars:pre-request {
+  assetType: Cash
+}
+
+docs {
+  Valid assetType values: Loan, Cash, Investment, Property
+}

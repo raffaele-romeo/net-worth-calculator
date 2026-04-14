@@ -1,0 +1,19 @@
+meta {
+  name: Delete Transaction
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{baseUrl}}/transactions/{{transactionId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+vars:pre-request {
+  transactionId: 1
+}

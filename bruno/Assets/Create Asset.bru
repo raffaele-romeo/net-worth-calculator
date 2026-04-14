@@ -1,0 +1,30 @@
+meta {
+  name: Create Asset
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/assets
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "assetType": "Cash",
+    "assetName": "Savings Account"
+  }
+}
+
+docs {
+  Valid assetType values: Loan, Cash, Investment, Property
+}

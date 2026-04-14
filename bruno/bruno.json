@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Net Worth Calculator",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
