@@ -551,7 +551,88 @@ Go back through your pages and make them look good!
 
 ---
 
-## Step 14 — Charts (Bonus)
+## Step 14 — Optimistic Updates
+
+**Concept:** Update the cache *before* the server responds; roll back on failure.
+
+**Goal:** Make delete (and optionally create) feel instant on the Assets or Transactions page.
+
+**What to do:**
+
+1. Pick a mutation you already wrote in Step 11 (e.g., `deleteAsset`).
+2. Add `onMutate`, `onError`, and `onSettled` handlers:
+
+   ```tsx
+   const deleteMutation = useMutation({
+     mutationFn: deleteAsset,
+     onMutate: async (id) => {
+       await queryClient.cancelQueries({ queryKey: ['assets'] });
+       const previous = queryClient.getQueryData<Asset[]>(['assets']);
+       queryClient.setQueryData<Asset[]>(['assets'], (old) =>
+         old?.filter((a) => a.id !== id),
+       );
+       return { previous }; // passed to onError as `context`
+     },
+     onError: (_err, _id, context) => {
+       if (context?.previous) {
+         queryClient.setQueryData(['assets'], context.previous);
+       }
+       toast.error('Delete failed — restored');
+     },
+     onSettled: () => {
+       queryClient.invalidateQueries({ queryKey: ['assets'] });
+     },
+   });
+   ```
+
+3. Click delete — the row disappears instantly. Kill your backend, try again — the row comes back and you get a toast.
+
+**Key ideas:**
+
+- `onMutate` runs *before* the request. You snapshot the cache, apply the optimistic change, and return the snapshot as `context`.
+- `cancelQueries` prevents an in-flight refetch from clobbering your optimistic write.
+- `onError` rolls back using the snapshot. `onSettled` refetches to reconcile with server truth either way.
+- This is *cache surgery* — you're lying to the UI briefly, then confirming or correcting.
+
+**Scala analogy:** think `Ref[F, A].modify` with a compensating action on failure — optimistic concurrency control at the UI layer. The `context` return is your undo log.
+
+**Gotcha:** only worth doing for actions the user will notice latency on (delete, toggle, reorder). Don't bother for a one-off form submit that already shows a spinner.
+
+---
+
+## Step 15 — Session Expiry & Auto-Logout
+
+**Concept:** JWT lifecycle on the client, centralized 401 handling, timers tied to component lifetime
+
+**Goal:** When the JWT expires, log the user out automatically instead of showing cryptic errors on their next click.
+
+**What to do:**
+
+1. **Handle 401 globally in `src/api/client.ts`**
+   Every request already goes through this file. On `res.status === 401`, clear the token and redirect to `/login`. This is the safety net — no matter where expiry is discovered, the user lands back at login.
+
+2. **Decode the JWT's `exp` claim on login + on app startup**
+   JWTs are three base64 segments separated by dots; the middle one is JSON with an `exp` field (unix seconds). Either use `jwt-decode` or decode manually with `atob`. If `exp * 1000 <= Date.now()`, the token is already dead — clear it immediately.
+
+3. **Schedule a proactive logout**
+   In your auth context (or wherever the token is loaded), set a `setTimeout` for `(exp * 1000) - Date.now()`. When it fires → logout. Remember to `clearTimeout` on unmount / on logout to avoid leaks.
+
+4. **(Optional) Warn the user before expiry**
+   Fire a toast 1–2 minutes before expiry so they can save their work.
+
+**Key ideas:**
+
+- The backend is the source of truth for session validity (your Redis token store). Client-side `exp` checks are purely UX — don't use them for security decisions.
+- Centralizing 401 handling in the API client means you don't have to remember it in every component.
+- `setTimeout` is lost on tab close/reload, so the startup check is essential.
+
+**Scala analogy:** think of the session as a `Resource[F, Session]` whose `release` fires when either an `IO.sleep(ttl)` completes *or* a downstream call returns `Unauthorized` — two cancellation sources racing.
+
+**Test it:** temporarily shorten your backend JWT TTL to 30 seconds, log in, wait, and watch what happens.
+
+---
+
+## Step 16 — Charts (Bonus)
 
 **Concept:** Recharts library for data visualization
 

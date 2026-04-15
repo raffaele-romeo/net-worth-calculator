@@ -1,37 +1,36 @@
-import { fetchHealth } from '@/api/health';
-import { getNetWorth } from '@/api/transactions';
+
+import { getNetWorth, getTransactionsByAssetId, getTransactionsByAssetType } from '@/api/transactions';
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 
 export default function DashboardPage() {
-  const health = useQuery({
-    queryKey: ['health'],
-    queryFn: fetchHealth,
-  });
+  const [yearFilter, setYearFilter] = useState<number | undefined>();
+  const [currencyFilter, setCurrencyFilter] = useState<string | undefined>();
+  const [assetId, setAssetId] = useState<number | undefined>();
+  const [assetType, setAssetType] = useState<string | undefined>();
 
   const netWorth = useQuery({
-    queryKey: ['netWorth'],
-    queryFn: () => getNetWorth(),
+    queryKey: ['netWorth', yearFilter, currencyFilter],
+    queryFn: () => getNetWorth(yearFilter, currencyFilter),
   });
+
+
+  const trasactionsByAssetId = useQuery({
+    queryKey: ['netWorth', yearFilter, currencyFilter],
+    queryFn: () => getTransactionsByAssetId(yearFilter, currencyFilter),
+  });
+
+
+  const transactionsByAssetType = useQuery({
+    queryKey: ['netWorth', yearFilter, currencyFilter],
+    queryFn: () => getTransactionsByAssetType(yearFilter, currencyFilter),
+  });
+
+
 
   return (
     <div>
       <h1>Dashboard</h1>
-      <div>
-        <h2>System Health</h2>
-        {health.isLoading && <p>Loading...</p>}
-        {health.isError && <p>Error loading health</p>}
-        {health.data && (
-          <>
-            <p>
-              Postgres: <strong>{health.data?.postgres ? 'up' : 'down'}</strong>
-            </p>
-            <p>
-              Redis: <strong>{health.data?.redis ? 'up' : 'down'}</strong>
-            </p>
-          </>
-        )}
-      </div>
-
       <div>
         <h2>Net Worth</h2>
         {netWorth.isLoading && <p>Loading...</p>}

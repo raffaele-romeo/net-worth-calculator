@@ -1,8 +1,8 @@
 import { get, post, remove } from './client';
-import { AggregatedTransactions, CreateTransaction } from './types';
+import { AggregatedTransactions, CreateTransaction, Transaction } from './types';
 
-export function getTransactions(): Promise<AggregatedTransactions[]> {
-  return get<AggregatedTransactions[]>('/transactions');
+export function getTransactions(): Promise<Transaction[]> {
+  return get<Transaction[]>('/transactions');
 }
 
 export function createTransaction(transaction: CreateTransaction): Promise<void> {

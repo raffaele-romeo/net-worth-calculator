@@ -15,7 +15,7 @@ export async function loginUser(user: User): Promise<string> {
   return token;
 }
 
-export function logoutUser(): Promise<void> {
+export async function logoutUser(): Promise<void> {
+  await post<void, void>('/auth/logout');
   setToken(null);
-  return post<void, void>('/auth/logout');
 }

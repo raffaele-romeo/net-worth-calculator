@@ -1,13 +1,8 @@
 import { createAsset, deleteAsset, getAsset } from '@/api/assets';
-import { AssetType } from '@/api/types';
+import { AssetType, CreateAssetRequest } from '@/api/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-
-type FormData = {
-  assetType: AssetType;
-  assetName: string;
-};
 
 const ASSET_TYPES: AssetType[] = ['Loan', 'Cash', 'Investment', 'Property'];
 
@@ -19,7 +14,7 @@ export default function AssetsPage() {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<FormData>();
+  } = useForm<CreateAssetRequest>();
 
   const createMutation = useMutation({
     mutationFn: createAsset,
@@ -54,7 +49,6 @@ export default function AssetsPage() {
   return (
     <div>
       <h1>Assets</h1>
-
       {isLoading && <p>Loading...</p>}
       {assets && (
         <ul>

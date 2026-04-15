@@ -8,7 +8,7 @@ export type Asset = {
 };
 
 export type CreateAssetRequest = {
-  assetType: string;
+  assetType: AssetType;
   assetName: string;
 };
 

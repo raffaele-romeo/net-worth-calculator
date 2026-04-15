@@ -103,6 +103,8 @@ object transactions:
         s"${money.currency.symbol} ${df.format(money.amount)}"
       )
     given Encoder[Year]  = Encoder[Int].contramap(_.getValue)
+    given Decoder[Year]  = Decoder[Int].map(Year.of)
     given Encoder[Month] = Encoder[Int].contramap(_.getValue)
+    given Decoder[Month] = Decoder[Int].map(Month.of)
 
   final case class TransactionAlreadyCreated(error: String) extends NoStackTrace

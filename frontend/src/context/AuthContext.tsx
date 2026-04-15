@@ -24,9 +24,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAuthenticated(true);
   };
 
+
   const logout = async () => {
-    await logoutUser();
-    setIsAuthenticated(false);
+    try{
+      await logoutUser();
+    } finally {
+      setIsAuthenticated(false);
+    }
   };
 
   const value: AuthContextValue = { isAuthenticated, login, register, logout };
