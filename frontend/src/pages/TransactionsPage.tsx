@@ -1,6 +1,6 @@
 import { getAsset } from '@/api/assets';
 import { createTransaction, deleteTransaction, getTransactions } from '@/api/transactions';
-import { TransactionValue } from '@/api/types';
+import { Transaction, TransactionValue } from '@/api/types';
 import { CURRENCIES } from '@/constants';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useId, useState } from 'react';
@@ -47,13 +47,22 @@ export default function TransactionsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: deleteTransaction,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      toast.success('Transaction deleted');
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['transactions'] });
+      const previous = queryClient.getQueryData<Transaction[]>(['transactions']);
+      queryClient.setQueryData<Transaction[]>(['transactions'], (old) =>
+        old?.filter((t) => t.transactionId !== id),
+      );
+      return { previous };
     },
-    onError: (error) => {
-      const message = error instanceof Error ? error.message : 'Failed to delete transaction';
-      toast.error(message);
+    onError: (_err, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['transactions'], context.previous);
+      }
+      toast.error('Delete failed — restored');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
     },
   });
 

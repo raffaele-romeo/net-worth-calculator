@@ -1,5 +1,5 @@
 import { createAsset, deleteAsset, getAsset } from '@/api/assets';
-import { AssetType, CreateAssetRequest } from '@/api/types';
+import { Asset, AssetType, CreateAssetRequest } from '@/api/types';
 import { ASSET_TYPES } from '@/constants';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useId, useState } from 'react';
@@ -41,13 +41,22 @@ export default function AssetsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: deleteAsset,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['assets'] });
-      toast.success('Asset deleted');
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['assets'] });
+      const previous = queryClient.getQueryData<Asset[]>(['assets']);
+      queryClient.setQueryData<Asset[]>(['assets'], (old) =>
+        old?.filter((a) => a.assetId !== id),
+      );
+      return { previous };
     },
-    onError: (error) => {
-      const message = error instanceof Error ? error.message : 'Failed to delete asset';
-      toast.error(message);
+    onError: (_err, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['assets'], context.previous);
+      }
+      toast.error('Delete failed — restored');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['assets'] });
     },
   });
 
