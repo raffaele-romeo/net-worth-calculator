@@ -163,8 +163,9 @@ resource "random_password" "db_password" {
   length  = 32
   special = false
 }
+
 resource "google_sql_user" "users" {
-  name     = "me"
+  name     = "postgres"
   instance = google_sql_database_instance.nwc_sql_db.name
   password = random_password.db_password.result
 }
@@ -180,4 +181,56 @@ resource "google_redis_instance" "nwc_redis" {
   redis_version      = "REDIS_7_0"
 
   depends_on = [google_service_networking_connection.private_vpc_peering]
+}
+
+resource "google_secret_manager_secret" "nwc_db_pass_secret_manager" {
+  secret_id = "nwc-db-password"
+
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret_version" "nwc_db_pass_secret_manager_version" {
+  secret = google_secret_manager_secret.nwc_db_pass_secret_manager.id
+
+  secret_data = random_password.db_password.result
+}
+
+resource "google_secret_manager_secret" "nwc_jwt_signing_secret_manager" {
+  secret_id = "nwc-jwt-signing-key"
+
+  replication {
+    auto {}
+  }
+}
+
+resource "random_password" "jwt_signing_key" {
+  length  = 64
+  special = false
+}
+
+resource "google_secret_manager_secret_version" "nwc_jwt_signing_secret_manager_version" {
+  secret = google_secret_manager_secret.nwc_jwt_signing_secret_manager.id
+
+  secret_data = random_password.jwt_signing_key.result
+}
+
+resource "google_service_account" "nwc_service_account" {
+  account_id   = "nwc-backend-sa"
+  display_name = "Net Worth Calculator backend (Cloud Run)"
+}
+
+resource "google_secret_manager_secret_iam_member" "nwc_db_password_secret_manager_iam_member" {
+  secret_id = google_secret_manager_secret.nwc_db_pass_secret_manager.id
+  role      = "roles/secretmanager.secretAccessor"
+  # Grant the new deployed service account access to this secret.
+  member     = "serviceAccount:${google_service_account.nwc_service_account.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "nwc_jwt_signing_secret_manager_iam_member" {
+  secret_id = google_secret_manager_secret.nwc_jwt_signing_secret_manager.id
+  role      = "roles/secretmanager.secretAccessor"
+  # Grant the new deployed service account access to this secret.
+  member     = "serviceAccount:${google_service_account.nwc_service_account.email}"
 }

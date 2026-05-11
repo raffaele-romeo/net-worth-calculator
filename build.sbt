@@ -45,6 +45,8 @@ lazy val core = (project in file("modules/core"))
       Libraries.doobieCore,
       Libraries.doobieHikari,
       Libraries.doobiePostgres,
+      Libraries.flywayCore,
+      Libraries.flywayPostgres,
       Libraries.logback,
       Libraries.log4catsSlf4j,
       Libraries.log4catsCore,

@@ -16,6 +16,7 @@ import org.http4s.*
 import org.http4s.implicits.*
 import org.http4s.server.Router
 import org.http4s.server.middleware.*
+import org.typelevel.ci.*
 import org.typelevel.log4cats.Logger
 
 import scala.concurrent.duration.*
@@ -24,7 +25,8 @@ object HttpApi:
   def make[F[_]: Async: Logger](
     services: Services[F],
     security: Security[F],
-    programs: Programs[F]
+    programs: Programs[F],
+    allowedOrigins: Set[String]
   ): HttpApp[F] =
 
     val usersMiddleware =
@@ -64,10 +66,18 @@ object HttpApi:
       version.v1 -> nonAdminRoutes
     )
 
+    // Compare an incoming Origin host (e.g. "localhost:5173") against the
+    // hostnames extracted from our allowed-origin URLs.
+    val allowedHosts: Set[CIString] = allowedOrigins.flatMap { o =>
+      Uri.fromString(o).toOption.flatMap(_.host).map(h => CIString(h.value))
+    }
+
     val corsPolicy = CORS.policy
-      .withAllowOriginAll
-      .withAllowMethodsAll
-      .withAllowHeadersAll
+      .withAllowOriginHostCi(allowedHosts.contains)
+      .withAllowMethodsIn(
+        Set(Method.GET, Method.POST, Method.PUT, Method.DELETE, Method.OPTIONS)
+      )
+      .withAllowHeadersIn(Set(ci"Content-Type", ci"Authorization"))
       .withAllowCredentials(false)
       .withMaxAge(1.day)
 

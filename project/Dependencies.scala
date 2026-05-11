@@ -10,6 +10,7 @@ object Dependencies {
     val ciris        = "3.7.0"
     val commonsCodec = "1.17.1"
     val doobie       = "1.0.0-RC6"
+    val flyway       = "10.20.0"
     val http4s       = "0.23.30"
     val log4cats     = "2.7.0"
     val logback      = "1.5.16"
@@ -48,6 +49,9 @@ object Dependencies {
     val doobieCore     = doobie("doobie-core")
     val doobieHikari   = doobie("doobie-hikari")
     val doobiePostgres = doobie("doobie-postgres")
+
+    val flywayCore     = "org.flywaydb" % "flyway-core"                % Versions.flyway
+    val flywayPostgres = "org.flywaydb" % "flyway-database-postgresql" % Versions.flyway
 
     val log4catsSlf4j = log4Cats("log4cats-slf4j")
     val log4catsCore  = log4Cats("log4cats-core")

@@ -34,7 +34,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const response = await fetch(`http://localhost:9000/v1${path}`, {
+  const baseUrl = import.meta.env.VITE_API_BASE_URL ?? '/v1';
+  const response = await fetch(`${baseUrl}${path}`, {
     ...options,
     headers,
   });

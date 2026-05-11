@@ -32,7 +32,8 @@ object data:
 
   final case class HttpServerConfig(
     host: Host,
-    port: Port
+    port: Port,
+    allowedOrigins: Set[String]
   )
 
   opaque type TokenExpiration = FiniteDuration

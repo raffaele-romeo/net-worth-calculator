@@ -27,7 +27,12 @@ object Main extends IOApp:
           val httpClients =
             HttpClients.make[IO](cfg.currencyConversionConfig, res.client)
           val programs = Programs.make[IO](httpClients)
-          val httpApp  = HttpApi.make[IO](services, security, programs)
+          val httpApp = HttpApi.make[IO](
+            services,
+            security,
+            programs,
+            cfg.httpServerConfig.allowedOrigins
+          )
 
           EmberServerBuilder
             .default[IO]
