@@ -16,22 +16,6 @@ provider "google" {
   region  = var.region
 }
 
-resource "google_storage_bucket" "tf_state" {
-  name                        = var.state_bucket_name
-  location                    = "EU"
-  uniform_bucket_level_access = true
-  public_access_prevention    = "enforced"
-  versioning {
-    enabled = true
-  }
-  lifecycle {
-    prevent_destroy = true
-  }
-  labels = {
-    owned-by = "raf"
-  }
-}
-
 resource "google_project_service" "apis" {
   for_each = toset([
     "run.googleapis.com",
